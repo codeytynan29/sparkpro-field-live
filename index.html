@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/sparkpro-field-live/manifest.json" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/sparkpro-field-live/favicon.svg" />
+    <link rel="apple-touch-icon" href="/sparkpro-field-live/icons/icon-192.png" />
+
+    <!-- Viewport — no user scaling so it behaves like a native app -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <!-- PWA / status bar -->
+    <!-- NOTE: standalone (fullscreen) mode disabled — iOS standalone caused a
+         repaint/strobe loop with this app's blur header. Opening in normal
+         browser mode is reliable. Re-enable once tested live on-device. -->
+    <meta name="theme-color" content="#07070f" />
+    <meta name="apple-mobile-web-app-title" content="SP Field" />
+
+    <!-- Prevent phone number detection -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <title>SparkPro Field Beta</title>
+    <script type="module" crossorigin src="/sparkpro-field-live/assets/index-DP9Tno6v.js"></script>
+    <link rel="stylesheet" crossorigin href="/sparkpro-field-live/assets/index-Cp-v-qrC.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

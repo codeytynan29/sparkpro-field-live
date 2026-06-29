@@ -1,0 +1,24 @@
+{
+  "name": "SparkPro Field Beta",
+  "short_name": "SP Field",
+  "description": "SparkPro field tech toolkit — beta",
+  "start_url": "/sparkpro-field-live/",
+  "display": "browser",
+  "background_color": "#07070f",
+  "theme_color": "#07070f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
