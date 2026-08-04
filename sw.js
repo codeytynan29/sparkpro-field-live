@@ -5,13 +5,41 @@
 // auth and tester data have to be live, and a stale cached session would be
 // worse than an honest failure.
 
-const CACHE = 'sparkpro-field-v1'
+// Both values are rewritten at build time by scripts/inject-precache.mjs.
+// Written so this file is still VALID JAVASCRIPT unprocessed: self.__PRECACHE__
+// is simply undefined then, so PRECACHE falls back to [] and the worker
+// degrades to the old lazy-caching behaviour instead of throwing on load. A
+// service worker that throws at parse time registers nothing and fails silently.
+const CACHE    = 'sparkpro-field-vL3NwYXJrcHJv'
+const PRECACHE = [
+  "/sparkpro-field-live/",
+  "/sparkpro-field-live/index.html",
+  "/sparkpro-field-live/manifest.json",
+  "/sparkpro-field-live/assets/field-splash-Ch7Rpo15.webp",
+  "/sparkpro-field-live/assets/field-splash-mobile-DgrP-jD2.webp",
+  "/sparkpro-field-live/assets/hex-bg-BH7n1x9W.webp",
+  "/sparkpro-field-live/assets/index-B89s0U_Y.css",
+  "/sparkpro-field-live/assets/index-D7z0rWzx.js",
+  "/sparkpro-field-live/assets/sp-Bp1IW3QM.webp",
+  "/sparkpro-field-live/assets/sparkpro-bg-DHVfRdv9.webp"
+]
 
 // '/sparkpro-field-live/sw.js' → '/sparkpro-field-live/'
 const BASE = self.location.pathname.replace(/sw\.js$/, '')
 
-self.addEventListener('install', () => {
-  self.skipWaiting()
+// Pull the shell and every hashed asset down on install, so the app opens
+// offline even if its FIRST open is offline. Cached one-by-one on purpose:
+// cache.addAll() rejects the whole batch if any single request fails, which
+// would leave a tester with no cache at all because of one stale entry.
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(c => Promise.all(
+        PRECACHE.map(url => c.add(url).catch(() => {}))
+      ))
+      .then(() => self.skipWaiting())
+      .catch(() => self.skipWaiting())
+  )
 })
 
 self.addEventListener('activate', event => {
