@@ -18,8 +18,8 @@ const PRECACHE = [
   "/sparkpro-field-live/assets/field-splash-Ch7Rpo15.webp",
   "/sparkpro-field-live/assets/field-splash-mobile-DgrP-jD2.webp",
   "/sparkpro-field-live/assets/hex-bg-BH7n1x9W.webp",
-  "/sparkpro-field-live/assets/index-BDcuk-VG.js",
-  "/sparkpro-field-live/assets/index-BINibCnc.css",
+  "/sparkpro-field-live/assets/index-BOA367og.js",
+  "/sparkpro-field-live/assets/index-DdPguweC.css",
   "/sparkpro-field-live/assets/sp-Bp1IW3QM.webp",
   "/sparkpro-field-live/assets/sparkpro-bg-DHVfRdv9.webp"
 ]
