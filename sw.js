@@ -10,7 +10,7 @@
 // is simply undefined then, so PRECACHE falls back to [] and the worker
 // degrades to the old lazy-caching behaviour instead of throwing on load. A
 // service worker that throws at parse time registers nothing and fails silently.
-const CACHE    = 'sparkpro-field-v7aZQL6JvkoUK'
+const CACHE    = 'sparkpro-field-vXZk49HanxW_Q'
 const PRECACHE = [
   "/sparkpro-field-live/",
   "/sparkpro-field-live/index.html",
@@ -18,11 +18,12 @@ const PRECACHE = [
   "/sparkpro-field-live/assets/field-splash-Ch7Rpo15.webp",
   "/sparkpro-field-live/assets/field-splash-mobile-DgrP-jD2.webp",
   "/sparkpro-field-live/assets/hex-bg-BH7n1x9W.webp",
-  "/sparkpro-field-live/assets/index-CHPHagFU.js",
   "/sparkpro-field-live/assets/index-CoTKYbm3.css",
+  "/sparkpro-field-live/assets/index-DQyfNwif.js",
   "/sparkpro-field-live/assets/sp-Bp1IW3QM.webp",
   "/sparkpro-field-live/assets/sparkpro-bg-DHVfRdv9.webp",
   "/sparkpro-field-live/voice/core/0034g4o-6.opus",
+  "/sparkpro-field-live/voice/core/008md30-1f.opus",
   "/sparkpro-field-live/voice/core/00dxd18-n.opus",
   "/sparkpro-field-live/voice/core/00eaxal-n.opus",
   "/sparkpro-field-live/voice/core/00ev5e8-g.opus",
@@ -31,6 +32,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/00gfom9-8.opus",
   "/sparkpro-field-live/voice/core/00hmarn-1u.opus",
   "/sparkpro-field-live/voice/core/00l7c5y-f.opus",
+  "/sparkpro-field-live/voice/core/00obp5m-1c.opus",
   "/sparkpro-field-live/voice/core/00pztd9-9.opus",
   "/sparkpro-field-live/voice/core/00txf04-5.opus",
   "/sparkpro-field-live/voice/core/00xu8b9-1e.opus",
@@ -44,6 +46,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/025vy22-7.opus",
   "/sparkpro-field-live/voice/core/02b9emv-i.opus",
   "/sparkpro-field-live/voice/core/02ejsf2-b.opus",
+  "/sparkpro-field-live/voice/core/02h08xu-1e.opus",
   "/sparkpro-field-live/voice/core/02jqnqx-d.opus",
   "/sparkpro-field-live/voice/core/02zbe50-c.opus",
   "/sparkpro-field-live/voice/core/038d4l9-a.opus",
@@ -85,6 +88,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/08cawt5-1w.opus",
   "/sparkpro-field-live/voice/core/08ds35k-2s.opus",
   "/sparkpro-field-live/voice/core/08lcsyr-16.opus",
+  "/sparkpro-field-live/voice/core/08njxab-19.opus",
   "/sparkpro-field-live/voice/core/08ty8we-e.opus",
   "/sparkpro-field-live/voice/core/08xwbvx-2r.opus",
   "/sparkpro-field-live/voice/core/09275s1-23.opus",
@@ -120,6 +124,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0c701nu-22.opus",
   "/sparkpro-field-live/voice/core/0cbap8f-c.opus",
   "/sparkpro-field-live/voice/core/0cdar8y-b.opus",
+  "/sparkpro-field-live/voice/core/0chkoyh-1d.opus",
   "/sparkpro-field-live/voice/core/0cmuj7d-c.opus",
   "/sparkpro-field-live/voice/core/0d2le1h-h.opus",
   "/sparkpro-field-live/voice/core/0d3gltr-9.opus",
@@ -131,6 +136,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0de3do3-l.opus",
   "/sparkpro-field-live/voice/core/0dx4pz4-f.opus",
   "/sparkpro-field-live/voice/core/0e0bbuf-a.opus",
+  "/sparkpro-field-live/voice/core/0e0j2sb-15.opus",
   "/sparkpro-field-live/voice/core/0e2ogjb-1d.opus",
   "/sparkpro-field-live/voice/core/0e8yzc9-n.opus",
   "/sparkpro-field-live/voice/core/0ec4i94-c.opus",
@@ -154,6 +160,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0fzs0nl-14.opus",
   "/sparkpro-field-live/voice/core/0g2argk-f.opus",
   "/sparkpro-field-live/voice/core/0gatges-2k.opus",
+  "/sparkpro-field-live/voice/core/0gfynji-17.opus",
   "/sparkpro-field-live/voice/core/0gr00cr-d.opus",
   "/sparkpro-field-live/voice/core/0gw9qfg-b.opus",
   "/sparkpro-field-live/voice/core/0h0swhr-g.opus",
@@ -176,6 +183,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0jjzwho-f.opus",
   "/sparkpro-field-live/voice/core/0jo8jue-o.opus",
   "/sparkpro-field-live/voice/core/0jp0gq9-e.opus",
+  "/sparkpro-field-live/voice/core/0jsk9k6-1h.opus",
   "/sparkpro-field-live/voice/core/0jtwtbv-u.opus",
   "/sparkpro-field-live/voice/core/0k495j5-5.opus",
   "/sparkpro-field-live/voice/core/0kfba9n-a.opus",
@@ -201,6 +209,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0n5bx17-7.opus",
   "/sparkpro-field-live/voice/core/0nec8mb-x.opus",
   "/sparkpro-field-live/voice/core/0ntlana-26.opus",
+  "/sparkpro-field-live/voice/core/0nvuskg-1b.opus",
   "/sparkpro-field-live/voice/core/0o0csqj-a.opus",
   "/sparkpro-field-live/voice/core/0o9n9nk-f.opus",
   "/sparkpro-field-live/voice/core/0obk4vg-c.opus",
@@ -211,6 +220,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0p3ex7j-a.opus",
   "/sparkpro-field-live/voice/core/0p70a26-o.opus",
   "/sparkpro-field-live/voice/core/0p7ccb8-f.opus",
+  "/sparkpro-field-live/voice/core/0phkild-1k.opus",
   "/sparkpro-field-live/voice/core/0pigdyn-n.opus",
   "/sparkpro-field-live/voice/core/0pjjl8z-1e.opus",
   "/sparkpro-field-live/voice/core/0pq32lk-4.opus",
@@ -240,9 +250,11 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0shzd2i-7.opus",
   "/sparkpro-field-live/voice/core/0sjo23s-c.opus",
   "/sparkpro-field-live/voice/core/0sm7uac-9.opus",
+  "/sparkpro-field-live/voice/core/0smjsjm-1e.opus",
   "/sparkpro-field-live/voice/core/0sn3u93-7.opus",
   "/sparkpro-field-live/voice/core/0spl33r-a.opus",
   "/sparkpro-field-live/voice/core/0sq7kh4-e.opus",
+  "/sparkpro-field-live/voice/core/0t4m62g-1f.opus",
   "/sparkpro-field-live/voice/core/0t8fn63-w.opus",
   "/sparkpro-field-live/voice/core/0tbeey1-1h.opus",
   "/sparkpro-field-live/voice/core/0tbvgiz-25.opus",
@@ -281,6 +293,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0xri7vd-1k.opus",
   "/sparkpro-field-live/voice/core/0xv1luw-2b.opus",
   "/sparkpro-field-live/voice/core/0xxke3t-20.opus",
+  "/sparkpro-field-live/voice/core/0xz96gx-1t.opus",
   "/sparkpro-field-live/voice/core/0y6dwzd-2c.opus",
   "/sparkpro-field-live/voice/core/0y95avt-e.opus",
   "/sparkpro-field-live/voice/core/0ynjnxd-6.opus",
@@ -334,9 +347,11 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/1484gs4-b.opus",
   "/sparkpro-field-live/voice/core/14bgx51-7.opus",
   "/sparkpro-field-live/voice/core/14f3ufs-1b.opus",
+  "/sparkpro-field-live/voice/core/14jrto3-19.opus",
   "/sparkpro-field-live/voice/core/14ris5o-k.opus",
   "/sparkpro-field-live/voice/core/14u5cjz-f.opus",
   "/sparkpro-field-live/voice/core/14v7035-d.opus",
+  "/sparkpro-field-live/voice/core/150g73j-1d.opus",
   "/sparkpro-field-live/voice/core/151k2t8-i.opus",
   "/sparkpro-field-live/voice/core/154875g-e.opus",
   "/sparkpro-field-live/voice/core/155m8xj-8.opus",
@@ -388,6 +403,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/1aosl5s-i.opus",
   "/sparkpro-field-live/voice/core/1ap8xo8-r.opus",
   "/sparkpro-field-live/voice/core/1ar7q85-1d.opus",
+  "/sparkpro-field-live/voice/core/1atfrpc-z.opus",
   "/sparkpro-field-live/voice/core/1b6fp1h-h.opus",
   "/sparkpro-field-live/voice/core/1b9v2z0-a.opus",
   "/sparkpro-field-live/voice/core/1bewqeo-c.opus",
@@ -403,6 +419,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/1c3dvwq-c.opus",
   "/sparkpro-field-live/voice/core/1c7ex2m-7.opus",
   "/sparkpro-field-live/voice/core/1c8jaaa-c.opus",
+  "/sparkpro-field-live/voice/core/1ccum3x-17.opus",
   "/sparkpro-field-live/voice/core/1ccuyj6-2m.opus",
   "/sparkpro-field-live/voice/core/1ch2k5x-4.opus",
   "/sparkpro-field-live/voice/core/1cl4hjt-h.opus",
@@ -449,7 +466,9 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/1h5z3kk-1g.opus",
   "/sparkpro-field-live/voice/core/1h6lmn1-a.opus",
   "/sparkpro-field-live/voice/core/1hahpju-n.opus",
+  "/sparkpro-field-live/voice/core/1hi50y6-z.opus",
   "/sparkpro-field-live/voice/core/1hiumed-f.opus",
+  "/sparkpro-field-live/voice/core/1hjocw2-15.opus",
   "/sparkpro-field-live/voice/core/1hpums4-h.opus",
   "/sparkpro-field-live/voice/core/1hthw4v-h.opus",
   "/sparkpro-field-live/voice/core/1htlq9q-6.opus",
@@ -493,6 +512,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/1nfhvr5-d.opus",
   "/sparkpro-field-live/voice/core/1nh3gio-j.opus",
   "/sparkpro-field-live/voice/core/1ni1p7y-h.opus",
+  "/sparkpro-field-live/voice/core/1ninj8e-1a.opus",
   "/sparkpro-field-live/voice/core/1nqf75f-1d.opus",
   "/sparkpro-field-live/voice/core/1nryiac-k.opus",
   "/sparkpro-field-live/voice/core/1nvpqbq-1b.opus",
@@ -575,14 +595,17 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/1vzme8k-j.opus",
   "/sparkpro-field-live/voice/core/1w00akd-a.opus",
   "/sparkpro-field-live/voice/core/1w1b7hw-6.opus",
+  "/sparkpro-field-live/voice/core/1w58i8e-1a.opus",
   "/sparkpro-field-live/voice/core/1w6q749-8.opus",
   "/sparkpro-field-live/voice/core/1w9lczq-j.opus",
   "/sparkpro-field-live/voice/core/1wa4p8b-c.opus",
   "/sparkpro-field-live/voice/core/1whcel1-f.opus",
   "/sparkpro-field-live/voice/core/1wly1qr-h.opus",
+  "/sparkpro-field-live/voice/core/1wou3c7-1b.opus",
   "/sparkpro-field-live/voice/core/1wt7oqj-p.opus",
   "/sparkpro-field-live/voice/core/1wuu1py-17.opus",
   "/sparkpro-field-live/voice/core/1x2x2lq-l.opus",
+  "/sparkpro-field-live/voice/core/1x5k49u-1f.opus",
   "/sparkpro-field-live/voice/core/1x7u0in-c.opus",
   "/sparkpro-field-live/voice/core/1xcnbw7-g.opus",
   "/sparkpro-field-live/voice/core/1xhwt8l-d.opus",
@@ -617,10 +640,32 @@ self.addEventListener('install', event => {
   )
 })
 
+// Evict the SHELL caches this worker replaces — and nothing else.
+//
+// This used to delete every cache that was not the current one, which read as
+// obviously correct and was catastrophic: the voice pack lives in a cache of
+// its own (`sparkpro-voice-pro`, around 286 MB the tech chose to download over
+// wifi), and the shell cache name is a hash of the asset list, so it changes on
+// EVERY deploy. Each deploy therefore threw away the voice pack, and the next
+// launch asked them to download it again — on cellular, in the field.
+//
+// It also destroyed exactly the thing the pack exists for. A tech who
+// downloaded it deliberately so Spark would work with no signal would find it
+// gone the first time they opened the app after any update.
+//
+// So the predicate is now explicit about what it owns. Anything that is not a
+// SparkPro Field shell cache is somebody else's and is left alone; the app
+// manages the voice packs itself and offers a Remove control for them.
+const SHELL_PREFIX = 'sparkpro-field-'
+
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys
+          .filter(k => k.startsWith(SHELL_PREFIX) && k !== CACHE)
+          .map(k => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   )
 })
