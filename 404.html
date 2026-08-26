@@ -10,13 +10,31 @@
     <link rel="icon" type="image/svg+xml" href="/sparkpro-field-live/favicon.svg" />
     <link rel="apple-touch-icon" href="/sparkpro-field-live/icons/icon-192.png" />
 
-    <!-- Viewport — no user scaling so it behaves like a native app -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- Viewport — no user scaling so it behaves like a native app.
+         viewport-fit=cover lets the page reach the physical edges, which is what
+         makes env(safe-area-inset-*) report real numbers instead of zero. The
+         tool overlays already ask for that inset; without this they were quietly
+         getting 0 and living on their 8px floor. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
     <!-- PWA / status bar -->
-    <!-- NOTE: standalone (fullscreen) mode disabled — iOS standalone caused a
-         repaint/strobe loop with this app's blur header. Opening in normal
-         browser mode is reliable. Re-enable once tested live on-device. -->
+    <!-- Standalone is back on, with the thing that broke it last time dealt
+         with rather than hoped about.
+         WHY: a browser tab re-asks for the microphone every session, and a tech
+         who has to hit Allow before every voice command stops using voice. An
+         installed app keeps the permission.
+         WHAT BROKE BEFORE: iOS standalone strobed, and the cause was named in
+         the note this replaces — the blur header. It is a translucent
+         background under backdrop-filter, repainting against a moving page.
+         App.css now drops the blur and paints the header solid in standalone,
+         so there is nothing left to loop on.
+         iOS ignores the manifest's display field entirely, which is why these
+         metas have to exist alongside it. status-bar-style is `black` and not
+         `black-translucent` on purpose: translucent puts the clock on top of
+         the app and hands back the overlap problem we just finished fixing. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="theme-color" content="#07070f" />
     <meta name="apple-mobile-web-app-title" content="SP Field" />
 
@@ -24,8 +42,8 @@
     <meta name="format-detection" content="telephone=no" />
 
     <title>SparkPro Field Beta</title>
-    <script type="module" crossorigin src="/sparkpro-field-live/assets/index-D7cYmxNR.js"></script>
-    <link rel="stylesheet" crossorigin href="/sparkpro-field-live/assets/index-Bs45feV3.css">
+    <script type="module" crossorigin src="/sparkpro-field-live/assets/index-CRYZ163w.js"></script>
+    <link rel="stylesheet" crossorigin href="/sparkpro-field-live/assets/index-BC_4WzEj.css">
   </head>
   <body>
     <div id="root"></div>
