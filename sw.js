@@ -10,7 +10,7 @@
 // is simply undefined then, so PRECACHE falls back to [] and the worker
 // degrades to the old lazy-caching behaviour instead of throwing on load. A
 // service worker that throws at parse time registers nothing and fails silently.
-const CACHE    = 'sparkpro-field-vNjQ-b7qVIPOZ'
+const CACHE    = 'sparkpro-field-vrkUheJ1r222l'
 const PRECACHE = [
   "/sparkpro-field-live/",
   "/sparkpro-field-live/index.html",
@@ -18,8 +18,8 @@ const PRECACHE = [
   "/sparkpro-field-live/assets/field-splash-DyWzWNQ-.webp",
   "/sparkpro-field-live/assets/field-splash-mobile-7npyWWET.webp",
   "/sparkpro-field-live/assets/hex-bg-BH7n1x9W.webp",
-  "/sparkpro-field-live/assets/index-DOfRmQ4A.css",
-  "/sparkpro-field-live/assets/index-Dqs7dXxS.js",
+  "/sparkpro-field-live/assets/index-B_X0v5B7.css",
+  "/sparkpro-field-live/assets/index-DOnFmv64.js",
   "/sparkpro-field-live/assets/sp-Bp1IW3QM.webp",
   "/sparkpro-field-live/assets/sparkpro-bg-DHVfRdv9.webp",
   "/sparkpro-field-live/assets/sparkpro-wordmark-S-wq63Au.png",
@@ -94,6 +94,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/049kl3h-25.opus",
   "/sparkpro-field-live/voice/core/04cfq08-p.opus",
   "/sparkpro-field-live/voice/core/04cvnsr-8.opus",
+  "/sparkpro-field-live/voice/core/04eh6a9-m.opus",
   "/sparkpro-field-live/voice/core/04itwv2-1k.opus",
   "/sparkpro-field-live/voice/core/04lorxt-1i.opus",
   "/sparkpro-field-live/voice/core/04mhh9j-1i.opus",
@@ -118,6 +119,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/05lxnw2-2i.opus",
   "/sparkpro-field-live/voice/core/05puxxq-q.opus",
   "/sparkpro-field-live/voice/core/05q1am0-1v.opus",
+  "/sparkpro-field-live/voice/core/05qb0dc-f.opus",
   "/sparkpro-field-live/voice/core/05t4799-1t.opus",
   "/sparkpro-field-live/voice/core/05tqg13-1i.opus",
   "/sparkpro-field-live/voice/core/05tv1zv-2r.opus",
@@ -285,7 +287,6 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0gkyd9y-10.opus",
   "/sparkpro-field-live/voice/core/0gly9a0-27.opus",
   "/sparkpro-field-live/voice/core/0gpsoig-7.opus",
-  "/sparkpro-field-live/voice/core/0gr00cr-d.opus",
   "/sparkpro-field-live/voice/core/0gui5ns-x.opus",
   "/sparkpro-field-live/voice/core/0gvpxr6-q.opus",
   "/sparkpro-field-live/voice/core/0gw9qfg-b.opus",
@@ -420,6 +421,7 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0qiyhra-o.opus",
   "/sparkpro-field-live/voice/core/0qj3g83-j.opus",
   "/sparkpro-field-live/voice/core/0qmzimi-a.opus",
+  "/sparkpro-field-live/voice/core/0qnmjxp-g.opus",
   "/sparkpro-field-live/voice/core/0qpfu3n-10.opus",
   "/sparkpro-field-live/voice/core/0qsk54f-b.opus",
   "/sparkpro-field-live/voice/core/0qsrbq1-b.opus",
@@ -484,7 +486,6 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/0uqwzsg-b.opus",
   "/sparkpro-field-live/voice/core/0uv6cdl-s.opus",
   "/sparkpro-field-live/voice/core/0uzbo8d-d.opus",
-  "/sparkpro-field-live/voice/core/0v0sq8d-s.opus",
   "/sparkpro-field-live/voice/core/0v13uc8-b.opus",
   "/sparkpro-field-live/voice/core/0v1tzey-15.opus",
   "/sparkpro-field-live/voice/core/0v2suyl-2v.opus",
@@ -933,7 +934,6 @@ const PRECACHE = [
   "/sparkpro-field-live/voice/core/1ndv0bt-1j.opus",
   "/sparkpro-field-live/voice/core/1ne9eqd-p.opus",
   "/sparkpro-field-live/voice/core/1nfhvr5-d.opus",
-  "/sparkpro-field-live/voice/core/1nh3gio-j.opus",
   "/sparkpro-field-live/voice/core/1ni1p7y-h.opus",
   "/sparkpro-field-live/voice/core/1ninj8e-1a.opus",
   "/sparkpro-field-live/voice/core/1nk7d8e-o.opus",
