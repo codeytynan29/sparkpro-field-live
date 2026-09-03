@@ -10,7 +10,7 @@
 // is simply undefined then, so PRECACHE falls back to [] and the worker
 // degrades to the old lazy-caching behaviour instead of throwing on load. A
 // service worker that throws at parse time registers nothing and fails silently.
-const CACHE    = 'sparkpro-field-v76XfuRXSr8dM'
+const CACHE    = 'sparkpro-field-vejxoDjH4Q35K'
 const PRECACHE = [
   "/sparkpro-field-live/",
   "/sparkpro-field-live/index.html",
@@ -18,8 +18,8 @@ const PRECACHE = [
   "/sparkpro-field-live/assets/field-splash-DyWzWNQ-.webp",
   "/sparkpro-field-live/assets/field-splash-mobile-7npyWWET.webp",
   "/sparkpro-field-live/assets/hex-bg-BH7n1x9W.webp",
-  "/sparkpro-field-live/assets/index-B_X0v5B7.css",
-  "/sparkpro-field-live/assets/index-CKDnoSeF.js",
+  "/sparkpro-field-live/assets/index-BL47J6T1.css",
+  "/sparkpro-field-live/assets/index-D_bvG0kC.js",
   "/sparkpro-field-live/assets/sp-Bp1IW3QM.webp",
   "/sparkpro-field-live/assets/sparkpro-bg-DHVfRdv9.webp",
   "/sparkpro-field-live/assets/sparkpro-wordmark-S-wq63Au.png",
@@ -1137,15 +1137,32 @@ const BASE = self.location.pathname.replace(/sw\.js$/, '')
 // offline even if its FIRST open is offline. Cached one-by-one on purpose:
 // cache.addAll() rejects the whole batch if any single request fails, which
 // would leave a tester with no cache at all because of one stale entry.
+//
+// Deliberately does NOT skipWaiting() any more. It used to, which sounded like
+// "apply updates promptly" and was actually a way to break the app underneath
+// someone: the new worker activated immediately, the activate step below
+// deleted the shell cache the RUNNING page was still being served from, and
+// that page — still executing the previous build's JavaScript — could then ask
+// for a hashed chunk that no longer existed in the cache or on the server.
+//
+// So a new build now installs quietly and waits. The page in front of the tech
+// keeps its own assets, intact, until they choose the moment to take the
+// update (see lib/appUpdate.js, which surfaces the waiting worker as a banner
+// and posts the message below when it is tapped).
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
       .then(c => Promise.all(
         PRECACHE.map(url => c.add(url).catch(() => {}))
       ))
-      .then(() => self.skipWaiting())
-      .catch(() => self.skipWaiting())
+      .catch(() => { /* a partial precache still beats refusing to install */ })
   )
+})
+
+// The tech tapped "Update". Stand down the waiting period, activate, and take
+// over — the page reloads itself once it sees the controller change.
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
 })
 
 // Evict the SHELL caches this worker replaces — and nothing else.
