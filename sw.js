@@ -10,7 +10,7 @@
 // is simply undefined then, so PRECACHE falls back to [] and the worker
 // degrades to the old lazy-caching behaviour instead of throwing on load. A
 // service worker that throws at parse time registers nothing and fails silently.
-const CACHE    = 'sparkpro-field-vyLlzCVJMkWuZ'
+const CACHE    = 'sparkpro-field-vc6-NxBbB1kXV'
 const PRECACHE = [
   "/sparkpro-field-live/",
   "/sparkpro-field-live/index.html",
@@ -19,7 +19,7 @@ const PRECACHE = [
   "/sparkpro-field-live/assets/field-splash-mobile-7npyWWET.webp",
   "/sparkpro-field-live/assets/hex-bg-BH7n1x9W.webp",
   "/sparkpro-field-live/assets/index-BL47J6T1.css",
-  "/sparkpro-field-live/assets/index-BQvTqyzz.js",
+  "/sparkpro-field-live/assets/index-C-BdYa58.js",
   "/sparkpro-field-live/assets/sp-Bp1IW3QM.webp",
   "/sparkpro-field-live/assets/sparkpro-bg-DHVfRdv9.webp",
   "/sparkpro-field-live/assets/sparkpro-wordmark-S-wq63Au.png",
