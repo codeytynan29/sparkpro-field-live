@@ -5,5 +5,5 @@
 // code and see each other's check-ins live. The publishable key is designed to
 // be public: Row Level Security in schema.sql is what keeps each couple's data
 // private.
-export const SUPABASE_URL = ''
-export const SUPABASE_KEY = ''
+export const SUPABASE_URL = 'https://hbskekfutvxvixafeden.supabase.co'
+export const SUPABASE_KEY = 'sb_publishable_SMRAokTTDo7kl1e6AvgW4A_UHVOMZKE'
