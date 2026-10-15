@@ -2,9 +2,9 @@
 // No framework, no build step: each screen is a function that returns an HTML
 // string, and any state change re-renders the current screen. All user text
 // goes through esc() before it touches innerHTML.
-import * as C from './content.js'
-import * as S from './sync.js'
-import { VAPID_PUBLIC } from './config.js'
+import * as C from './content.js?v=5'
+import * as S from './sync.js?v=5'
+import { VAPID_PUBLIC } from './config.js?v=5'
 
 const $ = sel => document.querySelector(sel)
 const app = $('#app')
