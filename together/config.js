@@ -7,3 +7,6 @@
 // private.
 export const SUPABASE_URL = 'https://hbskekfutvxvixafeden.supabase.co'
 export const SUPABASE_KEY = 'sb_publishable_SMRAokTTDo7kl1e6AvgW4A_UHVOMZKE'
+// Public half of the Web Push (VAPID) key pair. The private half lives only in
+// the database's tg_config table, readable by the tg-push function alone.
+export const VAPID_PUBLIC = 'BN6qk1Tg7De-qOkPRs0EGpk23Akg25b7u93tnmYDXqp-bw0_IjXrGMebLwSxgIIU7WvN4SwTLo6iMsugBBghxdc'

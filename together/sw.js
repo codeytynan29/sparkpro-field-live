@@ -1,7 +1,7 @@
 // Together service worker: cache the app shell so it opens with no signal.
 // Navigations go network-first so a new deploy is picked up; Supabase and the
 // CDN are cross-origin and always go straight to the network.
-const CACHE = 'together-v2'
+const CACHE = 'together-v3'
 const SHELL = ['./', './index.html', './app.css', './app.js', './content.js', './sync.js', './config.js', './manifest.json', './icon.svg']
 
 self.addEventListener('install', e => {
@@ -20,4 +20,20 @@ self.addEventListener('fetch', e => {
       return res
     }).catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(hit => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
   )
+})
+
+// ── Push: daily tips and partner check-ins ──────────────────────────────────
+self.addEventListener('push', e => {
+  let msg = { title: 'Together', body: 'You have a new update.', tag: 'together' }
+  try { msg = { ...msg, ...e.data.json() } } catch {}
+  e.waitUntil(self.registration.showNotification(msg.title, {
+    body: msg.body, tag: msg.tag, icon: 'icon-192.png', badge: 'icon-192.png', data: { url: './' },
+  }))
+})
+self.addEventListener('notificationclick', e => {
+  e.notification.close()
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const open = list.find(c => c.url.includes('/together/'))
+    return open ? open.focus() : self.clients.openWindow('./')
+  }))
 })

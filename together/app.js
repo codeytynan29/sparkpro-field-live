@@ -4,6 +4,7 @@
 // goes through esc() before it touches innerHTML.
 import * as C from './content.js'
 import * as S from './sync.js'
+import { VAPID_PUBLIC } from './config.js'
 
 const $ = sel => document.querySelector(sel)
 const app = $('#app')
@@ -92,6 +93,47 @@ function gamePlan(ci) {
 }
 
 // ── Shell ───────────────────────────────────────────────────────────────────
+// ── Daily tips (push) ───────────────────────────────────────────────────────
+// iPhone only delivers web push to apps opened from the home-screen icon
+// (iOS 16.4+), so in a Safari tab we explain that instead of failing silently.
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
+const pushPrefs = () => (S.state.prefs && S.state.prefs.push) || {}
+const hourLabel = h => new Date(2000, 0, 1, h).toLocaleTimeString(undefined, { hour: 'numeric' })
+const hourSelect = h => `<select id="pushHour" class="hour">${Array.from({ length: 17 }, (_, i) => i + 6)
+  .map(v => `<option value="${v}" ${v === h ? 'selected' : ''}>${hourLabel(v)}</option>`).join('')}</select>`
+const b64key = s => { const b = atob(s.replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(b, c => c.charCodeAt(0)) }
+
+function remindersCard() {
+  const pr = pushPrefs()
+  const intro = `<p>${me() === 'dad' ? 'A daily nudge built from her check-in ("She logged nausea today. Did you put crackers by the bed?") and a heads-up the moment she checks in.' : 'A gentle daily check-in reminder and a self-care tip, plus a heads-up when he sends you a note.'}</p>`
+  if (!S.syncAvailable() || !S.isPaired()) return intro + '<p class="fine">Pair your phones first (below), then turn this on.</p>'
+  if (isIOS && !standalone()) return intro + '<p class="fine"><b>iPhone only allows notifications from the home-screen app.</b> In Safari tap Share → Add to Home Screen, open Together from that icon, and turn this on there.</p>'
+  if (!pushSupported()) return intro + '<p class="fine">This browser doesn\'t support notifications. On iPhone, update iOS and use the home-screen app.</p>'
+  if (Notification.permission === 'denied') return intro + '<p class="fine">Notifications are blocked. Open iPhone Settings → Notifications → Together → Allow Notifications, then come back.</p>'
+  if (pr.on) return `<p>✅ <b>On.</b> One tip a day around ${hourLabel(pr.hour)}, plus partner alerts.</p>
+    <label class="field">Daily tip time ${hourSelect(pr.hour)}</label>
+    <button class="ghost" data-act="push-test">Send me a test now</button>
+    <button class="ghost danger" data-act="push-off">Turn off</button>`
+  return `${intro}<label class="field">Daily tip time ${hourSelect(pr.hour ?? 9)}</label>
+    <button class="big primary" data-act="push-on">🔔 Turn on daily tips</button>`
+}
+
+async function enablePush(hour) {
+  // requestPermission must be the first await so iOS still sees the tap
+  const perm = await Notification.requestPermission()
+  if (perm !== 'granted') { render(); return toast('Notifications not allowed') }
+  const reg = await navigator.serviceWorker.ready
+  const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64key(VAPID_PUBLIC) })
+  await S.push('subscribe', { subscription: sub.toJSON(), hour, tz: Intl.DateTimeFormat().resolvedOptions().timeZone })
+  S.state.prefs = { ...S.state.prefs, push: { on: true, hour } }; S.save()
+}
+
+function notifyPartner(kind, text) {
+  if (S.isPaired()) S.push('notify-partner', { kind, text, name: nameOf(me()) }).catch(e => console.warn('notify failed', e))
+}
+
 // ── Personal link ───────────────────────────────────────────────────────────
 // iPhones keep separate storage for Safari, the home-screen icon and in-app
 // browsers, so a phone can "forget" it was paired. Once paired, the address
@@ -266,6 +308,7 @@ function today() {
     ${flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''}
     ${g ? babyCard(g, wk, fe, fruit, len) : datesCard()}
     ${main}
+    ${S.isPaired() && !pushPrefs().on && pushSupported() ? `<section class="card soft"><p>🔔 Want a daily tip, and a heads-up when ${esc(nameOf(other()))} ${me() === 'dad' ? 'checks in' : 'sends a note'}?</p><button class="ghost" data-go="plan">Set up notifications</button></section>` : ''}
     ${lastNote ? `<section class="card note"><div class="from">💌 ${esc(nameOf(other()))} · ${fmtWhen(lastNote.created_at)}</div><p>${esc(lastNote.data.text)}</p></section>` : ''}
     <section class="card">
       <h3>Send ${esc(nameOf(other()))} a little something</h3>
@@ -505,6 +548,10 @@ function plan() {
       <ul>${C.DAD_TRIMESTER[g ? g.tri : 1].map(t => `<li>${esc(t)}</li>`).join('')}</ul>
     </section>
     <section class="card">
+      <h3>🔔 Daily tips & alerts</h3>
+      ${remindersCard()}
+    </section>
+    <section class="card">
       <h3>Pairing</h3>
       ${pairingCard(false)}
     </section>
@@ -551,7 +598,7 @@ app.addEventListener('click', async ev => {
     draft.feelings = draft.feelings.includes(d.feel) ? draft.feelings.filter(f => f !== d.feel) : [...draft.feelings, d.feel]
     const y = scrollY; render(); scrollTo(0, y); return
   }
-  if (d.sendnote) { await S.addEntry('note', { text: d.sendnote }); toast('Sent 💌'); return }
+  if (d.sendnote) { await S.addEntry('note', { text: d.sendnote }); notifyPartner('note', d.sendnote); toast('Sent 💌'); return }
   if (d.react) { await S.addEntry('reaction', { to: d.react, emoji: d.emoji }); toast('Sent ' + d.emoji); return }
   if (d.del) { if (confirm('Delete this?')) S.removeEntry(d.del); return }
 
@@ -579,6 +626,7 @@ app.addEventListener('click', async ev => {
       if (!draft.mood) return
       await S.addEntry('checkin', { mood: draft.mood, energy: draft.energy || null, symptoms: draft.symptoms, temp: draft.temp.trim(), note: draft.note.trim() })
       draft = null; tab = 'today'; render(); scrollTo(0, 0)
+      notifyPartner('checkin')
       toast(S.isPaired() ? 'Shared with ' + names().dad : 'Saved'); return
     }
     case 'save-dadcheck': {
@@ -589,7 +637,7 @@ app.addEventListener('click', async ev => {
     }
     case 'send-msg': {
       const t = $('#msg').value.trim(); if (!t) return
-      await S.addEntry('note', { text: t }); toast('Sent 💌'); return
+      await S.addEntry('note', { text: t }); notifyPartner('note', t); toast('Sent 💌'); return
     }
     case 'add-appt': {
       const title = $('#apptTitle').value.trim(), date = $('#apptDate').value
@@ -612,6 +660,22 @@ app.addEventListener('click', async ev => {
       if (navigator.share) navigator.share({ text }).catch(() => {})
       else { navigator.clipboard?.writeText(text); toast('Copied') }
       return
+    }
+    case 'push-on':
+      b.disabled = true; b.textContent = 'Turning on…'
+      try { await enablePush(+$('#pushHour').value); toast('Daily tips are on 🔔') } catch (e) { console.warn(e); toast('Couldn\'t turn on: ' + (e.message || 'try again')) }
+      render(); return
+    case 'push-test':
+      try { const r = await S.push('test'); toast(r && r.sent ? 'Sent. It should pop up in a few seconds.' : 'Nothing sent. Try turning it off and on again.') } catch (e) { toast('Test failed: ' + (e.message || 'check your signal')) }
+      return
+    case 'push-off': {
+      try {
+        const reg = await navigator.serviceWorker.ready
+        const sub = await reg.pushManager.getSubscription()
+        if (sub) { await S.push('unsubscribe', { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe() }
+      } catch (e) { console.warn(e) }
+      S.state.prefs = { ...S.state.prefs, push: { on: false, hour: pushPrefs().hour ?? 9 } }; S.save()
+      render(); toast('Daily tips off'); return
     }
     case 'copy-link':
       navigator.clipboard?.writeText(personalLink()).then(() => toast('Link copied. Keep it somewhere safe.'), () => toast(personalLink()))
@@ -639,6 +703,18 @@ app.addEventListener('input', ev => {
 })
 
 app.addEventListener('change', async ev => {
+  if (ev.target.id === 'pushHour') {
+    const hour = +ev.target.value
+    S.state.prefs = { ...S.state.prefs, push: { ...pushPrefs(), hour } }; S.save()
+    if (pushPrefs().on) {
+      try {
+        const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription()
+        if (sub) await S.push('subscribe', { subscription: sub.toJSON(), hour, tz: Intl.DateTimeFormat().resolvedOptions().timeZone })
+        toast('Daily tip moved to ' + hourLabel(hour))
+      } catch (e) { toast('Couldn\'t save the new time') }
+    }
+    render(); return
+  }
   if (ev.target.id === 'private') readDraftInputs()
   if (ev.target.id === 'importFile') {
     const f = ev.target.files[0]; if (!f) return

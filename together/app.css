@@ -185,3 +185,5 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 500; margi
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 @media (prefers-reduced-motion: reduce) { .breathe .circle { transition: none; } #toast { transition: none; } }
+
+.hour { display: block; width: 100%; margin-top: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font-size: 1rem; }

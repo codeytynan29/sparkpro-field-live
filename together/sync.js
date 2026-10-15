@@ -195,3 +195,12 @@ export function resetAll() {
   unpair()
   try { localStorage.removeItem(LS); localStorage.removeItem('together.auth') } catch {}
 }
+
+// Calls the tg-push function as this phone's anonymous user.
+export async function push(action, body = {}) {
+  if (!syncAvailable() || !state.coupleId) throw new Error('Pair your phones first')
+  const c = await client()
+  const { data, error } = await c.functions.invoke('tg-push', { body: { action, ...body } })
+  if (error) throw error
+  return data
+}
