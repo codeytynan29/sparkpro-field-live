@@ -818,8 +818,15 @@ function personalLink() {
   u.search = S.state.code && S.state.role ? `?c=${S.state.code}&r=${S.state.role}` : ''
   return u.toString()
 }
+// Safari throws (and caps replaceState at 100 calls per 10 seconds), so this
+// runs at most once per distinct link and can never take a screen down.
+let stamped = ''
 function stampLink() {
-  if (S.state.code && S.state.role && location.href !== personalLink()) history.replaceState(null, '', personalLink())
+  if (!S.state.code || !S.state.role) return
+  const link = personalLink()
+  if (link === stamped || link === location.href) return
+  stamped = link
+  try { history.replaceState(null, '', link) } catch (e) { console.warn('could not update address', e) }
 }
 
 // Any crash while drawing a screen shows what went wrong and a way out,
