@@ -30,6 +30,10 @@ Out of the box it runs in **single-device mode**, and data stays in that phone's
 
 Each phone signs in anonymously. Row Level Security lets a device read and write only the entries of the couple it joined, and a code admits at most 6 devices. Check-ins made offline are queued and sent when signal returns.
 
+## Editing
+
+The page loads one plain script, `app.bundle.js`, built from the modules below. After changing any of them, run `python3 together/build.py` and bump the `?v=` number in `index.html`.
+
 ## Files
 
 | File | What |

@@ -1,25 +1,15 @@
-// Together service worker: cache the app shell so it opens with no signal.
-// Navigations go network-first so a new deploy is picked up; Supabase and the
-// CDN are cross-origin and always go straight to the network.
-const CACHE = 'together-v5'
-const SHELL = ['./', './index.html', './app.css?v=6', './app.js?v=6', './content.js?v=6', './sync.js?v=6', './config.js?v=6', './manifest.json', './icon.svg']
+// Together service worker: notifications only.
+// It deliberately has no fetch handler. An earlier version served the app's
+// files from its own cache, and Safari could end up stuck between versions
+// (a black screen). Now every file comes straight from the network/browser
+// cache, and this worker only exists so push notifications can arrive.
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()))
-})
+self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('together-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()))
-})
-self.addEventListener('fetch', e => {
-  const req = e.request
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return
-  // network first, cache fallback — files aren't content-hashed, so freshness wins
-  e.respondWith(
-    fetch(req, { cache: 'no-cache' }).then(res => {
-      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)) }
-      return res
-    }).catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(hit => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
-  )
+  // clear every cache earlier versions left behind
+  e.waitUntil(caches.keys()
+    .then(ks => Promise.all(ks.filter(k => k.startsWith('together-')).map(k => caches.delete(k))))
+    .then(() => self.clients.claim()))
 })
 
 // ── Push: daily tips and partner check-ins ──────────────────────────────────

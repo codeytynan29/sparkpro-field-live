@@ -15,7 +15,7 @@
   <meta name="theme-color" content="#fbf6f2" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#1b1720" media="(prefers-color-scheme: dark)">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="app.css?v=6">
+  <link rel="stylesheet" href="app.css?v=7">
 </head>
 <body>
   <div id="app"></div>
@@ -30,7 +30,11 @@
       app.innerHTML = '<div style="padding:48px 24px;text-align:center;font:16px -apple-system,sans-serif">' +
         '<div style="font-size:48px">🤍</div><h2>Together didn\'t finish loading</h2>' +
         '<p style="opacity:.75">Your check-ins are safe on this phone. Tap below to refresh the app files.</p>' +
-        (window.tgErrors.length ? '<p style="font:13px ui-monospace,monospace;opacity:.6;word-break:break-word">' + String(window.tgErrors[0]).replace(/</g, '&lt;') + '</p>' : '') +
+        '<p style="font:12px ui-monospace,monospace;opacity:.55;word-break:break-word">' + [
+          window.tgErrors.length ? String(window.tgErrors[0]).replace(/</g, '&lt;') : 'no error',
+          'started: ' + !!window.tgStarted,
+          'sw: ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? navigator.serviceWorker.controller.scriptURL.split('/').slice(-2).join('/') : 'none')
+        ].join(' · ') + '</p>' +
         '<button onclick="tgRepair()" style="margin-top:12px;padding:14px 22px;border:0;border-radius:14px;background:#c9789b;color:#fff;font-size:16px;font-weight:600">Repair &amp; reload</button></div>'
     }
     function tgRepair() {
@@ -48,6 +52,6 @@
     window.addEventListener('unhandledrejection', function (e) { window.tgErrors.push(String(e.reason && e.reason.message || e.reason)) })
     setTimeout(tgRescue, 5000)
   </script>
-  <script type="module" src="app.js?v=6"></script>
+  <script src="app.bundle.js?v=7"></script>
 </body>
 </html>
