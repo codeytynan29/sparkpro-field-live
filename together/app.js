@@ -2,9 +2,9 @@
 // No framework, no build step: each screen is a function that returns an HTML
 // string, and any state change re-renders the current screen. All user text
 // goes through esc() before it touches innerHTML.
-import * as C from './content.js?v=5'
-import * as S from './sync.js?v=5'
-import { VAPID_PUBLIC } from './config.js?v=5'
+import * as C from './content.js?v=6'
+import * as S from './sync.js?v=6'
+import { VAPID_PUBLIC } from './config.js?v=6'
 
 const $ = sel => document.querySelector(sel)
 const app = $('#app')
@@ -151,7 +151,19 @@ function stampLink() {
   if (S.state.code && S.state.role && location.href !== personalLink()) history.replaceState(null, '', personalLink())
 }
 
+// Any crash while drawing a screen shows what went wrong and a way out,
+// instead of leaving a blank page.
 function render() {
+  try { renderScreen() } catch (e) {
+    console.error(e)
+    app.innerHTML = `<div class="onb center"><div class="hero">🤍</div><h2>Something went wrong</h2>
+      <p class="lead">Your check-ins are safe. Tap Repair, and if this keeps happening, send a screenshot of this screen.</p>
+      <p class="fine" style="word-break:break-word">${esc(e && (e.stack || e.message) || e).slice(0, 300)}</p>
+      <button class="big primary" onclick="tgRepair()">Repair &amp; reload</button></div>`
+  }
+}
+
+function renderScreen() {
   stampLink()
   if (autoJoining) {
     app.innerHTML = `<div class="onb"><div class="hero">🤍</div><h2 class="center">Reconnecting to your couple…</h2><p class="lead center">One moment.</p></div>`

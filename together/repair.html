@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Repair Together</title>
+  <style>
+    body { margin: 0; font: 17px/1.45 -apple-system, BlinkMacSystemFont, sans-serif; background: #fbf6f2; color: #2b2230; text-align: center; padding: 56px 24px; }
+    @media (prefers-color-scheme: dark) { body { background: #1b1720; color: #f2eaf0; } }
+    .big { font-size: 48px; } p { opacity: .8; }
+  </style>
+</head>
+<body>
+  <div class="big">🛠️</div>
+  <h2 id="msg">Refreshing Together…</h2>
+  <p id="sub">Clearing old app files. Your check-ins stay saved.</p>
+  <script>
+    // Plain script on purpose: this page must work even when the app's own
+    // files are broken. It removes Together's service worker and cached files
+    // (never localStorage, where the check-ins live), then reopens the app
+    // with the phone's own couple code so pairing survives.
+    (function () {
+      var jobs = []
+      if (window.caches) jobs.push(caches.keys().then(function (ks) {
+        return Promise.all(ks.filter(function (k) { return k.indexOf('together-') === 0 }).map(function (k) { return caches.delete(k) }))
+      }))
+      if (navigator.serviceWorker) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+        return Promise.all(rs.filter(function (r) { return r.scope.indexOf('/together/') > -1 }).map(function (r) { return r.unregister() }))
+      }))
+      var q = '?fresh=' + Date.now()
+      try {
+        var s = JSON.parse(localStorage.getItem('together.v1') || 'null')
+        if (s && s.code && s.role) q = '?c=' + encodeURIComponent(s.code) + '&r=' + encodeURIComponent(s.role) + '&fresh=' + Date.now()
+      } catch (e) {}
+      Promise.all(jobs).catch(function () {}).then(function () {
+        document.getElementById('msg').textContent = 'Done. Opening Together…'
+        setTimeout(function () { location.replace('./' + q) }, 600)
+      })
+    })()
+  </script>
+</body>
+</html>

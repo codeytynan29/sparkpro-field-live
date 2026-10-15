@@ -1,8 +1,8 @@
 // Together service worker: cache the app shell so it opens with no signal.
 // Navigations go network-first so a new deploy is picked up; Supabase and the
 // CDN are cross-origin and always go straight to the network.
-const CACHE = 'together-v4'
-const SHELL = ['./', './index.html', './app.css?v=5', './app.js?v=5', './content.js?v=5', './sync.js?v=5', './config.js?v=5', './manifest.json', './icon.svg']
+const CACHE = 'together-v5'
+const SHELL = ['./', './index.html', './app.css?v=6', './app.js?v=6', './content.js?v=6', './sync.js?v=6', './config.js?v=6', './manifest.json', './icon.svg']
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()))

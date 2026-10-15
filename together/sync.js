@@ -4,7 +4,7 @@
 // network), then pushed to Supabase when a backend is configured. A failed
 // push stays in the outbox and is retried, so a check-in typed in a dead zone
 // still reaches the partner once signal comes back.
-import { SUPABASE_URL, SUPABASE_KEY } from './config.js?v=5'
+import { SUPABASE_URL, SUPABASE_KEY } from './config.js?v=6'
 
 const LS = 'together.v1'
 const listeners = new Set()

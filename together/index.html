@@ -15,7 +15,7 @@
   <meta name="theme-color" content="#fbf6f2" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#1b1720" media="(prefers-color-scheme: dark)">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="app.css?v=5">
+  <link rel="stylesheet" href="app.css?v=6">
 </head>
 <body>
   <div id="app"></div>
@@ -30,6 +30,7 @@
       app.innerHTML = '<div style="padding:48px 24px;text-align:center;font:16px -apple-system,sans-serif">' +
         '<div style="font-size:48px">🤍</div><h2>Together didn\'t finish loading</h2>' +
         '<p style="opacity:.75">Your check-ins are safe on this phone. Tap below to refresh the app files.</p>' +
+        (window.tgErrors.length ? '<p style="font:13px ui-monospace,monospace;opacity:.6;word-break:break-word">' + String(window.tgErrors[0]).replace(/</g, '&lt;') + '</p>' : '') +
         '<button onclick="tgRepair()" style="margin-top:12px;padding:14px 22px;border:0;border-radius:14px;background:#c9789b;color:#fff;font-size:16px;font-weight:600">Repair &amp; reload</button></div>'
     }
     function tgRepair() {
@@ -38,9 +39,15 @@
       if (navigator.serviceWorker) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.filter(function (r) { return r.scope.indexOf('/together/') > -1 }).map(function (r) { return r.unregister() })) }))
       Promise.all(jobs).catch(function () {}).then(function () { location.reload() })
     }
-    window.addEventListener('error', function () { setTimeout(tgRescue, 300) }, true)
+    window.tgErrors = []
+    window.addEventListener('error', function (e) {
+      var t = e.target
+      window.tgErrors.push(e.message || (t && (t.src || t.href) ? 'Could not load ' + (t.src || t.href).split('/').pop() : 'Unknown error'))
+      setTimeout(tgRescue, 300)
+    }, true)
+    window.addEventListener('unhandledrejection', function (e) { window.tgErrors.push(String(e.reason && e.reason.message || e.reason)) })
     setTimeout(tgRescue, 5000)
   </script>
-  <script type="module" src="app.js?v=5"></script>
+  <script type="module" src="app.js?v=6"></script>
 </body>
 </html>
