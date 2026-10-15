@@ -204,7 +204,10 @@ Deno.serve(async req => {
       const text = String(body.text || '').slice(0, 140)
       const msg = kind === 'note'
         ? { title: `💌 ${who}`, body: text || 'Sent you a note', tag: 'note' }
-        : { title: `${who} just checked in`, body: 'Tap to see how she\'s feeling and today\'s game plan.', tag: 'checkin' }
+        : body.title
+          // the app composes "She logged nausea today. Try X, or maybe Y."
+          ? { title: String(body.title).slice(0, 80), body: String(body.body || '').slice(0, 220), tag: 'checkin' }
+          : { title: `${who} just checked in`, body: 'Tap to see how she\'s feeling and today\'s game plan.', tag: 'checkin' }
       const { data: subs } = await sb.from('tg_push_subs').select('*').eq('couple_id', m.couple_id).eq('role', other)
       let sent = 0
       for (const s of (subs || []) as Sub[]) if (await send(s, msg)) sent++

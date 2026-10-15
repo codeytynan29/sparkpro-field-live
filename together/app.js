@@ -93,6 +93,30 @@ function gamePlan(ci) {
   return plan
 }
 
+// "She logged nausea & exhaustion today. Try X, or maybe Y."
+function nudgeFor(ci) {
+  const who = names().mom
+  const syms = Object.entries(ci.data.symptoms || {}).sort((a, b) => b[1] - a[1]).filter(([id]) => C.NUDGE[id] && symptom(id))
+  const cap = t => t.charAt(0).toUpperCase() + t.slice(1)
+  const t = parseFloat(ci.data.temp)
+  if ((t >= 100.4 && t < 115) || (t >= 38 && t < 45)) {
+    return { title: `⚠️ ${who} logged a temperature of ${t}°`, body: `${C.NUDGE.fever.call} Meanwhile, try ${C.NUDGE.fever.try[0]}.`, urgent: true }
+  }
+  if (syms.length) {
+    const urgent = syms.find(([id, lvl]) => C.NUDGE[id].call && symptom(id).flagAt && lvl >= symptom(id).flagAt)
+    const labels = syms.slice(0, 2).map(([id]) => C.SYMPTOM_NOUN[id] || symptom(id).label.toLowerCase())
+    const [y, z] = C.NUDGE[syms[0][0]].try
+    return {
+      title: `${urgent ? '⚠️ ' : ''}${who} logged ${labels.join(' & ')} today`,
+      body: urgent ? `${C.NUDGE[urgent[0]].call} Meanwhile, try ${y}.` : `Try ${y}, or maybe ${z}.`,
+      urgent: !!urgent,
+    }
+  }
+  const m = C.MOOD_NUDGE[ci.data.mood]
+  if (!m) return { title: `${who} just checked in`, body: 'Tap to see how she\'s doing.' }
+  return { title: `${who} is ${m.feel}`, body: `${cap('try ' + m.try[0])}, or maybe ${m.try[1]}.` }
+}
+
 // ── Shell ───────────────────────────────────────────────────────────────────
 // ── Daily tips (push) ───────────────────────────────────────────────────────
 // iPhone only delivers web push to apps opened from the home-screen icon
@@ -131,8 +155,8 @@ async function enablePush(hour) {
   S.state.prefs = { ...S.state.prefs, push: { on: true, hour } }; S.save()
 }
 
-function notifyPartner(kind, text) {
-  if (S.isPaired()) S.push('notify-partner', { kind, text, name: nameOf(me()) }).catch(e => console.warn('notify failed', e))
+function notifyPartner(kind, text, msg) {
+  if (S.isPaired()) S.push('notify-partner', { kind, text, name: nameOf(me()), title: msg?.title, body: msg?.body }).catch(e => console.warn('notify failed', e))
 }
 
 // ── Personal link ───────────────────────────────────────────────────────────
@@ -371,8 +395,10 @@ function checkinCard(ci, title) {
   const syms = Object.entries(d.symptoms || {})
   const lvl = ['', 'mild', 'moderate', 'strong']
   const hearts = entries('reaction').filter(r => r.data.to === ci.id)
+  const nudge = me() === 'dad' && ci.author_role === 'mom' && sameDay(ci.created_at) ? nudgeFor(ci) : null
   return `<section class="card ci">
     <div class="ci-head"><h3>${title}</h3><span class="fine">${fmtWhen(ci.created_at)}</span></div>
+    ${nudge ? `<div class="nudge ${nudge.urgent ? 'urgent' : ''}"><b>${esc(nudge.title)}.</b> ${esc(nudge.body)}</div>` : ''}
     <div class="ci-stats">
       ${mood ? `<div><span>${mood.emoji}</span>Mood: ${mood.label}</div>` : ''}
       ${energy ? `<div><span>${energy.emoji}</span>Energy: ${energy.label}</div>` : ''}
@@ -728,9 +754,9 @@ app.addEventListener('click', async ev => {
     case 'switch-role': S.state.role = other(); S.save(); draft = null; render(); toast('This phone is now ' + nameOf(me())); return
     case 'save-checkin': {
       if (!draft.mood) return
-      await S.addEntry('checkin', { mood: draft.mood, energy: draft.energy || null, symptoms: draft.symptoms, temp: draft.temp.trim(), note: draft.note.trim() })
+      const saved = await S.addEntry('checkin', { mood: draft.mood, energy: draft.energy || null, symptoms: draft.symptoms, temp: draft.temp.trim(), note: draft.note.trim() })
       draft = null; tab = 'today'; render(); scrollTo(0, 0)
-      notifyPartner('checkin')
+      notifyPartner('checkin', '', nudgeFor(saved))
       toast(S.isPaired() ? 'Shared with ' + names().dad : 'Saved'); return
     }
     case 'save-dadcheck': {
@@ -839,7 +865,7 @@ S.onChange(evt => {
   if (evt.type === 'remote' && evt.added?.length) {
     const e = evt.added.at(-1)
     const who = nameOf(e.author_role)
-    const msg = e.kind === 'checkin' ? `${who} just checked in` : e.kind === 'note' ? `💌 ${who}: ${e.data.text}` : e.kind === 'reaction' ? `${who} sent ${e.data.emoji}` : e.kind === 'appointment' ? `${who} added ${e.data.title}` : ''
+    const msg = e.kind === 'checkin' ? (me() === 'dad' && e.author_role === 'mom' ? `${nudgeFor(e).title}. ${nudgeFor(e).body}` : `${who} just checked in`) : e.kind === 'note' ? `💌 ${who}: ${e.data.text}` : e.kind === 'reaction' ? `${who} sent ${e.data.emoji}` : e.kind === 'appointment' ? `${who} added ${e.data.title}` : ''
     if (msg) { toast(msg); navigator.vibrate?.(60) }
   }
   // don't yank the page out from under someone mid-typing

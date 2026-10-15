@@ -461,3 +461,50 @@ export const SUPPORT_HIM_STRESS = {
   4: ['He\'s carrying a lot right now. A hug and "How are you, really?" go a long way.'],
   5: ['He\'s maxed out. Ask what one thing you could take off his plate, and keep tonight low-key.'],
 }
+
+// ── "She logged X today. Try Y, or maybe Z." ────────────────────────────────
+// Two short, specific ideas per symptom for his alert. `call` is added when the
+// symptom is at or past its flag level so the alert never buries a red flag.
+export const NUDGE = {
+  nausea: { try: ['putting crackers and water by the bed', 'taking over cooking tonight so she avoids the smells'] },
+  vomiting: { try: ['bringing small sips of an electrolyte drink every 15 minutes', 'handling dinner and cleanup tonight'], call: 'If she can\'t keep fluids down for 24 hours, call the OB.' },
+  fatigue: { try: ['taking dinner and dishes completely off her plate', 'handling the evening so she can go to bed early'] },
+  breasts: { try: ['gentle hugs from the side or behind', 'picking up a soft wireless bra for her'] },
+  cramping: { try: ['a heating pad on low and a show on the couch', 'bringing her water and letting her rest'], call: 'Strong or one-sided pain, or pain with bleeding: call the OB now.' },
+  spotting: { try: ['staying calm and helping her note the color and amount', 'calling the OB line together'], call: 'More than light spotting: call the OB now.' },
+  bloating: { try: ['an easy walk together after dinner', 'stocking up on fiber and keeping her water bottle full'] },
+  headache: { try: ['bringing water and a snack first', 'a dark, quiet room and a cool cloth'], call: 'A severe headache or one with vision changes: call the OB now.' },
+  peeing: { try: ['planning bathroom stops when you go out', 'keeping her water bottle full anyway'] },
+  burning: { try: ['helping her call the OB today, since UTIs need treatment', 'keeping water coming'], call: 'Burning when peeing needs a call to the OB today.' },
+  moody: { try: ['listening without trying to fix anything', 'asking her: comfort, distraction, or space?'] },
+  anxious: { try: ['asking what\'s on her mind and just listening', 'doing the 2-minute breathing reset together'] },
+  aversions: { try: ['asking what sounds OK and going to get it', 'taking out the trash and clearing smelly food'] },
+  cravings: { try: ['going and getting the thing', 'stocking a healthier version too'] },
+  heartburn: { try: ['a smaller dinner and no lying down right after', 'propping up her side of the bed'] },
+  dizzy: { try: ['keeping a snack within reach', 'reminding her to stand up slowly'], call: 'Fainting, or dizziness with bleeding or pain: seek care now.' },
+  insomnia: { try: ['a screens-off wind-down together tonight', 'an extra pillow between her knees'] },
+  congestion: { try: ['running a humidifier in the bedroom tonight', 'grabbing some saline spray'] },
+  backpain: { try: ['a lower-back rub tonight', 'doing all the lifting'] },
+  swelling: { try: ['getting her feet up', 'keeping water coming'], call: 'Sudden swelling of the face or hands: call the OB now.' },
+  fever: { try: ['bringing water and rechecking her temperature in an hour', 'helping her call the OB'], call: 'A fever of 100.4°F or higher needs a call to the OB.' },
+  discharge: { try: ['picking up breathable cotton underwear', 'helping her call the OB if it itches or smells strong'], call: 'A gush or steady trickle of fluid: call the OB now.' },
+  cramps_leg: { try: ['a calf massage before bed', 'gently flexing her foot toes-up when a cramp hits'] },
+  breath: { try: ['slowing the pace on walks', 'opening a window and letting her sit upright'], call: 'Sudden or severe shortness of breath, or chest pain: call 911.' },
+  movement: { try: ['helping her lie on her left side with a cold drink and count kicks', 'calling labor & delivery if it still feels reduced'], call: 'Noticeably less movement after 28 weeks: call labor & delivery now.' },
+}
+export const MOOD_NUDGE = {
+  1: { feel: 'having a rough day', try: ['clearing tonight\'s plans and keeping things low-key', 'asking her: comfort, distraction, or space?'] },
+  2: { feel: 'feeling meh today', try: ['a small surprise, like her favorite snack', 'a note telling her she\'s doing great'] },
+  3: { feel: 'feeling okay today', try: ['one thing off her list without being asked', 'a refill of her water bottle'] },
+  4: { feel: 'feeling good today', try: ['a short walk together', 'telling her what you love about how she\'s handling this'] },
+  5: { feel: 'feeling great today', try: ['riding the wave with a small outing together', 'telling her what you love about how she\'s handling this'] },
+}
+// How a symptom reads inside a sentence: "she logged nausea & exhaustion today"
+export const SYMPTOM_NOUN = {
+  nausea: 'nausea', vomiting: 'vomiting', fatigue: 'exhaustion', breasts: 'sore breasts', cramping: 'cramping',
+  spotting: 'spotting', bloating: 'bloating', headache: 'a headache', peeing: 'frequent peeing',
+  burning: 'burning when peeing', moody: 'mood swings', anxious: 'anxiety', aversions: 'food aversions',
+  cravings: 'cravings', heartburn: 'heartburn', dizzy: 'dizziness', insomnia: 'trouble sleeping',
+  congestion: 'a stuffy nose', backpain: 'back pain', swelling: 'swelling', fever: 'a fever',
+  discharge: 'a discharge change', cramps_leg: 'leg cramps', breath: 'shortness of breath', movement: 'less baby movement',
+}
