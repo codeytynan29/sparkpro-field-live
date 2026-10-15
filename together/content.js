@@ -441,3 +441,23 @@ export const ENERGY_PLAN = {
 }
 
 export const BREATH_STEPS = [['Breathe in', 4], ['Hold', 4], ['Breathe out', 4], ['Hold', 4]]
+
+// ── Supporting him ──────────────────────────────────────────────────────────
+// When he logs how he's doing (and doesn't keep it private), her "Him" view
+// turns it into a few concrete ways to support him back.
+export const SUPPORT_HIM = {
+  anxious: ['Ask him what\'s on his mind. He may not bring it up on his own.', 'Share how you\'re actually doing. Hearing it from you calms him more than Google does.'],
+  overwhelmed: ['Split the to-do list together so it isn\'t all living in his head.', 'Pick one thing for this week and let the rest wait.'],
+  money: ['Sit down together for 20 minutes with real numbers: insurance, leave, a rough baby budget.', 'Remind him a lot of gear can be borrowed or bought used.'],
+  worried: ['Tell him how you\'re feeling today, specifically. Uncertainty is what feeds his worry.', 'Bring him to the next appointment so he hears it from the provider.'],
+  leftout: ['Invite him to the next appointment, or tell him one thing you felt today.', 'Read this week\'s baby update together tonight.'],
+  irritable: ['Give him 20 minutes to decompress before any big conversations.', 'Check whether he\'s eaten. Seriously.'],
+  tired: ['Trade off a night: both off duty, takeout, no chores.', 'Let him sleep in once this week if you can.'],
+  scared: ['Tell him one thing he\'s already doing well as a dad-to-be.', 'Remind him nobody knows how before they start. You\'re learning together.'],
+  excited: ['Share it with him: a baby-names night, or plan how you\'ll tell people.', 'Tell him what you\'re looking forward to.'],
+  good: ['Thank him for something specific he did this week.'],
+}
+export const SUPPORT_HIM_STRESS = {
+  4: ['He\'s carrying a lot right now. A hug and "How are you, really?" go a long way.'],
+  5: ['He\'s maxed out. Ask what one thing you could take off his plate, and keep tonight low-key.'],
+}

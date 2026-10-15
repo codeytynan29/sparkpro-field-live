@@ -187,3 +187,9 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 500; margi
 @media (prefers-reduced-motion: reduce) { .breathe .circle { transition: none; } #toast { transition: none; } }
 
 .hour { display: block; width: 100%; margin-top: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font-size: 1rem; }
+
+/* Us tab */
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.duo-card { background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 12px 10px; text-align: center; color: var(--ink); }
+.duo-card.on { border-color: var(--accent); }
+.duo-card .big-emoji { font-size: 2rem; line-height: 1.3; }

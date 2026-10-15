@@ -14,6 +14,7 @@ const DAY = 86400000
 let tab = 'today'
 let lookupTab = 'meds'
 let lookupQuery = ''
+let usView = null // 'her' | 'him' | 'feed'; defaults to the partner's side
 let draft = null // in-progress check-in, survives re-renders
 let onboardStep = 0
 let firstRun = false
@@ -189,7 +190,7 @@ function renderScreen() {
     </header>
     <main>${({ today, checkin, timeline, lookup, plan })[tab]()}</main>
     <nav class="tabs">
-      ${[['today', '🏡', 'Today'], ['checkin', '✍️', me() === 'mom' ? 'Check in' : 'You'], ['timeline', '💬', 'Together'], ['lookup', '🔎', 'Is it safe?'], ['plan', '🗓️', 'Plan']]
+      ${[['today', '🏡', 'Today'], ['checkin', '✍️', me() === 'mom' ? 'Check in' : 'You'], ['timeline', '💞', 'Us'], ['lookup', '🔎', 'Is it safe?'], ['plan', '🗓️', 'Plan']]
         .map(([id, i, l]) => `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
     </nav>`
   if (tab === 'checkin' && me() === 'dad') bindBreath()
@@ -493,7 +494,90 @@ function bindBreath() {
 }
 
 // ── Timeline ────────────────────────────────────────────────────────────────
+// ── Us: both people's experiences ───────────────────────────────────────────
+const dayKey = d => isoDate(new Date(d))
+const lastDays = n => Array.from({ length: n }, (_, i) => new Date(today0().getTime() - (n - 1 - i) * DAY))
+const shortDay = d => d.toLocaleDateString(undefined, { weekday: 'narrow' })
+// latest entry of a kind per calendar day, for the last n days
+function perDay(kind, role, n) {
+  const by = {}
+  for (const e of entries(kind, role)) if (!(e.local && me() !== role)) by[dayKey(e.created_at)] = e
+  return lastDays(n).map(d => ({ d, e: by[isoDate(d)] }))
+}
+function bars(days, val, max, label) {
+  return `<div class="spark">${days.map(({ d, e }) => {
+    const v = e ? val(e) : 0
+    return `<div title="${fmtDate(d)}"><i style="height:${v ? Math.max(8, v / max * 100) : 0}%"></i><span class="fine">${label ? label(e) || shortDay(d) : shortDay(d)}</span></div>`
+  }).join('')}</div>`
+}
+function topCounts(list, n) {
+  const c = {}
+  list.forEach(id => { c[id] = (c[id] || 0) + 1 })
+  return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, n)
+}
+
 function timeline() {
+  usView = usView || (me() === 'dad' ? 'her' : 'him')
+  const n = names()
+  const herCI = latest('checkin', 'mom'), hisCI = entries('dadcheck', 'dad').filter(e => !(e.local && me() !== 'dad')).at(-1)
+  const moodOf = e => C.MOOD.find(m => m.v === e?.data?.mood)
+  const hisFeel = e => (e?.data?.feelings || []).map(id => C.DAD_FEELINGS.find(f => f.id === id)).filter(Boolean)
+  const strip = `<div class="duo">
+    <button class="duo-card ${usView === 'her' ? 'on' : ''}" data-us="her">
+      <div class="fine">🤰 ${esc(n.mom)}</div>
+      ${herCI ? `<div class="big-emoji">${moodOf(herCI)?.emoji || '•'}</div><div>${esc(moodOf(herCI)?.label || '')}${Object.keys(herCI.data.symptoms || {}).length ? ` · ${Object.keys(herCI.data.symptoms).length} symptom${Object.keys(herCI.data.symptoms).length > 1 ? 's' : ''}` : ''}</div><div class="fine">${fmtWhen(herCI.created_at)}</div>` : '<div class="big-emoji">–</div><div class="fine">No check-in yet</div>'}
+    </button>
+    <button class="duo-card ${usView === 'him' ? 'on' : ''}" data-us="him">
+      <div class="fine">🧔 ${esc(n.dad)}</div>
+      ${hisCI ? `<div class="big-emoji">${hisFeel(hisCI)[0]?.emoji || '🙂'}</div><div>Stress ${hisCI.data.stress}/5</div><div class="fine">${fmtWhen(hisCI.created_at)}</div>` : '<div class="big-emoji">–</div><div class="fine">No check-in yet</div>'}
+    </button>
+  </div>
+  <div class="seg">${[['her', `${esc(n.mom)}'s side`], ['him', `${esc(n.dad)}'s side`], ['feed', 'Notes & feed']].map(([id, l]) => `<button data-us="${id}" class="${usView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+  return strip + (usView === 'her' ? herSide() : usView === 'him' ? hisSide() : feed())
+}
+
+function herSide() {
+  const n = names()
+  const ci = latest('checkin', 'mom')
+  const week = perDay('checkin', 'mom', 7)
+  const recent = entries('checkin', 'mom').filter(e => Date.now() - new Date(e.created_at) < 14 * DAY)
+  const common = topCounts(recent.flatMap(e => Object.keys(e.data.symptoms || {})), 5)
+  const plan = ci && sameDay(ci.created_at) ? gamePlan(ci) : []
+  if (!entries('checkin', 'mom').length) return `<section class="card soft center"><p>${me() === 'mom' ? 'Your check-ins' : `${esc(n.mom)}'s check-ins`} will show up here: mood, energy, symptoms and how she's trending.</p>${me() === 'mom' ? '<button class="big primary" data-tab="checkin">Check in now</button>' : ''}</section>`
+  return `
+    ${ci ? checkinCard(ci, me() === 'mom' ? 'Your latest check-in' : `${esc(n.mom)}'s latest check-in`) : ''}
+    <section class="card"><h3>Mood this week</h3>${bars(week, e => e.data.mood, 5, e => moodOf2(e))}
+      <h4>Energy</h4>${bars(week, e => e.data.energy || 0, 5)}</section>
+    ${common.length ? `<section class="card"><h3>Most common lately</h3>${common.map(([id, c]) => { const s = symptom(id); return s ? `<div class="mile"><b>${s.emoji} ${esc(s.label)}</b><span>${c} day${c > 1 ? 's' : ''} in 2 weeks</span></div>` : '' }).join('')}
+      <details><summary>What these mean</summary>${common.map(([id]) => symptom(id)).filter(Boolean).map(s => `<p><b>${s.emoji} ${esc(s.label)}:</b> ${esc(s.meaning)}</p>`).join('')}</details></section>` : ''}
+    ${plan.length ? `<section class="card"><h3>🧭 How ${me() === 'dad' ? 'you' : esc(n.dad)} can help today</h3><ol class="plan">${plan.slice(0, 5).map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`).join('')}</ol></section>` : ''}`
+}
+const moodOf2 = e => e ? (C.MOOD.find(m => m.v === e.data.mood)?.emoji || '') : ''
+
+function hisSide() {
+  const n = names()
+  const visible = entries('dadcheck', 'dad').filter(e => !(e.local && me() !== 'dad'))
+  const ci = visible.at(-1)
+  const week = perDay('dadcheck', 'dad', 7)
+  const recent = visible.filter(e => Date.now() - new Date(e.created_at) < 14 * DAY)
+  const common = topCounts(recent.flatMap(e => e.data.feelings || []), 4)
+  if (!ci) return `<section class="card soft center"><p>${me() === 'dad' ? 'Your check-ins (stress and what\'s on your mind) show up here for both of you, unless you mark one private.' : `When ${esc(n.dad)} checks in on how he's doing, it shows up here, with ways you can support him.`}</p>${me() === 'dad' ? '<button class="big primary" data-tab="checkin">Check in now</button>' : ''}</section>`
+  const feel = (ci.data.feelings || []).map(id => C.DAD_FEELINGS.find(f => f.id === id)).filter(Boolean)
+  const support = [...(C.SUPPORT_HIM_STRESS[ci.data.stress] || []), ...feel.flatMap(f => C.SUPPORT_HIM[f.id] || [])].slice(0, 5)
+  return `
+    <section class="card">
+      <div class="ci-head"><h3>${me() === 'dad' ? 'Your latest check-in' : `${esc(n.dad)}'s latest check-in`} ${ci.local ? '🔒' : ''}</h3><span class="fine">${fmtWhen(ci.created_at)}</span></div>
+      <div class="ci-stats"><div><span>🌡️</span>Stress ${ci.data.stress}/5</div></div>
+      ${feel.length ? `<div class="chips">${feel.map(f => `<span class="chip on">${f.emoji} ${esc(f.label)}</span>`).join('')}</div>` : ''}
+      ${ci.data.note ? `<p class="quote-inline">“${esc(ci.data.note)}”</p>` : ''}
+    </section>
+    <section class="card"><h3>Stress this week</h3>${bars(week, e => e.data.stress, 5, e => e ? String(e.data.stress) : '')}<p class="fine">Higher bar = more stressed.</p></section>
+    ${common.length ? `<section class="card"><h3>On his mind lately</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
+    ${support.length ? `<section class="card"><h3>💛 ${me() === 'mom' ? 'How you can support him' : `How ${esc(n.mom)} can support you`}</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : ''}
+    ${me() === 'dad' ? '<p class="fine center">Check-ins marked private stay on your phone and never show here for her.</p>' : ''}`
+}
+
+function feed() {
   const list = S.state.entries.filter(e => ['checkin', 'dadcheck', 'note', 'appointment'].includes(e.kind)).slice().reverse().slice(0, 150)
   const n = names()
   return `
@@ -604,6 +688,7 @@ app.addEventListener('click', async ev => {
   if (d.goLookup) { tab = 'lookup'; lookupTab = d.goLookup; render(); scrollTo(0, 0); return }
   if (d.role) { S.state.role = d.role; S.save(); onboardStep = 1; firstRun = true; render(); return }
   if (d.lt) { lookupTab = d.lt; render(); return }
+  if (d.us) { usView = d.us; render(); return }
   if (d.quickmood) { draft = { kind: 'checkin', mood: +d.quickmood, energy: 0, symptoms: {}, temp: '', note: '' }; tab = 'checkin'; render(); scrollTo(0, 0); return }
   if (d.mood) { draft.mood = +d.mood; render(); return }
   if (d.energy) { draft.energy = draft.energy === +d.energy ? 0 : +d.energy; render(); return }
