@@ -126,8 +126,9 @@ async function pull() {
     .eq('couple_id', state.coupleId).order('created_at', { ascending: true }).limit(5000)
   if (error) { setStatus('offline'); return }
   const remoteIds = new Set(data.map(e => e.id))
-  // drop anything the partner deleted, but keep local-only and not-yet-pushed rows
-  state.entries = state.entries.filter(e => e.local || remoteIds.has(e.id) || state.outbox.includes(e.id))
+  // Drop only rows that were synced before and have since been deleted remotely.
+  // Anything never uploaded (logged before pairing, or offline) must survive.
+  state.entries = state.entries.filter(e => e.local || !e.synced || remoteIds.has(e.id))
   const added = merge(data.map(e => ({ ...e, synced: true })))
   save()
   setStatus('live')
@@ -135,6 +136,16 @@ async function pull() {
 }
 
 async function connect() {
+  // Queue everything this device logged before pairing *before* the first pull,
+  // so nothing local is ever mistaken for a remote deletion.
+  if (!state.entries.some(e => e.kind === 'profile') && state.prefs && state.prefs.lmp) {
+    const { lmp, momName, dadName, obPhone } = state.prefs
+    merge([{ id: uuid(), kind: 'profile', data: { lmp, momName, dadName, obPhone }, author_role: state.role, created_at: new Date().toISOString() }])
+  }
+  const queued = new Set(state.outbox)
+  for (const e of state.entries) if (!e.local && !e.synced && !queued.has(e.id)) state.outbox.push(e.id)
+  save()
+  await flush()
   await pull()
   if (channel) sb.removeChannel(channel)
   channel = sb.channel('couple:' + state.coupleId)
@@ -152,10 +163,6 @@ async function connect() {
       if (s === 'SUBSCRIBED') setStatus('live')
       else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') setStatus('offline')
     })
-  // everything already on this device gets shared once paired
-  const known = new Set(state.outbox)
-  for (const e of state.entries) if (!e.local && !e.synced && !known.has(e.id)) state.outbox.push(e.id)
-  save()
   flush()
 }
 

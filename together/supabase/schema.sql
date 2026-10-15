@@ -86,8 +86,7 @@ begin
   return json_build_object('couple_id', new_id, 'code', new_code);
 end $$;
 
--- Join with a code. Capped at 6 devices per couple (two phones, tablets, a
--- reinstall or two) so a leaked code can't become a public feed.
+-- Join with a code.
 create or replace function public.tg_join_couple(p_code text, p_role text)
 returns json language plpgsql security definer set search_path = '' as $$
 declare
@@ -98,12 +97,15 @@ begin
   if p_role not in ('mom', 'dad') then raise exception 'bad role'; end if;
   select id into c_id from public.tg_couples where code = clean;
   if c_id is null then raise exception 'No couple with that code'; end if;
-  if not exists (select 1 from public.tg_members where couple_id = c_id and user_id = auth.uid())
-     and (select count(*) from public.tg_members where couple_id = c_id) >= 6 then
-    raise exception 'This couple already has the maximum number of devices';
-  end if;
   insert into public.tg_members (couple_id, user_id, role) values (c_id, auth.uid(), p_role)
-    on conflict (couple_id, user_id) do update set role = excluded.role;
+    on conflict (couple_id, user_id) do update set role = excluded.role, joined_at = now();
+  -- A phone that "forgot" itself re-joins as a new device. Keep only the 3 most
+  -- recent devices per role so stale ones never lock the couple out.
+  delete from public.tg_members
+   where couple_id = c_id and role = p_role
+     and user_id not in (select m.user_id from public.tg_members m
+                          where m.couple_id = c_id and m.role = p_role
+                          order by m.joined_at desc limit 3);
   return json_build_object('couple_id', c_id, 'code', clean);
 end $$;
 

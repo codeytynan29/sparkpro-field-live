@@ -15,6 +15,7 @@ let lookupTab = 'meds'
 let lookupQuery = ''
 let draft = null // in-progress check-in, survives re-renders
 let onboardStep = 0
+let firstRun = false
 let toastTimer = null
 
 // ── Dates ───────────────────────────────────────────────────────────────────
@@ -91,15 +92,37 @@ function gamePlan(ci) {
 }
 
 // ── Shell ───────────────────────────────────────────────────────────────────
+// ── Personal link ───────────────────────────────────────────────────────────
+// iPhones keep separate storage for Safari, the home-screen icon and in-app
+// browsers, so a phone can "forget" it was paired. Once paired, the address
+// carries ?c=CODE&r=role. Whatever gets bookmarked or added to the home screen
+// keeps that key, and opening it on a blank phone quietly re-joins.
+const params = new URLSearchParams(location.search)
+let autoJoining = false
+function personalLink() {
+  const u = new URL(location.href)
+  u.hash = ''
+  u.search = S.state.code && S.state.role ? `?c=${S.state.code}&r=${S.state.role}` : ''
+  return u.toString()
+}
+function stampLink() {
+  if (S.state.code && S.state.role && location.href !== personalLink()) history.replaceState(null, '', personalLink())
+}
+
 function render() {
-  if (!S.state.role || !profile().lmp || onboardStep) { app.innerHTML = onboarding(); return }
+  stampLink()
+  if (autoJoining) {
+    app.innerHTML = `<div class="onb"><div class="hero">🤍</div><h2 class="center">Reconnecting to your couple…</h2><p class="lead center">One moment.</p></div>`
+    return
+  }
+  if (!S.state.role || onboardStep) { app.innerHTML = onboarding(); return }
   const g = gest()
   const sync = { local: '', live: '<span class="dot live"></span>Live', connecting: '<span class="dot"></span>Connecting', offline: '<span class="dot off"></span>Offline — will sync', unpaired: '<span class="dot off"></span>Not paired' }[S.status]
   app.innerHTML = `
     <header class="top">
       <div>
         <div class="brand">Together</div>
-        <div class="sub">${g.week >= 0 ? `Week ${g.week} + ${g.day} · ${['', '1st', '2nd', '3rd'][g.tri]} trimester` : 'Set your dates'}</div>
+        <div class="sub">${g && g.week >= 0 ? `Week ${g.week} + ${g.day} · ${['', '1st', '2nd', '3rd'][g.tri]} trimester` : 'Dates not set yet'}</div>
       </div>
       <button class="sync" data-go="plan">${sync}</button>
     </header>
@@ -136,7 +159,7 @@ function onboarding() {
     return `<div class="onb">
       <h2>Connect your two phones</h2>
       ${pairingCard(true)}
-      <button class="big" data-act="finish-onboard">${S.isPaired() ? 'Done' : p.lmp ? 'Skip for now' : 'Back'}</button>
+      <button class="big" data-act="finish-onboard">${S.isPaired() ? 'Done' : 'Skip for now'}</button>
     </div>`
   }
   {
@@ -158,6 +181,7 @@ function onboarding() {
         <input id="obPhone" type="tel" value="${esc(p.obPhone || '')}" placeholder="optional">
       </label>
       <button class="big primary" data-act="save-dates">Continue</button>
+      <button class="big" data-act="skip-dates">${p.lmp ? 'Cancel' : 'Skip for now'}</button>
       ${S.syncAvailable() && !S.isPaired() && !p.lmp ? '<button class="big" data-act="to-pair">My partner already set this up — join with a code</button>' : ''}
     </div>`
   }
@@ -176,6 +200,8 @@ function pairingCard(inOnboarding) {
       <div class="code">${esc(S.state.code.replace(/(.{4})(.{4})/, '$1-$2'))}</div>
       <p class="fine">On the other phone: open Together → choose the other role → <b>Join with a code</b>.</p>
       <button class="ghost" data-act="share-code">Share code</button>
+      <p class="fine"><b>One and done:</b> add Together to your home screen from <i>this</i> page (Share → Add to Home Screen). The icon remembers your pairing, so you never need the code again.</p>
+      <button class="ghost" data-act="copy-link">Copy my personal link</button>
       ${inOnboarding ? '' : '<button class="ghost danger" data-act="unpair">Unpair this phone</button>'}
     </div>`
   }
@@ -194,13 +220,13 @@ function pairingCard(inOnboarding) {
 function today() {
   const g = gest()
   const n = names()
-  const wk = Math.max(4, Math.min(42, g.week))
+  const wk = g ? Math.max(4, Math.min(42, g.week)) : 4
   const [fruit, fe, len] = C.BABY_SIZE[wk] || C.BABY_SIZE[4]
   const herCI = latest('checkin', 'mom')
   const herToday = herCI && sameDay(herCI.created_at) ? herCI : null
   const flags = flagsFor(herToday)
   const enc = pick(me() === 'mom' ? C.ENCOURAGE_MOM : C.ENCOURAGE_DAD, dayIndex())
-  const upcoming = C.MILESTONES.filter(m => m.week >= g.week).slice(0, 2)
+  const upcoming = g ? C.MILESTONES.filter(m => m.week >= g.week).slice(0, 2) : []
   const appts = entries('appointment').filter(a => a.data.date >= isoDate(new Date())).sort((a, b) => a.data.date.localeCompare(b.data.date)).slice(0, 2)
   const lastNote = entries('note', other()).at(-1)
 
@@ -223,7 +249,7 @@ function today() {
         ${herCI ? `<p class="fine">Last check-in: ${fmtWhen(herCI.created_at)}</p>` : ''}
       </section>`
     }
-    main += `<section class="card"><h3>💡 Guy's-eye view</h3><p>${esc(pick(C.DAD_TRUTHS, dayIndex()))}</p><p class="fine">${esc(pick(C.DAD_TRIMESTER[g.tri], dayIndex()))}</p></section>`
+    main += `<section class="card"><h3>💡 Guy's-eye view</h3><p>${esc(pick(C.DAD_TRUTHS, dayIndex()))}</p><p class="fine">${esc(pick(C.DAD_TRIMESTER[g ? g.tri : 1], dayIndex()))}</p></section>`
   } else {
     main = herToday
       ? `${checkinCard(herToday, 'Your check-in today')}`
@@ -238,16 +264,7 @@ function today() {
 
   return `
     ${flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''}
-    <section class="card baby">
-      <div class="fruit">${fe}</div>
-      <div>
-        <div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> + ${g.day}d</small>`}</div>
-        <div>Baby is about the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
-        <div class="fine">${esc(C.WEEK_NOTES[wk] || '')}</div>
-      </div>
-      <div class="bar"><i style="width:${g.pct}%"></i></div>
-      <div class="due">Due ${fmtDate(g.due)} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</div>
-    </section>
+    ${g ? babyCard(g, wk, fe, fruit, len) : datesCard()}
     ${main}
     ${lastNote ? `<section class="card note"><div class="from">💌 ${esc(nameOf(other()))} · ${fmtWhen(lastNote.created_at)}</div><p>${esc(lastNote.data.text)}</p></section>` : ''}
     <section class="card">
@@ -260,6 +277,28 @@ function today() {
       ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
       ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(new Date(parseDate(profile().lmp).getTime() + m.week * 7 * DAY))}` : ' · now'}</span></div>`).join('')}
     </section>` : ''}`
+}
+
+function babyCard(g, wk, fe, fruit, len) {
+  return `<section class="card baby">
+      <div class="fruit">${fe}</div>
+      <div>
+        <div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> + ${g.day}d</small>`}</div>
+        <div>Baby is about the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
+        <div class="fine">${esc(C.WEEK_NOTES[wk] || '')}</div>
+      </div>
+      <div class="bar"><i style="width:${g.pct}%"></i></div>
+      <div class="due">Due ${fmtDate(g.due)} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</div>
+    </section>`
+}
+
+function datesCard() {
+  return `<section class="card prompt">
+    <h3>📅 Add your dates</h3>
+    <p>Enter the first day of her last period (or the due date) to see the week, baby size, due date and upcoming milestones.</p>
+    <button class="big primary" data-act="edit-dates">Add dates</button>
+    ${S.isPaired() ? '' : '<p class="fine">If your partner already added them, pair your phones (Plan tab) and they\'ll show up here.</p>'}
+  </section>`
 }
 
 function checkinCard(ci, title) {
@@ -293,7 +332,8 @@ function momCheckin() {
   const lvl = ['', 'mild', 'moderate', 'strong']
   const g = gest()
   // late-pregnancy-only symptoms are hidden early so the list stays short
-  const list = C.SYMPTOMS.filter(s => !(s.id === 'movement' && g.week < 24) && !(s.id === 'swelling' && g.week < 12) && !(s.id === 'backpain' && g.week < 10))
+  const wkNow = g ? g.week : 0
+  const list = C.SYMPTOMS.filter(s => !(s.id === 'movement' && wkNow < 24) && !(s.id === 'swelling' && wkNow < 12) && !(s.id === 'backpain' && wkNow < 10))
   return `
     <section class="card">
       <h3>How are you feeling today?</h3>
@@ -440,7 +480,7 @@ function lookup() {
 function plan() {
   const g = gest()
   const p = profile()
-  const lmp = parseDate(p.lmp)
+  const lmp = p.lmp ? parseDate(p.lmp) : null
   const appts = entries('appointment').slice().sort((a, b) => a.data.date.localeCompare(b.data.date))
   return `
     <section class="card">
@@ -455,14 +495,14 @@ function plan() {
     <section class="card">
       <h3>Milestones</h3>
       <div class="timeline">${C.MILESTONES.map(m => {
-        const d = new Date(lmp.getTime() + m.week * 7 * DAY)
-        const st = g.week > m.week + 1 ? 'past' : g.week >= m.week ? 'now' : ''
-        return `<details class="tl ${st}"><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${fmtDate(d)}</span></summary><p>${esc(m.detail)}</p></details>`
+        const st = !g ? '' : g.week > m.week + 1 ? 'past' : g.week >= m.week ? 'now' : ''
+        const when = lmp ? fmtDate(new Date(lmp.getTime() + m.week * 7 * DAY)) : ''
+        return `<details class="tl ${st}"><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${when}</span></summary><p>${esc(m.detail)}</p></details>`
       }).join('')}</div>
     </section>
     <section class="card">
       <h3>For the partner: this trimester</h3>
-      <ul>${C.DAD_TRIMESTER[g.tri].map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      <ul>${C.DAD_TRIMESTER[g ? g.tri : 1].map(t => `<li>${esc(t)}</li>`).join('')}</ul>
     </section>
     <section class="card">
       <h3>Pairing</h3>
@@ -470,7 +510,7 @@ function plan() {
     </section>
     <section class="card">
       <h3>Settings</h3>
-      <p>LMP: <b>${fmtDate(lmp)}</b> · Due: <b>${fmtDate(g.due)}</b> · This phone: <b>${me() === 'mom' ? '🤰 ' + esc(names().mom) : '🧔 ' + esc(names().dad)}</b></p>
+      <p>${g ? `LMP: <b>${fmtDate(lmp)}</b> · Due: <b>${fmtDate(g.due)}</b>` : 'Dates: <b>not set</b>'} · This phone: <b>${me() === 'mom' ? '🤰 ' + esc(names().mom) : '🧔 ' + esc(names().dad)}</b></p>
       <button class="ghost" data-act="edit-dates">Edit dates & names</button>
       <button class="ghost" data-act="switch-role">Switch role on this phone</button>
       <button class="ghost" data-act="export">Export backup</button>
@@ -496,7 +536,7 @@ app.addEventListener('click', async ev => {
   if (d.tab) { tab = d.tab; render(); scrollTo(0, 0); return }
   if (d.go) { tab = d.go; render(); scrollTo(0, 0); return }
   if (d.goLookup) { tab = 'lookup'; lookupTab = d.goLookup; render(); scrollTo(0, 0); return }
-  if (d.role) { S.state.role = d.role; S.save(); render(); return }
+  if (d.role) { S.state.role = d.role; S.save(); onboardStep = 1; firstRun = true; render(); return }
   if (d.lt) { lookupTab = d.lt; render(); return }
   if (d.quickmood) { draft = { kind: 'checkin', mood: +d.quickmood, energy: 0, symptoms: {}, temp: '', note: '' }; tab = 'checkin'; render(); scrollTo(0, 0); return }
   if (d.mood) { draft.mood = +d.mood; render(); return }
@@ -524,12 +564,16 @@ app.addEventListener('click', async ev => {
       const data = { lmp, momName: $('#momName').value.trim(), dadName: $('#dadName').value.trim(), obPhone: $('#obPhone').value.trim() }
       S.state.prefs = { ...S.state.prefs, ...data }
       await S.addEntry('profile', data)
-      onboardStep = onboardStep === 1 || S.isPaired() ? 0 : 2
+      onboardStep = firstRun && !S.isPaired() && S.syncAvailable() ? 2 : 0
+      firstRun = false
       render(); return
     }
-    case 'finish-onboard': onboardStep = profile().lmp ? 0 : 1; render(); return
+    case 'finish-onboard': onboardStep = 0; render(); return
+    case 'skip-dates':
+      onboardStep = firstRun && !S.isPaired() && S.syncAvailable() ? 2 : 0
+      firstRun = false; render(); scrollTo(0, 0); return
     case 'to-pair': onboardStep = 2; render(); return
-    case 'edit-dates': onboardStep = 1; render(); return
+    case 'edit-dates': onboardStep = 1; render(); scrollTo(0, 0); return
     case 'switch-role': S.state.role = other(); S.save(); draft = null; render(); toast('This phone is now ' + nameOf(me())); return
     case 'save-checkin': {
       if (!draft.mood) return
@@ -569,7 +613,10 @@ app.addEventListener('click', async ev => {
       else { navigator.clipboard?.writeText(text); toast('Copied') }
       return
     }
-    case 'unpair': if (confirm('Unpair this phone? Entries already here stay on this phone.')) { S.unpair(); render() } return
+    case 'copy-link':
+      navigator.clipboard?.writeText(personalLink()).then(() => toast('Link copied. Keep it somewhere safe.'), () => toast(personalLink()))
+      return
+    case 'unpair': if (confirm('Unpair this phone? Entries already here stay on this phone.')) { S.unpair(); history.replaceState(null, '', location.pathname); render() } return
     case 'export': {
       const blob = new Blob([JSON.stringify({ app: 'together', v: 1, exported: new Date().toISOString(), entries: S.state.entries, prefs: S.state.prefs }, null, 2)], { type: 'application/json' })
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `together-backup-${isoDate(new Date())}.json`; a.click()
@@ -624,7 +671,23 @@ S.onChange(evt => {
 // refresh "today" when the phone is picked up the next morning
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render() })
 
-render()
-S.start()
+async function boot() {
+  const code = params.get('c'), role = params.get('r')
+  if (!S.state.coupleId && code && (role === 'mom' || role === 'dad') && S.syncAvailable()) {
+    S.state.role = S.state.role || role
+    S.save()
+    autoJoining = true
+    render()
+    try { await S.joinCouple(code) } catch (e) { console.warn(e); toast('Couldn\'t reconnect. Check your signal and reopen the app.') }
+    autoJoining = false
+    onboardStep = 0
+    render()
+    S.start()
+    return
+  }
+  render()
+  S.start()
+}
+boot()
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {})

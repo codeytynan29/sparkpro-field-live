@@ -1,7 +1,7 @@
 // Together service worker: cache the app shell so it opens with no signal.
 // Navigations go network-first so a new deploy is picked up; Supabase and the
 // CDN are cross-origin and always go straight to the network.
-const CACHE = 'together-v1'
+const CACHE = 'together-v2'
 const SHELL = ['./', './index.html', './app.css', './app.js', './content.js', './sync.js', './config.js', './manifest.json', './icon.svg']
 
 self.addEventListener('install', e => {
@@ -18,6 +18,6 @@ self.addEventListener('fetch', e => {
     fetch(req).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)) }
       return res
-    }).catch(() => caches.match(req).then(hit => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
+    }).catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(hit => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
   )
 })
