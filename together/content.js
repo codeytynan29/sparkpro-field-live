@@ -508,3 +508,27 @@ export const SYMPTOM_NOUN = {
   congestion: 'a stuffy nose', backpain: 'back pain', swelling: 'swelling', fever: 'a fever',
   discharge: 'a discharge change', cramps_leg: 'leg cramps', breath: 'shortness of breath', movement: 'less baby movement',
 }
+
+// ── Registry ────────────────────────────────────────────────────────────────
+export const REG_CATS = [
+  ['gear', '🚗 Gear & travel'], ['nursery', '🛏️ Nursery & sleep'], ['feeding', '🍼 Feeding'],
+  ['diapering', '🧷 Diapering'], ['clothing', '👕 Clothing'], ['bath', '🛁 Bath & health'],
+  ['mom', '🤍 For mom'], ['other', '📦 Other'],
+]
+// One-tap starter list. Notes carry the safety basics (AAP safe sleep, car seats).
+export const REG_STARTER = [
+  ['gear', 'Infant car seat', 'Rear-facing. Buy new: a used seat may have crash damage you can\'t see.'],
+  ['gear', 'Stroller', ''], ['gear', 'Diaper bag', ''], ['gear', 'Baby carrier', ''],
+  ['nursery', 'Crib or bassinet', 'Safe sleep: firm, flat surface. No bumpers, pillows or blankets.'],
+  ['nursery', 'Crib mattress', 'Firm and flat, fitted snugly to the crib.'],
+  ['nursery', 'Fitted crib sheets (3)', ''], ['nursery', 'Swaddles / sleep sacks', 'Stop swaddling once baby shows signs of rolling.'],
+  ['nursery', 'Baby monitor', ''],
+  ['feeding', 'Bottles', ''], ['feeding', 'Burp cloths', ''], ['feeding', 'Breast pump', 'Often free through health insurance. Call your plan first.'],
+  ['feeding', 'Nursing pillow', 'For feeding only, never for sleep.'],
+  ['diapering', 'Newborn diapers', ''], ['diapering', 'Size 1 diapers', ''], ['diapering', 'Wipes', ''],
+  ['diapering', 'Diaper cream', ''], ['diapering', 'Changing pad', ''],
+  ['clothing', 'Onesies (newborn & 0–3 mo)', ''], ['clothing', 'Footed pajamas', ''], ['clothing', 'Socks & hats', ''],
+  ['bath', 'Baby bathtub', ''], ['bath', 'Hooded towels', ''], ['bath', 'Baby nail clippers', ''],
+  ['bath', 'Digital thermometer', 'Rectal readings are the most accurate for babies.'], ['bath', 'Nasal aspirator', ''],
+  ['mom', 'Nursing bras', ''], ['mom', 'Postpartum pads', ''], ['mom', 'Peri bottle', ''],
+]

@@ -526,7 +526,31 @@ const SYMPTOM_NOUN = {
   discharge: 'a discharge change', cramps_leg: 'leg cramps', breath: 'shortness of breath', movement: 'less baby movement',
 }
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN } }
+// ── Registry ────────────────────────────────────────────────────────────────
+const REG_CATS = [
+  ['gear', '🚗 Gear & travel'], ['nursery', '🛏️ Nursery & sleep'], ['feeding', '🍼 Feeding'],
+  ['diapering', '🧷 Diapering'], ['clothing', '👕 Clothing'], ['bath', '🛁 Bath & health'],
+  ['mom', '🤍 For mom'], ['other', '📦 Other'],
+]
+// One-tap starter list. Notes carry the safety basics (AAP safe sleep, car seats).
+const REG_STARTER = [
+  ['gear', 'Infant car seat', 'Rear-facing. Buy new: a used seat may have crash damage you can\'t see.'],
+  ['gear', 'Stroller', ''], ['gear', 'Diaper bag', ''], ['gear', 'Baby carrier', ''],
+  ['nursery', 'Crib or bassinet', 'Safe sleep: firm, flat surface. No bumpers, pillows or blankets.'],
+  ['nursery', 'Crib mattress', 'Firm and flat, fitted snugly to the crib.'],
+  ['nursery', 'Fitted crib sheets (3)', ''], ['nursery', 'Swaddles / sleep sacks', 'Stop swaddling once baby shows signs of rolling.'],
+  ['nursery', 'Baby monitor', ''],
+  ['feeding', 'Bottles', ''], ['feeding', 'Burp cloths', ''], ['feeding', 'Breast pump', 'Often free through health insurance. Call your plan first.'],
+  ['feeding', 'Nursing pillow', 'For feeding only, never for sleep.'],
+  ['diapering', 'Newborn diapers', ''], ['diapering', 'Size 1 diapers', ''], ['diapering', 'Wipes', ''],
+  ['diapering', 'Diaper cream', ''], ['diapering', 'Changing pad', ''],
+  ['clothing', 'Onesies (newborn & 0–3 mo)', ''], ['clothing', 'Footed pajamas', ''], ['clothing', 'Socks & hats', ''],
+  ['bath', 'Baby bathtub', ''], ['bath', 'Hooded towels', ''], ['bath', 'Baby nail clippers', ''],
+  ['bath', 'Digital thermometer', 'Rectal readings are the most accurate for babies.'], ['bath', 'Nasal aspirator', ''],
+  ['mom', 'Nursing bras', ''], ['mom', 'Postpartum pads', ''], ['mom', 'Peri bottle', ''],
+]
+
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_STARTER() { return REG_STARTER } }
 })()
 
 const S = (() => {
@@ -547,9 +571,9 @@ const state = load()
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(LS) || 'null')
-    if (s && Array.isArray(s.entries)) return { outbox: [], ...s }
+    if (s && Array.isArray(s.entries)) return { outbox: [], pending: [], ...s }
   } catch {}
-  return { role: null, coupleId: null, code: null, entries: [], outbox: [], prefs: {} }
+  return { role: null, coupleId: null, code: null, entries: [], outbox: [], pending: [], prefs: {} }
 }
 
 function save() {
@@ -589,6 +613,19 @@ async function addEntry(kind, data, opts = {}) {
   return e
 }
 
+// Edit an entry in place (either partner can, e.g. registry "got it").
+// Unsynced entries just upload with the new data; synced ones queue an update.
+function updateEntry(id, patch) {
+  const e = state.entries.find(x => x.id === id)
+  if (!e) return
+  e.data = { ...e.data, ...patch }
+  e.edited_at = new Date().toISOString()
+  if (!e.local && e.synced && !state.pending.includes(id)) state.pending.push(id)
+  save()
+  emit({ type: 'local' })
+  flush()
+}
+
 function removeEntry(id) {
   const e = state.entries.find(x => x.id === id)
   if (!e) return
@@ -601,7 +638,7 @@ function removeEntry(id) {
 
 let flushing = false
 async function flush() {
-  if (!sb || !state.coupleId || flushing || !state.outbox.length) return
+  if (!sb || !state.coupleId || flushing || (!state.outbox.length && !state.pending.length)) return
   flushing = true
   try {
     while (state.outbox.length) {
@@ -615,6 +652,14 @@ async function flush() {
       }
       if (e) e.synced = true
       state.outbox.shift(); save()
+    }
+    while (state.pending.length) {
+      const e = state.entries.find(x => x.id === state.pending[0])
+      if (e) {
+        const { error } = await sb.from('tg_entries').update({ data: e.data }).eq('id', e.id)
+        if (error) throw error
+      }
+      state.pending.shift(); save()
     }
     setStatus('live')
   } catch (err) {
@@ -660,7 +705,7 @@ async function pull() {
   // Drop only rows that were synced before and have since been deleted remotely.
   // Anything never uploaded (logged before pairing, or offline) must survive.
   state.entries = state.entries.filter(e => e.local || !e.synced || remoteIds.has(e.id))
-  const added = merge(data.map(e => ({ ...e, synced: true })))
+  const added = merge(data.filter(e => !state.pending.includes(e.id)).map(e => ({ ...e, synced: true })))
   save()
   setStatus('live')
   emit({ type: 'remote', added: added.filter(e => e.author_role !== state.role) })
@@ -669,9 +714,9 @@ async function pull() {
 async function connect() {
   // Queue everything this device logged before pairing *before* the first pull,
   // so nothing local is ever mistaken for a remote deletion.
-  if (!state.entries.some(e => e.kind === 'profile') && state.prefs && state.prefs.lmp) {
-    const { lmp, momName, dadName, obPhone } = state.prefs
-    merge([{ id: uuid(), kind: 'profile', data: { lmp, momName, dadName, obPhone }, author_role: state.role, created_at: new Date().toISOString() }])
+  if (!state.entries.some(e => e.kind === 'profile') && state.prefs && (state.prefs.lmp || state.prefs.due)) {
+    const { due, lmp, momName, dadName, obPhone } = state.prefs
+    merge([{ id: uuid(), kind: 'profile', data: { due, lmp, momName, dadName, obPhone }, author_role: state.role, created_at: new Date().toISOString() }])
   }
   const queued = new Set(state.outbox)
   for (const e of state.entries) if (!e.local && !e.synced && !queued.has(e.id)) state.outbox.push(e.id)
@@ -685,6 +730,13 @@ async function connect() {
       const added = merge([{ id: r.id, author_role: r.author_role, kind: r.kind, data: r.data, created_at: r.created_at, synced: true }])
       save()
       emit({ type: 'remote', added: added.filter(e => e.author_role !== state.role) })
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tg_entries', filter: 'couple_id=eq.' + state.coupleId }, payload => {
+      const r = payload.new
+      if (state.pending.includes(r.id)) return
+      merge([{ id: r.id, author_role: r.author_role, kind: r.kind, data: r.data, created_at: r.created_at, synced: true }])
+      save()
+      emit({ type: 'remote', added: [], updated: r })
     })
     // DELETE events can't be filtered by couple and only carry the id
     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tg_entries' }, payload => {
@@ -717,7 +769,7 @@ async function joinCouple(code) {
 function unpair() {
   if (channel && sb) sb.removeChannel(channel)
   channel = null
-  state.coupleId = null; state.code = null; state.outbox = []
+  state.coupleId = null; state.code = null; state.outbox = []; state.pending = []
   save()
   setStatus(syncAvailable() ? 'unpaired' : 'local')
 }
@@ -736,7 +788,7 @@ async function push(action, body = {}) {
   return data
 }
 
-return { get state() { return state }, get save() { return save }, get syncAvailable() { return syncAvailable }, get isPaired() { return isPaired }, get onChange() { return onChange }, get addEntry() { return addEntry }, get removeEntry() { return removeEntry }, get flush() { return flush }, get status() { return status }, get start() { return start }, get createCouple() { return createCouple }, get joinCouple() { return joinCouple }, get unpair() { return unpair }, get resetAll() { return resetAll }, get push() { return push } }
+return { get state() { return state }, get save() { return save }, get syncAvailable() { return syncAvailable }, get isPaired() { return isPaired }, get onChange() { return onChange }, get addEntry() { return addEntry }, get updateEntry() { return updateEntry }, get removeEntry() { return removeEntry }, get flush() { return flush }, get status() { return status }, get start() { return start }, get createCouple() { return createCouple }, get joinCouple() { return joinCouple }, get unpair() { return unpair }, get resetAll() { return resetAll }, get push() { return push } }
 })()
 
 // ── Together: the app ───────────────────────────────────────────────────────
@@ -780,20 +832,27 @@ function profile() {
 
 function gest() {
   const p = profile()
-  if (!p.lmp) return null
-  const lmp = parseDate(p.lmp)
+  // The OB's due date wins when there is one; otherwise estimate from the LMP.
+  if (!p.due && !p.lmp) return null
+  const due = p.due ? parseDate(p.due) : new Date(parseDate(p.lmp).getTime() + 280 * DAY)
+  const lmp = new Date(due.getTime() - 280 * DAY)
   const days = Math.floor((today0() - lmp) / DAY)
-  const due = new Date(lmp.getTime() + 280 * DAY)
   const week = Math.floor(days / 7), day = days % 7
   const tri = week < 14 ? 1 : week < 28 ? 2 : 3
-  return { days, week, day, due, tri, left: Math.ceil((due - today0()) / DAY), pct: Math.min(100, Math.max(0, days / 280 * 100)) }
+  return { days, week, day, due, lmp, fromDoctor: !!p.due, tri, left: Math.ceil((due - today0()) / DAY), pct: Math.min(100, Math.max(0, days / 280 * 100)) }
 }
 
 const names = () => { const p = profile(); return { mom: p.momName || 'Mom', dad: p.dadName || 'Dad' } }
 const me = () => S.state.role
 const other = () => (me() === 'mom' ? 'dad' : 'mom')
 const nameOf = r => names()[r]
-const symptom = id => C.SYMPTOMS.find(s => s.id === id)
+// Built-in symptoms plus any she added herself (shared through the profile)
+const customSymptoms = () => (profile().customSymptoms || []).map(c => ({
+  id: c.id, label: c.label, emoji: '📝', custom: true,
+  meaning: 'A symptom you added yourself. If it\'s new, severe or worrying, mention it to the OB.',
+  help: ['Ask her how it\'s affecting her today and what would help most.'], flag: '', flagAt: 0,
+}))
+const symptom = id => C.SYMPTOMS.find(s => s.id === id) || customSymptoms().find(s => s.id === id)
 const pick = (arr, seed) => arr[((seed % arr.length) + arr.length) % arr.length]
 const dayIndex = () => Math.floor(today0().getTime() / DAY)
 
@@ -864,33 +923,67 @@ const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
 const pushPrefs = () => (S.state.prefs && S.state.prefs.push) || {}
 const hourLabel = h => new Date(2000, 0, 1, h).toLocaleTimeString(undefined, { hour: 'numeric' })
-const hourSelect = h => `<select id="pushHour" class="hour">${Array.from({ length: 17 }, (_, i) => i + 6)
-  .map(v => `<option value="${v}" ${v === h ? 'selected' : ''}>${hourLabel(v)}</option>`).join('')}</select>`
 const b64key = s => { const b = atob(s.replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(b, c => c.charCodeAt(0)) }
+const KIND_LABEL = { checkin: '🤍 Check-in', tip: '💡 Tip' }
+// Each phone keeps its own list: [{ time: 'HH:MM', kind: 'checkin' | 'tip' }]
+function reminders() {
+  const pr = pushPrefs()
+  if (Array.isArray(pr.reminders)) return pr.reminders
+  if (pr.hour != null) return [{ time: String(pr.hour).padStart(2, '0') + ':00', kind: 'tip' }]
+  return me() === 'mom'
+    ? [{ time: '09:00', kind: 'checkin' }, { time: '14:00', kind: 'checkin' }, { time: '19:30', kind: 'tip' }]
+    : [{ time: '08:30', kind: 'tip' }, { time: '20:00', kind: 'checkin' }]
+}
+function setReminders(list) {
+  S.state.prefs = { ...S.state.prefs, push: { ...pushPrefs(), reminders: list.slice().sort((a, b) => a.time.localeCompare(b.time)) } }
+  S.save()
+}
 
 function remindersCard() {
   const pr = pushPrefs()
-  const intro = `<p>${me() === 'dad' ? 'A daily nudge built from her check-in ("She logged nausea today. Did you put crackers by the bed?") and a heads-up the moment she checks in.' : 'A gentle daily check-in reminder and a self-care tip, plus a heads-up when he sends you a note.'}</p>`
+  const intro = `<p>${me() === 'dad'
+    ? 'Pick as many times as you like. <b>Tip & game plan</b> is built from her check-in ("She logged nausea today. Did you put crackers by the bed?"). <b>Check-in</b> reminds you to log how you\'re doing. You also get an alert the moment she checks in.'
+    : 'Pick as many times as you like. <b>Check-in reminders</b> ask how you\'re feeling (skipped if you checked in within the last 2 hours). <b>Tips</b> are gentle self-care nudges. You also get an alert when he sends a note.'}</p>`
   if (!S.syncAvailable() || !S.isPaired()) return intro + '<p class="fine">Pair your phones first (below), then turn this on.</p>'
   if (isIOS && !standalone()) return intro + '<p class="fine"><b>iPhone only allows notifications from the home-screen app.</b> In Safari tap Share → Add to Home Screen, open Together from that icon, and turn this on there.</p>'
   if (!pushSupported()) return intro + '<p class="fine">This browser doesn\'t support notifications. On iPhone, update iOS and use the home-screen app.</p>'
   if (Notification.permission === 'denied') return intro + '<p class="fine">Notifications are blocked. Open iPhone Settings → Notifications → Together → Allow Notifications, then come back.</p>'
-  if (pr.on) return `<p>✅ <b>On.</b> One tip a day around ${hourLabel(pr.hour)}, plus partner alerts.</p>
-    <label class="field">Daily tip time ${hourSelect(pr.hour)}</label>
-    <button class="ghost" data-act="push-test">Send me a test now</button>
-    <button class="ghost danger" data-act="push-off">Turn off</button>`
-  return `${intro}<label class="field">Daily tip time ${hourSelect(pr.hour ?? 9)}</label>
-    <button class="big primary" data-act="push-on">🔔 Turn on daily tips</button>`
+  const list = reminders()
+  const rows = list.map((r, i) => `<div class="rem">
+      <input type="time" data-rem-time="${i}" value="${esc(r.time)}">
+      <select data-rem-kind="${i}">${Object.entries(KIND_LABEL).map(([k, l]) => `<option value="${k}" ${r.kind === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <button class="mini del" data-rem-del="${i}" aria-label="Remove">✕</button>
+    </div>`).join('')
+  return `${intro}
+    <div class="rems">${rows || '<p class="fine">No reminders yet. You\'ll still get partner alerts.</p>'}</div>
+    <button class="ghost" data-act="rem-add">＋ Add a reminder</button>
+    ${pr.on
+      ? `<p>✅ <b>On</b> · ${list.length} reminder${list.length === 1 ? '' : 's'} a day. Changes save automatically.</p>
+         <button class="ghost" data-act="push-test">Send me a test now</button>
+         <button class="ghost danger" data-act="push-off">Turn off</button>`
+      : '<button class="big primary" data-act="push-on">🔔 Turn on reminders & alerts</button>'}`
 }
 
-async function enablePush(hour) {
+async function enablePush() {
   // requestPermission must be the first await so iOS still sees the tap
   const perm = await Notification.requestPermission()
   if (perm !== 'granted') { render(); return toast('Notifications not allowed') }
+  await savePushSubscription()
+  S.state.prefs = { ...S.state.prefs, push: { ...pushPrefs(), on: true, reminders: reminders() } }; S.save()
+}
+async function savePushSubscription() {
   const reg = await navigator.serviceWorker.ready
   const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64key(VAPID_PUBLIC) })
-  await S.push('subscribe', { subscription: sub.toJSON(), hour, tz: Intl.DateTimeFormat().resolvedOptions().timeZone })
-  S.state.prefs = { ...S.state.prefs, push: { on: true, hour } }; S.save()
+  const list = reminders()
+  const firstTip = list.find(r => r.kind === 'tip')
+  await S.push('subscribe', { subscription: sub.toJSON(), reminders: list, hour: firstTip ? +firstTip.time.slice(0, 2) : 9, tz: Intl.DateTimeFormat().resolvedOptions().timeZone })
+}
+let remSaveTimer = null
+function remindersChanged() {
+  render()
+  if (!pushPrefs().on) return
+  clearTimeout(remSaveTimer)
+  remSaveTimer = setTimeout(() => savePushSubscription().then(() => toast('Reminders saved'), () => toast('Couldn\'t save reminders. Check your signal.')), 700)
 }
 
 function notifyPartner(kind, text, msg) {
@@ -950,9 +1043,9 @@ function renderScreen() {
       </div>
       <button class="sync" data-go="plan">${sync}</button>
     </header>
-    <main>${({ today, checkin, timeline, lookup, plan })[tab]()}</main>
+    <main>${({ today, checkin, timeline, lookup, registry, plan })[tab]()}</main>
     <nav class="tabs">
-      ${[['today', '🏡', 'Today'], ['checkin', '✍️', me() === 'mom' ? 'Check in' : 'You'], ['timeline', '💞', 'Us'], ['lookup', '🔎', 'Is it safe?'], ['plan', '🗓️', 'Plan']]
+      ${[['today', '🏡', 'Today'], ['checkin', '✍️', me() === 'mom' ? 'Check in' : 'You'], ['timeline', '💞', 'Us'], ['lookup', '🔎', 'Safe?'], ['registry', '🎁', 'Registry'], ['plan', '🗓️', 'Plan']]
         .map(([id, i, l]) => `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
     </nav>`
   if (tab === 'checkin' && me() === 'dad') bindBreath()
@@ -988,14 +1081,13 @@ function onboarding() {
   }
   {
     return `<div class="onb">
-      <h2>When did it start?</h2>
-      <p class="lead">Pregnancy is dated from the <b>first day of the last menstrual period (LMP)</b>, not conception. That's why you're already "week 4–5" when a test turns positive.</p>
-      <label class="field">First day of last period
-        <input type="date" id="lmp" value="${esc(p.lmp || '')}" max="${isoDate(new Date())}">
+      <h2>Your dates</h2>
+      <label class="field"><b>Due date from your doctor</b> (most accurate, and the app counts everything from it)
+        <input type="date" id="due" value="${esc(p.due || '')}">
       </label>
-      <p class="or">— or, if your OB gave you a due date —</p>
-      <label class="field">Due date
-        <input type="date" id="due" value="">
+      <p class="or">— no due date yet? —</p>
+      <label class="field">First day of last period (we'll estimate until the OB gives you a date)
+        <input type="date" id="lmp" value="${esc(p.due ? '' : p.lmp || '')}" max="${isoDate(new Date())}">
       </label>
       <div class="row2">
         <label class="field">Her name <input id="momName" value="${esc(p.momName || '')}" placeholder="optional"></label>
@@ -1005,8 +1097,8 @@ function onboarding() {
         <input id="obPhone" type="tel" value="${esc(p.obPhone || '')}" placeholder="optional">
       </label>
       <button class="big primary" data-act="save-dates">Continue</button>
-      <button class="big" data-act="skip-dates">${p.lmp ? 'Cancel' : 'Skip for now'}</button>
-      ${S.syncAvailable() && !S.isPaired() && !p.lmp ? '<button class="big" data-act="to-pair">My partner already set this up — join with a code</button>' : ''}
+      <button class="big" data-act="skip-dates">${p.lmp || p.due ? 'Cancel' : 'Skip for now'}</button>
+      ${S.syncAvailable() && !S.isPaired() && !p.lmp && !p.due ? '<button class="big" data-act="to-pair">My partner already set this up — join with a code</button>' : ''}
     </div>`
   }
 }
@@ -1100,7 +1192,7 @@ function today() {
     <section class="card quote"><p>“${esc(enc)}”</p></section>
     ${upcoming.length || appts.length ? `<section class="card"><h3>Coming up</h3>
       ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
-      ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(new Date(parseDate(profile().lmp).getTime() + m.week * 7 * DAY))}` : ' · now'}</span></div>`).join('')}
+      ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(new Date(g.lmp.getTime() + m.week * 7 * DAY))}` : ' · now'}</span></div>`).join('')}
     </section>` : ''}`
 }
 
@@ -1113,14 +1205,14 @@ function babyCard(g, wk, fe, fruit, len) {
         <div class="fine">${esc(C.WEEK_NOTES[wk] || '')}</div>
       </div>
       <div class="bar"><i style="width:${g.pct}%"></i></div>
-      <div class="due">Due ${fmtDate(g.due)} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</div>
+      <div class="due">Due ${fmtDate(g.due)}${g.fromDoctor ? '' : ' (estimate)'} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</div>
     </section>`
 }
 
 function datesCard() {
   return `<section class="card prompt">
     <h3>📅 Add your dates</h3>
-    <p>Enter the first day of her last period (or the due date) to see the week, baby size, due date and upcoming milestones.</p>
+    <p>Enter the due date your doctor gave you (or the first day of her last period) to see the week, baby size and upcoming milestones.</p>
     <button class="big primary" data-act="edit-dates">Add dates</button>
     ${S.isPaired() ? '' : '<p class="fine">If your partner already added them, pair your phones (Plan tab) and they\'ll show up here.</p>'}
   </section>`
@@ -1146,7 +1238,7 @@ function checkinCard(ci, title) {
     ${d.note ? `<p class="quote-inline">“${esc(d.note)}”</p>` : ''}
     <div class="react">
       ${hearts.length ? `<span>${hearts.map(h => esc(h.data.emoji)).join('')} from ${esc(nameOf(hearts[0].author_role))}</span>` : ''}
-      ${ci.author_role !== me() ? ['❤️', '🤗', '💪'].map(e => `<button class="mini" data-react="${ci.id}" data-emoji="${e}">${e}</button>`).join('') : ''}
+      ${ci.author_role !== me() ? ['❤️', '🤗', '💪'].map(e => `<button class="mini" data-react="${ci.id}" data-emoji="${e}">${e}</button>`).join('') : `<button class="mini" data-edit-ci="${ci.id}">✏️ Edit</button>`}
     </div>
   </section>`
 }
@@ -1160,8 +1252,9 @@ function momCheckin() {
   const g = gest()
   // late-pregnancy-only symptoms are hidden early so the list stays short
   const wkNow = g ? g.week : 0
-  const list = C.SYMPTOMS.filter(s => !(s.id === 'movement' && wkNow < 24) && !(s.id === 'swelling' && wkNow < 12) && !(s.id === 'backpain' && wkNow < 10))
+  const list = [...C.SYMPTOMS.filter(s => !(s.id === 'movement' && wkNow < 24) && !(s.id === 'swelling' && wkNow < 12) && !(s.id === 'backpain' && wkNow < 10)), ...customSymptoms()]
   return `
+    ${draft.editing ? `<section class="card soft"><p>✏️ <b>Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())}</b></p><button class="ghost" data-act="cancel-edit">Cancel editing</button></section>` : ''}
     <section class="card">
       <h3>How are you feeling today?</h3>
       <div class="moods">${C.MOOD.map(m => `<button data-mood="${m.v}" class="${draft.mood === m.v ? 'on' : ''}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
@@ -1171,7 +1264,7 @@ function momCheckin() {
     <section class="card">
       <h3>Anything going on?</h3>
       <p class="fine">Tap once for mild, again for moderate, again for strong, a fourth time to clear.</p>
-      <div class="chips">${list.map(s => { const l = draft.symptoms[s.id] || 0; return `<button class="chip ${l ? 'on l' + l : ''}" data-sym="${s.id}">${s.emoji} ${esc(s.label)}${l ? ' · ' + lvl[l] : ''}</button>` }).join('')}</div>
+      <div class="chips">${list.map(s => { const l = draft.symptoms[s.id] || 0; return `<button class="chip ${l ? 'on l' + l : ''}" data-sym="${s.id}">${s.emoji} ${esc(s.label)}${l ? ' · ' + lvl[l] : ''}</button>` }).join('')}<button class="chip add" data-act="add-symptom">＋ Add your own</button></div>
       ${Object.keys(draft.symptoms).length ? `<div class="explain">${Object.entries(draft.symptoms).map(([id, l]) => {
         const s = symptom(id); const flag = s.flag && s.flagAt && l >= s.flagAt
         return `<div class="ex ${flag ? 'warn' : ''}"><b>${s.emoji} ${esc(s.label)}</b><p>${esc(s.meaning)}</p>${s.flag ? `<p class="flag">${flag ? '⚠️ ' : 'Call if: '}${esc(s.flag)}</p>` : ''}</div>`
@@ -1386,21 +1479,95 @@ function lookup() {
     <p class="fine center">General guidance for healthy pregnancies, from ACOG, FDA, CDC and MotherToBaby information. It isn't personal medical advice. Doses, trimester, and her own health history matter, so confirm with her OB, midwife, or pharmacist. Free expert answers: MotherToBaby, 1-866-626-6847.</p>`
 }
 
+// ── Registry ────────────────────────────────────────────────────────────────
+// Shared list: either of you adds, both see who added what, either can tick
+// "got it". Store carts can't be read by outside apps, so items keep a link,
+// and the couple's own Amazon/Target/Babylist registries are one tap away.
+let regFilter = 'need'
+let editReg = null
+const storeOf = url => { try { const h = new URL(url).hostname.replace(/^www\./, ''); return ({ 'amazon.com': 'Amazon', 'a.co': 'Amazon', 'amzn.to': 'Amazon', 'target.com': 'Target', 'walmart.com': 'Walmart', 'babylist.com': 'Babylist', 'buybuybaby.com': 'buybuy BABY', 'costco.com': 'Costco' })[h] || h } catch { return '' } }
+// Amazon product links carry the name: /Graco-SnugRide-Infant-Car-Seat/dp/B0...
+function nameFromUrl(url) {
+  try {
+    const u = new URL(url)
+    const m = u.pathname.match(/\/([^/]+)\/(?:dp|gp\/product)\//) || u.pathname.match(/\/([^/]*-[^/]*)\/?(?:p\/|$)/)
+    if (!m) return ''
+    return decodeURIComponent(m[1]).replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)
+  } catch { return '' }
+}
+const money = n => (n || n === 0) && !isNaN(n) ? '$' + Number(n).toFixed(Number(n) % 1 ? 2 : 0) : ''
+
+function registry() {
+  const n = names()
+  const items = entries('registry')
+  const need = items.filter(i => !i.data.got), got = items.filter(i => i.data.got)
+  const shown = regFilter === 'need' ? need : regFilter === 'got' ? got : items
+  const left = need.reduce((t, i) => t + (parseFloat(i.data.price) || 0) * (parseInt(i.data.qty) || 1), 0)
+  const links = profile().registryLinks || []
+  const e = editReg ? items.find(i => i.id === editReg) : null
+  const d = e ? e.data : {}
+  return `
+    <section class="card">
+      <h3>🎁 Our registry</h3>
+      <p>${items.length} item${items.length === 1 ? '' : 's'} · <b>${need.length} still needed</b>${left ? ` · about ${money(left)} to go` : ''}</p>
+      <div class="seg">${[['need', 'Still need'], ['got', 'Got it ✅'], ['all', 'All']].map(([id, l]) => `<button data-regf="${id}" class="${regFilter === id ? 'on' : ''}">${l}</button>`).join('')}</div>
+    </section>
+    ${C.REG_CATS.map(([cat, label]) => {
+      const list = shown.filter(i => (i.data.cat || 'other') === cat)
+      if (!list.length) return ''
+      return `<section class="card"><h3>${label}</h3>${list.map(i => {
+        const it = i.data, by = i.author_role === 'mom' ? '🤰 ' + esc(n.mom) : '🧔 ' + esc(n.dad)
+        return `<div class="reg ${it.got ? 'got' : ''}">
+          <button class="tick" data-reg-got="${i.id}" aria-label="Got it">${it.got ? '✅' : '⬜'}</button>
+          <div class="reg-main">
+            <div class="reg-name">${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
+            <div class="fine">${[it.url ? storeOf(it.url) : '', money(it.price), 'added by ' + by, it.got && it.gotBy ? 'got by ' + esc(nameOf(it.gotBy)) : ''].filter(Boolean).join(' · ')}</div>
+            ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
+          </div>
+          <div class="reg-act"><button class="mini" data-edit-reg="${i.id}">✏️</button>${i.author_role === me() ? `<button class="mini del" data-del="${i.id}">✕</button>` : ''}</div>
+        </div>`
+      }).join('')}</section>`
+    }).join('')}
+    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? '<button class="big" data-act="reg-starter">Add a starter list (30 basics)</button>' : ''}</section>` : ''}
+    <section class="card" id="regForm">
+      <h3>${e ? 'Edit item' : 'Add an item'}</h3>
+      <label class="field">Paste a link (Amazon, Target, anywhere), optional
+        <input id="regUrl" type="url" inputmode="url" placeholder="https://www.amazon.com/…" value="${esc(d.url || '')}">
+      </label>
+      <label class="field">What is it?
+        <input id="regName" placeholder="e.g. Infant car seat" value="${esc(d.name || '')}">
+      </label>
+      <div class="row2">
+        <label class="field">Price <input id="regPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
+        <label class="field">How many <input id="regQty" inputmode="numeric" value="${esc(d.qty || '1')}"></label>
+      </div>
+      <label class="field">Category
+        <select id="regCat" class="inp">${C.REG_CATS.map(([id, l]) => `<option value="${id}" ${(d.cat || 'other') === id ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      </label>
+      <label class="field">Notes <input id="regNotes" placeholder="color, size, why we want it…" value="${esc(d.notes || '')}"></label>
+      <button class="big primary" data-act="reg-save">${e ? 'Save changes' : 'Add to registry'}</button>
+      ${e ? '<button class="ghost" data-act="reg-cancel">Cancel</button>' : ''}
+    </section>
+    <section class="card">
+      <h3>🔗 Our store registries</h3>
+      ${links.length ? links.map((l, i) => `<div class="mile"><a href="${esc(l.url)}" target="_blank" rel="noopener"><b>${esc(l.name)}</b></a><span><button class="mini del" data-reg-link-del="${i}">✕</button></span></div>`).join('') : '<p class="fine">Keep your Amazon, Target or Babylist registry links here so both of you can open them in one tap.</p>'}
+      <div class="row2"><input id="linkName" placeholder="e.g. Amazon registry"><input id="linkUrl" type="url" placeholder="https://…"></div>
+      <button class="ghost" data-act="reg-link-add">＋ Save registry link</button>
+      <p class="fine">Tip: Amazon's Baby Registry lets you add your partner as a co-registrant, so you can both add straight from the Amazon app too.</p>
+    </section>`
+}
+
 // ── Plan ────────────────────────────────────────────────────────────────────
 function plan() {
   const g = gest()
   const p = profile()
-  const lmp = p.lmp ? parseDate(p.lmp) : null
+  const lmp = g ? g.lmp : null
   const appts = entries('appointment').slice().sort((a, b) => a.data.date.localeCompare(b.data.date))
   return `
     <section class="card">
       <h3>Appointments</h3>
-      ${appts.length ? appts.map(a => `<div class="mile ${a.data.date < isoDate(new Date()) ? 'past' : ''}"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))} <button class="mini del" data-del="${a.id}">✕</button></span></div>`).join('') : '<p class="fine">Add the OB visits so you both see what\'s next.</p>'}
-      <div class="row2">
-        <input id="apptTitle" placeholder="e.g. 8-week ultrasound">
-        <input id="apptDate" type="date">
-      </div>
-      <button class="big" data-act="add-appt">Add appointment</button>
+      ${appts.length ? appts.map(a => `<div class="mile ${a.data.date < isoDate(new Date()) ? 'past' : ''}"><b>📅 ${esc(a.data.title)}${a.data.notes ? `<span class="why">${esc(a.data.notes)}</span>` : ''}</b><span>${fmtDate(parseDate(a.data.date))}${a.data.time ? ' · ' + esc(fmtTime(a.data.time)) : ''} <button class="mini" data-edit-appt="${a.id}">✏️</button> ${a.author_role === me() ? `<button class="mini del" data-del="${a.id}">✕</button>` : ''}</span></div>`).join('') : '<p class="fine">Add the OB visits so you both see what\'s next.</p>'}
+      ${apptForm()}
     </section>
     <section class="card">
       <h3>Milestones</h3>
@@ -1424,13 +1591,26 @@ function plan() {
     </section>
     <section class="card">
       <h3>Settings</h3>
-      <p>${g ? `LMP: <b>${fmtDate(lmp)}</b> · Due: <b>${fmtDate(g.due)}</b>` : 'Dates: <b>not set</b>'} · This phone: <b>${me() === 'mom' ? '🤰 ' + esc(names().mom) : '🧔 ' + esc(names().dad)}</b></p>
+      <p>${g ? `Due: <b>${fmtDate(g.due)}</b> ${g.fromDoctor ? '(from your doctor)' : '(estimated from last period)'}` : 'Dates: <b>not set</b>'} · This phone: <b>${me() === 'mom' ? '🤰 ' + esc(names().mom) : '🧔 ' + esc(names().dad)}</b></p>
       <button class="ghost" data-act="edit-dates">Edit dates & names</button>
       <button class="ghost" data-act="switch-role">Switch role on this phone</button>
       <button class="ghost" data-act="export">Export backup</button>
       <label class="ghost file">Import backup<input type="file" id="importFile" accept="application/json" hidden></label>
       <button class="ghost danger" data-act="reset">Erase everything on this phone</button>
     </section>`
+}
+
+const fmtTime = t => { const [h, m] = t.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) }
+let editAppt = null
+function apptForm() {
+  const a = editAppt ? entries('appointment').find(e => e.id === editAppt) : null
+  const d = a ? a.data : {}
+  return `<h4>${a ? 'Edit appointment' : 'Add an appointment'}</h4>
+    <input id="apptTitle" class="inp" placeholder="e.g. 8-week ultrasound" value="${esc(d.title || '')}">
+    <div class="row2"><input id="apptDate" type="date" value="${esc(d.date || '')}"><input id="apptTime" type="time" value="${esc(d.time || '')}"></div>
+    <input id="apptNotes" class="inp" placeholder="Notes (address, questions to ask…)" value="${esc(d.notes || '')}">
+    <button class="big" data-act="add-appt">${a ? 'Save changes' : 'Add appointment'}</button>
+    ${a ? '<button class="ghost" data-act="cancel-appt">Cancel</button>' : ''}`
 }
 
 // ── Events ──────────────────────────────────────────────────────────────────
@@ -1468,15 +1648,28 @@ app.addEventListener('click', async ev => {
   }
   if (d.sendnote) { await S.addEntry('note', { text: d.sendnote }); notifyPartner('note', d.sendnote); toast('Sent 💌'); return }
   if (d.react) { await S.addEntry('reaction', { to: d.react, emoji: d.emoji }); toast('Sent ' + d.emoji); return }
+  if (d.regf) { regFilter = d.regf; render(); return }
+  if (d.regGot) {
+    const it = entries('registry').find(x => x.id === d.regGot); if (!it) return
+    S.updateEntry(it.id, it.data.got ? { got: false, gotBy: null } : { got: true, gotBy: me() })
+    if (!it.data.got) toast('Marked as got ✅'); return
+  }
+  if (d.editReg) { editReg = d.editReg; render(); document.getElementById('regForm')?.scrollIntoView({ block: 'start' }); return }
+  if (d.regLinkDel != null) { const l = (profile().registryLinks || []).slice(); l.splice(+d.regLinkDel, 1); await S.addEntry('profile', { registryLinks: l }); return }
+  if (d.remDel != null) { const list = reminders().slice(); list.splice(+d.remDel, 1); setReminders(list); remindersChanged(); return }
+  if (d.editAppt) { editAppt = d.editAppt; render(); document.getElementById('apptTitle')?.scrollIntoView({ block: 'center' }); return }
+  if (d.editCi) {
+    const e = entries('checkin').find(x => x.id === d.editCi); if (!e) return
+    draft = { kind: 'checkin', editing: e.id, mood: e.data.mood || 0, energy: e.data.energy || 0, symptoms: { ...(e.data.symptoms || {}) }, temp: e.data.temp || '', note: e.data.note || '' }
+    tab = 'checkin'; render(); scrollTo(0, 0); return
+  }
   if (d.del) { if (confirm('Delete this?')) S.removeEntry(d.del); return }
 
   switch (d.act) {
     case 'save-dates': {
-      let lmp = $('#lmp').value
-      const due = $('#due').value
-      if (due) lmp = isoDate(new Date(parseDate(due).getTime() - 280 * DAY))
-      if (!lmp) return toast('Add a date first')
-      const data = { lmp, momName: $('#momName').value.trim(), dadName: $('#dadName').value.trim(), obPhone: $('#obPhone').value.trim() }
+      const due = $('#due').value, lmp = due ? '' : $('#lmp').value
+      if (!due && !lmp) return toast('Add the due date (or the first day of the last period)')
+      const data = { due, lmp, momName: $('#momName').value.trim(), dadName: $('#dadName').value.trim(), obPhone: $('#obPhone').value.trim() }
       S.state.prefs = { ...S.state.prefs, ...data }
       await S.addEntry('profile', data)
       onboardStep = firstRun && !S.isPaired() && S.syncAvailable() ? 2 : 0
@@ -1492,7 +1685,12 @@ app.addEventListener('click', async ev => {
     case 'switch-role': S.state.role = other(); S.save(); draft = null; render(); toast('This phone is now ' + nameOf(me())); return
     case 'save-checkin': {
       if (!draft.mood) return
-      const saved = await S.addEntry('checkin', { mood: draft.mood, energy: draft.energy || null, symptoms: draft.symptoms, temp: draft.temp.trim(), note: draft.note.trim() })
+      const ciData = { mood: draft.mood, energy: draft.energy || null, symptoms: draft.symptoms, temp: draft.temp.trim(), note: draft.note.trim() }
+      if (draft.editing) {
+        S.updateEntry(draft.editing, ciData)
+        draft = null; tab = 'today'; render(); scrollTo(0, 0); toast('Check-in updated'); return
+      }
+      const saved = await S.addEntry('checkin', ciData)
       draft = null; tab = 'today'; render(); scrollTo(0, 0)
       notifyPartner('checkin', '', nudgeFor(saved))
       toast(S.isPaired() ? 'Shared with ' + names().dad : 'Saved'); return
@@ -1510,7 +1708,21 @@ app.addEventListener('click', async ev => {
     case 'add-appt': {
       const title = $('#apptTitle').value.trim(), date = $('#apptDate').value
       if (!title || !date) return toast('Add a title and a date')
-      await S.addEntry('appointment', { title, date }); toast('Added 📅'); return
+      const appt = { title, date, time: $('#apptTime').value, notes: $('#apptNotes').value.trim() }
+      if (editAppt) { S.updateEntry(editAppt, appt); editAppt = null; toast('Appointment updated') } else { await S.addEntry('appointment', appt); toast('Added 📅') }
+      return
+    }
+    case 'cancel-appt': editAppt = null; render(); return
+    case 'cancel-edit': draft = null; render(); return
+    case 'add-symptom': {
+      const label = (prompt('Name the symptom (e.g. "Metallic taste")') || '').trim().slice(0, 40)
+      if (!label) return
+      const list = profile().customSymptoms || []
+      if (list.some(c => c.label.toLowerCase() === label.toLowerCase())) return toast('Already on the list')
+      const id = 'c_' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 20) + '_' + Math.random().toString(36).slice(2, 6)
+      await S.addEntry('profile', { customSymptoms: [...list, { id, label }] })
+      if (draft) draft.symptoms[id] = 1
+      render(); toast('Added "' + label + '"'); return
     }
     case 'create-couple':
       b.disabled = true; b.textContent = 'Creating…'
@@ -1529,9 +1741,34 @@ app.addEventListener('click', async ev => {
       else { navigator.clipboard?.writeText(text); toast('Copied') }
       return
     }
+    case 'reg-save': {
+      const url = $('#regUrl').value.trim(), name = ($('#regName').value.trim() || nameFromUrl(url)).slice(0, 120)
+      if (!name) return toast('Give it a name')
+      if (url && !/^https?:\/\//i.test(url)) return toast('Links need to start with https://')
+      const item = { name, url, price: $('#regPrice').value.replace(/[^0-9.]/g, ''), qty: String(parseInt($('#regQty').value) || 1), cat: $('#regCat').value, notes: $('#regNotes').value.trim() }
+      if (editReg) { S.updateEntry(editReg, item); editReg = null; toast('Saved'); return }
+      await S.addEntry('registry', { ...item, got: false })
+      notifyPartner('registry', '', { title: `🎁 ${nameOf(me())} added to the registry`, body: name })
+      toast('Added 🎁'); return
+    }
+    case 'reg-cancel': editReg = null; render(); return
+    case 'reg-starter': {
+      for (const [cat, name, notes] of C.REG_STARTER) await S.addEntry('registry', { name, url: '', price: '', qty: '1', cat, notes, got: false })
+      toast('Starter list added. Edit or delete anything.'); return
+    }
+    case 'reg-link-add': {
+      const name = $('#linkName').value.trim() || 'Registry', url = $('#linkUrl').value.trim()
+      if (!/^https?:\/\//i.test(url)) return toast('Paste the full link, starting with https://')
+      await S.addEntry('profile', { registryLinks: [...(profile().registryLinks || []), { name, url }] }); toast('Link saved'); return
+    }
+    case 'rem-add': {
+      const list = reminders(), last = list[list.length - 1]
+      const h = last ? Math.min(23, +last.time.slice(0, 2) + 2) : 9
+      setReminders([...list, { time: String(h).padStart(2, '0') + ':00', kind: me() === 'mom' ? 'checkin' : 'tip' }]); remindersChanged(); return
+    }
     case 'push-on':
       b.disabled = true; b.textContent = 'Turning on…'
-      try { await enablePush(+$('#pushHour').value); toast('Daily tips are on 🔔') } catch (e) { console.warn(e); toast('Couldn\'t turn on: ' + (e.message || 'try again')) }
+      try { await enablePush(); toast('Reminders are on 🔔') } catch (e) { console.warn(e); toast('Couldn\'t turn on: ' + (e.message || 'try again')) }
       render(); return
     case 'push-test':
       try { const r = await S.push('test'); toast(r && r.sent ? 'Sent. It should pop up in a few seconds.' : 'Nothing sent. Try turning it off and on again.') } catch (e) { toast('Test failed: ' + (e.message || 'check your signal')) }
@@ -1542,8 +1779,8 @@ app.addEventListener('click', async ev => {
         const sub = await reg.pushManager.getSubscription()
         if (sub) { await S.push('unsubscribe', { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe() }
       } catch (e) { console.warn(e) }
-      S.state.prefs = { ...S.state.prefs, push: { on: false, hour: pushPrefs().hour ?? 9 } }; S.save()
-      render(); toast('Daily tips off'); return
+      S.state.prefs = { ...S.state.prefs, push: { ...pushPrefs(), on: false } }; S.save()
+      render(); toast('Reminders off'); return
     }
     case 'copy-link':
       navigator.clipboard?.writeText(personalLink()).then(() => toast('Link copied. Keep it somewhere safe.'), () => toast(personalLink()))
@@ -1568,20 +1805,16 @@ app.addEventListener('input', ev => {
     const q = $('#q'); q.focus(); q.setSelectionRange(pos, pos)
   }
   if (ev.target.id === 'note' || ev.target.id === 'temp') readDraftInputs()
+  if (ev.target.id === 'regUrl') { const nm = $('#regName'); if (nm && !nm.value) nm.value = nameFromUrl(ev.target.value) }
 })
 
 app.addEventListener('change', async ev => {
-  if (ev.target.id === 'pushHour') {
-    const hour = +ev.target.value
-    S.state.prefs = { ...S.state.prefs, push: { ...pushPrefs(), hour } }; S.save()
-    if (pushPrefs().on) {
-      try {
-        const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription()
-        if (sub) await S.push('subscribe', { subscription: sub.toJSON(), hour, tz: Intl.DateTimeFormat().resolvedOptions().timeZone })
-        toast('Daily tip moved to ' + hourLabel(hour))
-      } catch (e) { toast('Couldn\'t save the new time') }
-    }
-    render(); return
+  const t = ev.target
+  if (t.dataset.remTime != null || t.dataset.remKind != null) {
+    const list = reminders().slice(), k = +(t.dataset.remTime ?? t.dataset.remKind)
+    if (t.dataset.remTime != null && t.value) list[k] = { ...list[k], time: t.value }
+    if (t.dataset.remKind != null) list[k] = { ...list[k], kind: t.value }
+    setReminders(list); remindersChanged(); return
   }
   if (ev.target.id === 'private') readDraftInputs()
   if (ev.target.id === 'importFile') {
@@ -1603,7 +1836,7 @@ S.onChange(evt => {
   if (evt.type === 'remote' && evt.added?.length) {
     const e = evt.added.at(-1)
     const who = nameOf(e.author_role)
-    const msg = e.kind === 'checkin' ? (me() === 'dad' && e.author_role === 'mom' ? `${nudgeFor(e).title}. ${nudgeFor(e).body}` : `${who} just checked in`) : e.kind === 'note' ? `💌 ${who}: ${e.data.text}` : e.kind === 'reaction' ? `${who} sent ${e.data.emoji}` : e.kind === 'appointment' ? `${who} added ${e.data.title}` : ''
+    const msg = e.kind === 'checkin' ? (me() === 'dad' && e.author_role === 'mom' ? `${nudgeFor(e).title}. ${nudgeFor(e).body}` : `${who} just checked in`) : e.kind === 'note' ? `💌 ${who}: ${e.data.text}` : e.kind === 'reaction' ? `${who} sent ${e.data.emoji}` : e.kind === 'appointment' ? `${who} added ${e.data.title}` : e.kind === 'registry' ? `🎁 ${who} added ${e.data.name} to the registry` : ''
     if (msg) { toast(msg); navigator.vibrate?.(60) }
   }
   // don't yank the page out from under someone mid-typing

@@ -16,9 +16,9 @@ export const state = load()
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(LS) || 'null')
-    if (s && Array.isArray(s.entries)) return { outbox: [], ...s }
+    if (s && Array.isArray(s.entries)) return { outbox: [], pending: [], ...s }
   } catch {}
-  return { role: null, coupleId: null, code: null, entries: [], outbox: [], prefs: {} }
+  return { role: null, coupleId: null, code: null, entries: [], outbox: [], pending: [], prefs: {} }
 }
 
 export function save() {
@@ -58,6 +58,19 @@ export async function addEntry(kind, data, opts = {}) {
   return e
 }
 
+// Edit an entry in place (either partner can, e.g. registry "got it").
+// Unsynced entries just upload with the new data; synced ones queue an update.
+export function updateEntry(id, patch) {
+  const e = state.entries.find(x => x.id === id)
+  if (!e) return
+  e.data = { ...e.data, ...patch }
+  e.edited_at = new Date().toISOString()
+  if (!e.local && e.synced && !state.pending.includes(id)) state.pending.push(id)
+  save()
+  emit({ type: 'local' })
+  flush()
+}
+
 export function removeEntry(id) {
   const e = state.entries.find(x => x.id === id)
   if (!e) return
@@ -70,7 +83,7 @@ export function removeEntry(id) {
 
 let flushing = false
 export async function flush() {
-  if (!sb || !state.coupleId || flushing || !state.outbox.length) return
+  if (!sb || !state.coupleId || flushing || (!state.outbox.length && !state.pending.length)) return
   flushing = true
   try {
     while (state.outbox.length) {
@@ -84,6 +97,14 @@ export async function flush() {
       }
       if (e) e.synced = true
       state.outbox.shift(); save()
+    }
+    while (state.pending.length) {
+      const e = state.entries.find(x => x.id === state.pending[0])
+      if (e) {
+        const { error } = await sb.from('tg_entries').update({ data: e.data }).eq('id', e.id)
+        if (error) throw error
+      }
+      state.pending.shift(); save()
     }
     setStatus('live')
   } catch (err) {
@@ -129,7 +150,7 @@ async function pull() {
   // Drop only rows that were synced before and have since been deleted remotely.
   // Anything never uploaded (logged before pairing, or offline) must survive.
   state.entries = state.entries.filter(e => e.local || !e.synced || remoteIds.has(e.id))
-  const added = merge(data.map(e => ({ ...e, synced: true })))
+  const added = merge(data.filter(e => !state.pending.includes(e.id)).map(e => ({ ...e, synced: true })))
   save()
   setStatus('live')
   emit({ type: 'remote', added: added.filter(e => e.author_role !== state.role) })
@@ -138,9 +159,9 @@ async function pull() {
 async function connect() {
   // Queue everything this device logged before pairing *before* the first pull,
   // so nothing local is ever mistaken for a remote deletion.
-  if (!state.entries.some(e => e.kind === 'profile') && state.prefs && state.prefs.lmp) {
-    const { lmp, momName, dadName, obPhone } = state.prefs
-    merge([{ id: uuid(), kind: 'profile', data: { lmp, momName, dadName, obPhone }, author_role: state.role, created_at: new Date().toISOString() }])
+  if (!state.entries.some(e => e.kind === 'profile') && state.prefs && (state.prefs.lmp || state.prefs.due)) {
+    const { due, lmp, momName, dadName, obPhone } = state.prefs
+    merge([{ id: uuid(), kind: 'profile', data: { due, lmp, momName, dadName, obPhone }, author_role: state.role, created_at: new Date().toISOString() }])
   }
   const queued = new Set(state.outbox)
   for (const e of state.entries) if (!e.local && !e.synced && !queued.has(e.id)) state.outbox.push(e.id)
@@ -154,6 +175,13 @@ async function connect() {
       const added = merge([{ id: r.id, author_role: r.author_role, kind: r.kind, data: r.data, created_at: r.created_at, synced: true }])
       save()
       emit({ type: 'remote', added: added.filter(e => e.author_role !== state.role) })
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tg_entries', filter: 'couple_id=eq.' + state.coupleId }, payload => {
+      const r = payload.new
+      if (state.pending.includes(r.id)) return
+      merge([{ id: r.id, author_role: r.author_role, kind: r.kind, data: r.data, created_at: r.created_at, synced: true }])
+      save()
+      emit({ type: 'remote', added: [], updated: r })
     })
     // DELETE events can't be filtered by couple and only carry the id
     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tg_entries' }, payload => {
@@ -186,7 +214,7 @@ export async function joinCouple(code) {
 export function unpair() {
   if (channel && sb) sb.removeChannel(channel)
   channel = null
-  state.coupleId = null; state.code = null; state.outbox = []
+  state.coupleId = null; state.code = null; state.outbox = []; state.pending = []
   save()
   setStatus(syncAvailable() ? 'unpaired' : 'local')
 }

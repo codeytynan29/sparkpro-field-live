@@ -4,8 +4,8 @@
 //   unsubscribe     a phone turns reminders off
 //   notify-partner  "Mom just checked in" / a new note, sent to the other phone
 //   test            send a sample tip to the caller's own phone
-//   daily           called by pg_cron every 15 min; sends each phone one tip a
-//                   day in the hour it chose, in its own time zone
+//   daily           called by pg_cron every 5 min; sends each phone's own
+//                   reminders (any number, any times) in its own time zone
 // Phone requests carry the user's Supabase JWT and are checked here; the cron
 // call carries a shared secret from tg_config. Hence verify_jwt is off.
 import webpush from 'npm:web-push@3.6.7'
@@ -80,9 +80,10 @@ const SYMPTOM_NUDGE: Record<string, string> = {
 }
 
 function localParts(tz: string, d = new Date()) {
-  const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false })
+  const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
   const p = Object.fromEntries(f.formatToParts(d).map(x => [x.type, x.value]))
-  return { date: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) % 24 }
+  const hour = Number(p.hour) % 24
+  return { date: `${p.year}-${p.month}-${p.day}`, hour, minutes: hour * 60 + Number(p.minute) }
 }
 const dayNum = (date: string) => Math.floor(Date.parse(date) / 86400000)
 
@@ -114,8 +115,35 @@ async function tipFor(sub: { role: string; couple_id: string; tz: string }) {
   return { title: 'Daily tip', body: MOM_TIPS[n % MOM_TIPS.length] }
 }
 
+const MOM_CHECKIN = [
+  { title: 'How are you feeling right now? 🤍', body: 'Tap to check in. It takes 20 seconds.' },
+  { title: 'Quick check-in', body: 'How\'s your body doing? Log it so you both know what today needs.' },
+  { title: 'Checking in on you', body: 'Any symptoms, cravings or worries? A quick log helps him help you.' },
+]
+const DAD_CHECKIN = [
+  { title: 'How are you doing?', body: 'Take 20 seconds to check in with yourself. Your stress matters too.' },
+  { title: 'Quick self check-in', body: 'Stress level, what\'s on your mind. Log it in the You tab.' },
+]
+async function checkinReminder(sub: Sub, slot: number) {
+  if (sub.role === 'mom') {
+    // she logged in the last 2 hours: don't nag
+    const { data } = await sb.from('tg_entries').select('created_at').eq('couple_id', sub.couple_id)
+      .eq('kind', 'checkin').eq('author_role', 'mom').order('created_at', { ascending: false }).limit(1)
+    if (data?.[0] && Date.now() - Date.parse(data[0].created_at) < 2 * 3600 * 1000) return null
+    return MOM_CHECKIN[slot % MOM_CHECKIN.length]
+  }
+  return DAD_CHECKIN[slot % DAD_CHECKIN.length]
+}
+
+type Reminder = { time: string; kind: 'checkin' | 'tip' }
+function remindersOf(s: Sub): Reminder[] {
+  const list = Array.isArray(s.reminders) ? s.reminders : []
+  return list.length ? list : [{ time: `${String(s.hour).padStart(2, '0')}:00`, kind: 'tip' }]
+}
+const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+
 // ── Sending ─────────────────────────────────────────────────────────────────
-type Sub = { endpoint: string; p256dh: string; auth: string; role: string; couple_id: string; tz: string; hour: number; last_sent: string | null }
+type Sub = { endpoint: string; p256dh: string; auth: string; role: string; couple_id: string; tz: string; hour: number; last_sent: string | null; reminders?: Reminder[]; sent_keys?: string[] }
 
 async function send(sub: Sub, msg: { title: string; body: string; tag?: string }) {
   try {
@@ -158,10 +186,20 @@ Deno.serve(async req => {
       let sent = 0
       for (const s of (subs || []) as Sub[]) {
         const now = localParts(s.tz)
-        if (now.hour !== s.hour || s.last_sent === now.date) continue
+        const done = new Set((s.sent_keys || []).filter(k => k.startsWith(now.date)))
+        // a reminder fires once, in the 10 minutes after its time (cron runs every 5)
+        const due = remindersOf(s).filter(r => {
+          const t = toMin(r.time)
+          return now.minutes >= t && now.minutes < t + 10 && !done.has(`${now.date} ${r.time}`)
+        })
+        if (!due.length) continue
+        due.forEach(r => done.add(`${now.date} ${r.time}`))
         // mark first so an overlapping run can't double-send
-        await sb.from('tg_push_subs').update({ last_sent: now.date }).eq('endpoint', s.endpoint)
-        if (await send(s, await tipFor(s))) sent++
+        await sb.from('tg_push_subs').update({ sent_keys: [...done], last_sent: now.date }).eq('endpoint', s.endpoint)
+        for (const r of due) {
+          const msg = r.kind === 'checkin' ? await checkinReminder(s, toMin(r.time)) : await tipFor(s)
+          if (msg && await send(s, { ...msg, tag: r.kind })) sent++
+        }
       }
       return json({ ok: true, sent })
     }
@@ -177,9 +215,12 @@ Deno.serve(async req => {
       let tz = String(body.tz || 'America/Los_Angeles')
       try { new Intl.DateTimeFormat('en', { timeZone: tz }) } catch { tz = 'America/Los_Angeles' }
       const hour = Math.min(23, Math.max(0, Number(body.hour) | 0))
+      const reminders = (Array.isArray(body.reminders) ? body.reminders : [])
+        .filter((r: Reminder) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(r?.time)) && (r.kind === 'checkin' || r.kind === 'tip'))
+        .slice(0, 24).map((r: Reminder) => ({ time: r.time, kind: r.kind }))
       const { error } = await sb.from('tg_push_subs').upsert({
         endpoint: s.endpoint, p256dh: s.keys.p256dh, auth: s.keys.auth,
-        user_id: user.id, couple_id: m.couple_id, role: m.role, tz, hour,
+        user_id: user.id, couple_id: m.couple_id, role: m.role, tz, hour, reminders,
       }, { onConflict: 'endpoint' })
       if (error) throw error
       return json({ ok: true })

@@ -196,3 +196,24 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 500; margi
 .nudge { background: var(--soft); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; margin: 4px 0 10px; font-size: .95rem; }
 .nudge.urgent { background: var(--avoid-bg); border-left-color: var(--avoid); }
 #toast { border-radius: 16px; text-align: center; }
+
+/* reminders */
+.rems { display: grid; gap: 8px; margin: 8px 0; }
+.rem { display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 8px; align-items: center; }
+.rem input, .rem select, select.inp, input.inp { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font-size: 1rem; }
+input.inp, select.inp { display: block; margin: 6px 0; }
+.chip.add { border: 1px dashed var(--accent); color: var(--accent); background: transparent; }
+
+/* registry */
+.reg { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.reg:last-child { border-bottom: 0; }
+.reg .tick { background: none; border: 0; font-size: 1.4rem; padding: 0; line-height: 1; }
+.reg-name { font-weight: 600; }
+.reg-name a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+.reg.got .reg-name { text-decoration: line-through; opacity: .6; }
+.reg-notes { margin-top: 2px; }
+.reg-act { display: flex; gap: 4px; }
+
+/* six tabs fit on a phone */
+.tabs button { font-size: .66rem; }
+.tabs button span { font-size: 1.2rem; }

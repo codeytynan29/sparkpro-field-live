@@ -119,3 +119,26 @@ grant execute on function public.tg_is_member(uuid) to authenticated;
 do $$ begin
   alter publication supabase_realtime add table public.tg_entries;
 exception when duplicate_object then null; end $$;
+
+-- ── Edits, reminders and push (added later) ─────────────────────────────────
+-- Either partner can edit a shared entry (registry "got it", appointments,
+-- fixing a check-in). Deletes stay author-only.
+drop policy if exists tg_entries_update on public.tg_entries;
+create policy tg_entries_update on public.tg_entries for update to authenticated
+  using (public.tg_is_member(couple_id)) with check (public.tg_is_member(couple_id));
+
+-- Push subscriptions; only the tg-push edge function (service role) touches them.
+create table if not exists public.tg_push_subs (
+  endpoint text primary key, user_id uuid not null,
+  couple_id uuid not null references public.tg_couples(id) on delete cascade,
+  role text not null check (role in ('mom', 'dad')), p256dh text not null, auth text not null,
+  tz text not null default 'America/Los_Angeles', hour int not null default 9 check (hour between 0 and 23),
+  last_sent date, created_at timestamptz not null default now(),
+  reminders jsonb not null default '[]'::jsonb,   -- [{"time":"09:00","kind":"checkin"|"tip"}]
+  sent_keys text[] not null default '{}'          -- "2026-10-16 09:00" once sent today
+);
+alter table public.tg_push_subs enable row level security;
+create table if not exists public.tg_config (key text primary key, value text not null); -- VAPID keys, cron secret
+alter table public.tg_config enable row level security;
+-- pg_cron: every 5 minutes, POST {"action":"daily"} to /functions/v1/tg-push
+-- with header x-cron-secret = tg_config.cron_secret (see README).
