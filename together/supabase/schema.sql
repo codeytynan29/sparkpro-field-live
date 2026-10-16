@@ -142,3 +142,13 @@ create table if not exists public.tg_config (key text primary key, value text no
 alter table public.tg_config enable row level security;
 -- pg_cron: every 5 minutes, POST {"action":"daily"} to /functions/v1/tg-push
 -- with header x-cron-secret = tg_config.cron_secret (see README).
+
+-- Public registry links (one per couple). Only the tg-registry edge function
+-- reads this, and it only ever returns registry items, never other entries.
+create table if not exists public.tg_public (
+  token text primary key,
+  couple_id uuid not null unique references public.tg_couples(id) on delete cascade,
+  show_due boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table public.tg_public enable row level security;

@@ -788,7 +788,16 @@ async function push(action, body = {}) {
   return data
 }
 
-return { get state() { return state }, get save() { return save }, get syncAvailable() { return syncAvailable }, get isPaired() { return isPaired }, get onChange() { return onChange }, get addEntry() { return addEntry }, get updateEntry() { return updateEntry }, get removeEntry() { return removeEntry }, get flush() { return flush }, get status() { return status }, get start() { return start }, get createCouple() { return createCouple }, get joinCouple() { return joinCouple }, get unpair() { return unpair }, get resetAll() { return resetAll }, get push() { return push } }
+// Calls another edge function (e.g. tg-registry) as this phone's user.
+async function fn(name, body = {}) {
+  if (!syncAvailable() || !state.coupleId) throw new Error('Pair your phones first')
+  const c = await client()
+  const { data, error } = await c.functions.invoke(name, { body })
+  if (error) throw error
+  return data
+}
+
+return { get state() { return state }, get save() { return save }, get syncAvailable() { return syncAvailable }, get isPaired() { return isPaired }, get onChange() { return onChange }, get addEntry() { return addEntry }, get updateEntry() { return updateEntry }, get removeEntry() { return removeEntry }, get flush() { return flush }, get status() { return status }, get start() { return start }, get createCouple() { return createCouple }, get joinCouple() { return joinCouple }, get unpair() { return unpair }, get resetAll() { return resetAll }, get push() { return push }, get fn() { return fn } }
 })()
 
 // ── Together: the app ───────────────────────────────────────────────────────
@@ -1500,7 +1509,7 @@ const money = n => (n || n === 0) && !isNaN(n) ? '$' + Number(n).toFixed(Number(
 function registry() {
   const n = names()
   const items = entries('registry')
-  const need = items.filter(i => !i.data.got), got = items.filter(i => i.data.got)
+  const need = items.filter(i => !i.data.got && !i.data.claimed), got = items.filter(i => i.data.got || i.data.claimed)
   const shown = regFilter === 'need' ? need : regFilter === 'got' ? got : items
   const left = need.reduce((t, i) => t + (parseFloat(i.data.price) || 0) * (parseInt(i.data.qty) || 1), 0)
   const links = profile().registryLinks || []
@@ -1510,7 +1519,7 @@ function registry() {
     <section class="card">
       <h3>🎁 Our registry</h3>
       <p>${items.length} item${items.length === 1 ? '' : 's'} · <b>${need.length} still needed</b>${left ? ` · about ${money(left)} to go` : ''}</p>
-      <div class="seg">${[['need', 'Still need'], ['got', 'Got it ✅'], ['all', 'All']].map(([id, l]) => `<button data-regf="${id}" class="${regFilter === id ? 'on' : ''}">${l}</button>`).join('')}</div>
+      <div class="seg">${[['need', 'Still need'], ['got', 'Taken ✅'], ['all', 'All']].map(([id, l]) => `<button data-regf="${id}" class="${regFilter === id ? 'on' : ''}">${l}</button>`).join('')}</div>
     </section>
     ${C.REG_CATS.map(([cat, label]) => {
       const list = shown.filter(i => (i.data.cat || 'other') === cat)
@@ -1522,6 +1531,7 @@ function registry() {
           <div class="reg-main">
             <div class="reg-name">${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
             <div class="fine">${[it.url ? storeOf(it.url) : '', money(it.price), 'added by ' + by, it.got && it.gotBy ? 'got by ' + esc(nameOf(it.gotBy)) : ''].filter(Boolean).join(' · ')}</div>
+            ${it.claimed ? `<div class="claimed">🎁 <b>${esc(it.claimed.name)}</b> is getting this <button class="mini" data-reg-release="${i.id}">Release</button></div>` : ''}
             ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
           </div>
           <div class="reg-act"><button class="mini" data-edit-reg="${i.id}">✏️</button>${i.author_role === me() ? `<button class="mini del" data-del="${i.id}">✕</button>` : ''}</div>
@@ -1556,7 +1566,67 @@ function registry() {
       <div class="row2"><input id="linkName" placeholder="e.g. Amazon registry"><input id="linkUrl" type="url" placeholder="https://…"></div>
       <button class="ghost" data-act="reg-link-add">＋ Save registry link</button>
       <p class="fine">Tip: Amazon's Baby Registry lets you add your partner as a co-registrant, so you can both add straight from the Amazon app too.</p>
+    </section>
+    ${shareCard()}
+    ${publishElsewhereCard()}`
+}
+
+// ── Sharing the registry with family & friends ──────────────────────────────
+let pubState = null, pubLoading = false
+const PUBLIC_BASE = new URL('registry.html', location.href.split('?')[0]).toString()
+const publicLink = () => pubState && pubState.token ? `${PUBLIC_BASE}?t=${pubState.token}` : ''
+function loadPub() {
+  if (pubLoading || pubState || !S.isPaired()) return
+  pubLoading = true
+  S.fn('tg-registry', { action: 'status' }).then(r => { pubState = r }, () => { pubState = { published: false, error: true } })
+    .finally(() => { pubLoading = false; if (tab === 'registry') render() })
+}
+function shareCard() {
+  if (!S.isPaired()) return `<section class="card soft"><h3>🌐 Share with family & friends</h3><p class="fine">Pair your phones first (Plan tab). Then you can publish a public registry page.</p></section>`
+  loadPub()
+  if (!pubState) return `<section class="card"><h3>🌐 Share with family & friends</h3><p class="fine">Checking…</p></section>`
+  if (!pubState.published) return `<section class="card">
+      <h3>🌐 Share with family & friends</h3>
+      <p>Publish a public page of this registry. Guests can see what you still need, open each item, and tap <b>"I'll get this"</b> so nobody buys the same thing twice.</p>
+      <p class="fine">It shows only your registry: never check-ins, notes or anything else from the app. You can turn it off anytime.</p>
+      <label class="toggle"><input type="checkbox" id="pubDue" checked> Show our due month on the page</label>
+      <button class="big primary" data-act="pub-on">Publish our registry</button>
     </section>`
+  return `<section class="card">
+      <h3>🌐 Shared with family & friends</h3>
+      <p>✅ <b>Live.</b> Anyone with this link can see your registry and claim items:</p>
+      <div class="linkbox">${esc(publicLink())}</div>
+      <button class="big primary" data-act="pub-share">Share link</button>
+      <a class="ghost" href="${esc(publicLink())}" target="_blank" rel="noopener">Preview the page</a>
+      <button class="ghost" data-act="pub-new">Make a new link (old one stops working)</button>
+      <button class="ghost danger" data-act="pub-off">Stop sharing</button>
+    </section>`
+}
+
+// Big registry sites don't let other apps add items for you, so this makes the
+// hand-off quick: start a registry there, copy the list, save the link back.
+const REGISTRY_SITES = [
+  ['Babylist', 'https://www.babylist.com', 'Universal: add anything from any store by pasting the link (Add → Paste a link).'],
+  ['Amazon Baby Registry', 'https://www.amazon.com/baby-reg/homepage', 'Open each Amazon item link and tap "Add to Baby Registry". Add your partner as a co-registrant.'],
+  ['Target', 'https://www.target.com/gift-registry/baby-registry', 'Search the item in the Target app and tap "Add to registry".'],
+  ['Walmart', 'https://www.walmart.com/registry/baby', 'Search the item and tap "Add to registry".'],
+]
+function publishElsewhereCard() {
+  return `<section class="card">
+    <h3>📣 Also publish on…</h3>
+    <p class="fine">Want it on a big registry site too? Start one there, move items over with your list, then save that registry's link above under <b>Our store registries</b>. It'll show on your public page as "Also registered at".</p>
+    ${REGISTRY_SITES.map(([n, u, how]) => `<div class="site"><a class="btn2" href="${u}" target="_blank" rel="noopener">Start on ${esc(n)}</a><span class="fine">${esc(how)}</span></div>`).join('')}
+    <button class="big" data-act="reg-copy">📋 Copy our list (names, prices & links)</button>
+  </section>`
+}
+
+function registryText() {
+  const items = entries('registry').filter(i => !i.data.got && !i.data.claimed)
+  return C.REG_CATS.map(([cat, label]) => {
+    const list = items.filter(i => (i.data.cat || 'other') === cat)
+    if (!list.length) return ''
+    return label + '\n' + list.map(i => `• ${i.data.name}${(parseInt(i.data.qty) || 1) > 1 ? ' ×' + parseInt(i.data.qty) : ''}${i.data.price ? ' (' + money(i.data.price) + ')' : ''}${i.data.url ? ' ' + i.data.url : ''}`).join('\n')
+  }).filter(Boolean).join('\n\n')
 }
 
 // ── Plan ────────────────────────────────────────────────────────────────────
@@ -1651,6 +1721,7 @@ app.addEventListener('click', async ev => {
   if (d.sendnote) { await S.addEntry('note', { text: d.sendnote }); notifyPartner('note', d.sendnote); toast('Sent 💌'); return }
   if (d.react) { await S.addEntry('reaction', { to: d.react, emoji: d.emoji }); toast('Sent ' + d.emoji); return }
   if (d.regf) { regFilter = d.regf; render(); return }
+  if (d.regRelease) { if (confirm('Release this item so guests can claim it again?')) S.updateEntry(d.regRelease, { claimed: null }); return }
   if (d.regGot) {
     const it = entries('registry').find(x => x.id === d.regGot); if (!it) return
     S.updateEntry(it.id, it.data.got ? { got: false, gotBy: null } : { got: true, gotBy: me() })
@@ -1760,6 +1831,31 @@ app.addEventListener('click', async ev => {
       if (url) window.open(url, '_blank', 'noopener')
       return
     }
+    case 'pub-on':
+      b.disabled = true; b.textContent = 'Publishing…'
+      try { pubState = await S.fn('tg-registry', { action: 'publish', show_due: $('#pubDue')?.checked !== false }); toast('Your registry is live 🎉') } catch (e) { toast('Couldn\'t publish: ' + (e.message || 'check your signal')) }
+      render(); return
+    case 'pub-new':
+      if (!confirm('Make a new link? Anyone with the old link will lose access.')) return
+      try { pubState = await S.fn('tg-registry', { action: 'new-link' }); toast('New link ready') } catch (e) { toast('Couldn\'t make a new link') }
+      render(); return
+    case 'pub-off':
+      if (!confirm('Stop sharing? The public link stops working right away.')) return
+      try { pubState = await S.fn('tg-registry', { action: 'unpublish' }); toast('Registry is private again') } catch (e) { toast('Couldn\'t stop sharing') }
+      render(); return
+    case 'pub-share': {
+      const who = [profile().momName, profile().dadName].filter(Boolean).join(' & ')
+      const text = `${who ? who + '\'s' : 'Our'} baby registry 🎁\n${publicLink()}`
+      if (navigator.share) navigator.share({ text }).catch(() => {})
+      else navigator.clipboard?.writeText(text).then(() => toast('Link copied'), () => toast(publicLink()))
+      return
+    }
+    case 'reg-copy': {
+      const txt = registryText()
+      if (!txt) return toast('Nothing on the list yet')
+      navigator.clipboard?.writeText(txt).then(() => toast('List copied. Paste it wherever you need it.'), () => toast('Couldn\'t copy on this phone'))
+      return
+    }
     case 'reg-cancel': editReg = null; render(); return
     case 'reg-starter': {
       for (const [cat, name, notes] of C.REG_STARTER) await S.addEntry('registry', { name, url: '', price: '', qty: '1', cat, notes, got: false })
@@ -1841,7 +1937,13 @@ app.addEventListener('change', async ev => {
   }
 })
 
+const claimSeen = new Set()
 S.onChange(evt => {
+  const u = evt.updated
+  if (u && u.kind === 'registry' && u.data?.claimed && !claimSeen.has(u.id + u.data.claimed.at)) {
+    claimSeen.add(u.id + u.data.claimed.at)
+    toast(`🎁 ${u.data.claimed.name} is getting ${u.data.name}`); navigator.vibrate?.(60)
+  }
   if (evt.type === 'remote' && evt.added?.length) {
     const e = evt.added.at(-1)
     const who = nameOf(e.author_role)

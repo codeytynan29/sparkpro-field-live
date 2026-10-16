@@ -218,3 +218,8 @@ input.inp, select.inp { display: block; margin: 6px 0; }
 .tabs button { font-size: .66rem; }
 .tabs button span { font-size: 1.2rem; }
 .store-search { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 4px; }
+.claimed { margin-top: 4px; font-size: .88rem; background: var(--ok-bg); color: var(--ok); border-radius: 10px; padding: 4px 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.linkbox { font: .85rem ui-monospace, monospace; background: var(--soft); border-radius: 10px; padding: 10px; word-break: break-all; margin: 6px 0; }
+a.ghost { display: block; text-decoration: none; }
+.site { display: grid; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.btn2 { display: inline-block; justify-self: start; background: var(--soft); color: var(--ink); text-decoration: none; padding: 8px 14px; border-radius: 99px; font-weight: 600; font-size: .9rem; }

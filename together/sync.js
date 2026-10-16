@@ -232,3 +232,12 @@ export async function push(action, body = {}) {
   if (error) throw error
   return data
 }
+
+// Calls another edge function (e.g. tg-registry) as this phone's user.
+export async function fn(name, body = {}) {
+  if (!syncAvailable() || !state.coupleId) throw new Error('Pair your phones first')
+  const c = await client()
+  const { data, error } = await c.functions.invoke(name, { body })
+  if (error) throw error
+  return data
+}

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Baby Registry</title>
+  <meta name="description" content="Our baby registry. See what we still need and claim a gift so nobody doubles up.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <style>
+    :root {
+      --bg: #fbf6f2; --card: #fff; --soft: #f5ece6; --ink: #2b2230; --muted: #7a6c78; --line: #eadfd8;
+      --accent: #c9789b; --accent-2: #f4a99a; --on-accent: #fff; --ok: #2f8a5b; --ok-bg: #e5f4ec;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #1b1720; --card: #26212c; --soft: #2f2836; --ink: #f2eaf0; --muted: #a998a6; --line: #3a3241;
+        --accent: #e08fb2; --on-accent: #1b1720; --ok: #6fd19c; --ok-bg: #1f3a2c; }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 640px; margin: 0 auto; padding: calc(24px + env(safe-area-inset-top)) 16px 48px; }
+    header { text-align: center; padding: 16px 0 8px; }
+    .hero { font-size: 3rem; }
+    h1 { margin: 6px 0 4px; font-size: 1.8rem; line-height: 1.2; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .sub { color: var(--muted); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin: 12px 0; }
+    h2 { font-size: 1.05rem; margin: 0 0 6px; }
+    .item { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+    .item:first-of-type { border-top: 0; }
+    .name { font-weight: 600; overflow-wrap: anywhere; }
+    .meta { color: var(--muted); font-size: .85rem; }
+    .actions { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+    .btn { border: 0; border-radius: 12px; padding: 9px 14px; font: inherit; font-weight: 600; font-size: .9rem; cursor: pointer; text-align: center; text-decoration: none; white-space: nowrap; }
+    .buy { background: var(--soft); color: var(--ink); }
+    .claim { background: var(--accent); color: var(--on-accent); }
+    .taken { opacity: .55; }
+    .taken .name { text-decoration: line-through; }
+    .pill { background: var(--ok-bg); color: var(--ok); border-radius: 99px; padding: 4px 10px; font-size: .82rem; font-weight: 600; text-align: center; }
+    .links a { display: block; padding: 8px 0; color: var(--accent); font-weight: 600; text-decoration: none; }
+    .center { text-align: center; } .muted { color: var(--muted); }
+    .foot { color: var(--muted); font-size: .8rem; text-align: center; margin-top: 24px; }
+    dialog { border: 0; border-radius: 18px; padding: 20px; max-width: 360px; width: calc(100% - 32px); background: var(--card); color: var(--ink); }
+    dialog::backdrop { background: rgba(0, 0, 0, .4); }
+    dialog input { width: 100%; padding: 12px; font: inherit; border: 1px solid var(--line); border-radius: 12px; margin: 10px 0; background: var(--card); color: var(--ink); }
+    .row { display: flex; gap: 8px; } .row .btn { flex: 1; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-size: .9rem; opacity: 0; transition: .25s; pointer-events: none; max-width: calc(100% - 32px); text-align: center; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <main id="page"><p class="center muted" style="margin-top:30vh">Loading registry…</p></main>
+  <dialog id="dlg">
+    <h2 id="dlgTitle">I'll get this</h2>
+    <p class="muted" id="dlgItem"></p>
+    <label>Your name (so they know who to thank)
+      <input id="dlgName" maxlength="40" autocomplete="name" placeholder="e.g. Aunt Jo">
+    </label>
+    <div class="row"><button class="btn buy" id="dlgCancel">Cancel</button><button class="btn claim" id="dlgOk">Claim it</button></div>
+  </dialog>
+  <div class="toast" id="toast"></div>
+  <script>
+    // Read-only public view of a couple's registry. Everything comes from the
+    // tg-registry function, which only ever returns registry items.
+    (function () {
+      var FN = 'https://hbskekfutvxvixafeden.supabase.co/functions/v1/tg-registry'
+      var CATS = [['gear', '🚗 Gear & travel'], ['nursery', '🛏️ Nursery & sleep'], ['feeding', '🍼 Feeding'], ['diapering', '🧷 Diapering'],
+        ['clothing', '👕 Clothing'], ['bath', '🛁 Bath & health'], ['mom', '🤍 For mom'], ['other', '📦 Other']]
+      var token = new URLSearchParams(location.search).get('t') || ''
+      var page = document.getElementById('page'), data = null, picking = null
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] }) }
+      function money(p) { var n = parseFloat(p); return isNaN(n) ? '' : '$' + (n % 1 ? n.toFixed(2) : n.toFixed(0)) }
+      function store(u) { try { var h = new URL(u).hostname.replace(/^www\./, ''); return { 'amazon.com': 'Amazon', 'a.co': 'Amazon', 'target.com': 'Target', 'walmart.com': 'Walmart', 'babylist.com': 'Babylist' }[h] || h } catch (e) { return '' } }
+      function toast(t) { var el = document.getElementById('toast'); el.textContent = t; el.className = 'toast show'; setTimeout(function () { el.className = 'toast' }, 3000) }
+      function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '' }
+
+      function render() {
+        var who = data.names.length ? data.names.join(' & ') + '’s' : 'Our'
+        document.title = who + ' baby registry'
+        var open = data.items.filter(function (i) { return !i.taken }).length
+        var html = '<header><div class="hero">🎁</div><h1>' + esc(who) + ' baby registry</h1>' +
+          '<div class="sub">' + (data.dueMonth ? 'Due ' + esc(data.dueMonth) + ' · ' : '') + open + ' of ' + data.items.length + ' still needed</div></header>'
+        if (!data.items.length) html += '<div class="card center muted">The list is still being put together. Check back soon!</div>'
+        CATS.forEach(function (c) {
+          var list = data.items.filter(function (i) { return (i.cat || 'other') === c[0] })
+          if (!list.length) return
+          list.sort(function (a, b) { return a.taken - b.taken })
+          html += '<section class="card"><h2>' + c[1] + '</h2>' + list.map(function (i) {
+            var u = safeUrl(i.url), qty = parseInt(i.qty) || 1
+            var meta = [u ? store(u) : '', money(i.price), qty > 1 ? 'qty ' + qty : ''].filter(Boolean).join(' · ')
+            return '<div class="item' + (i.taken ? ' taken' : '') + '"><div><div class="name">' + esc(i.name) + '</div>' +
+              (meta ? '<div class="meta">' + esc(meta) + '</div>' : '') + (i.notes ? '<div class="meta">' + esc(i.notes) + '</div>' : '') + '</div>' +
+              '<div class="actions">' + (i.taken ? '<span class="pill">✓ Taken</span>' :
+                (u ? '<a class="btn buy" href="' + esc(u) + '" target="_blank" rel="noopener">View</a>' : '') +
+                '<button class="btn claim" data-id="' + esc(i.id) + '">I’ll get this</button>') + '</div></div>'
+          }).join('') + '</section>'
+        })
+        var links = (data.links || []).filter(function (l) { return safeUrl(l.url) })
+        if (links.length) html += '<section class="card links"><h2>Also registered at</h2>' + links.map(function (l) { return '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.name) + ' →</a>' }).join('') + '</section>'
+        html += '<p class="foot">Tap “I’ll get this” so nobody buys the same thing twice. The couple sees your name; other guests just see “Taken”.</p>'
+        page.innerHTML = html
+      }
+
+      function load() {
+        if (!token) { page.innerHTML = '<p class="center muted" style="margin-top:30vh">This link is missing its registry code.</p>'; return }
+        fetch(FN + '?t=' + encodeURIComponent(token)).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j } }) })
+          .then(function (res) {
+            if (!res.ok) throw new Error(res.j.error || 'Not found')
+            data = res.j; render()
+          })
+          .catch(function (e) { page.innerHTML = '<div class="card center" style="margin-top:20vh"><p>🎁</p><p>' + esc(e.message || 'Couldn’t load the registry.') + '</p><p class="muted">Check the link, or ask the couple for a fresh one.</p></div>' })
+      }
+
+      var dlg = document.getElementById('dlg')
+      page.addEventListener('click', function (ev) {
+        var b = ev.target.closest('button[data-id]'); if (!b) return
+        picking = data.items.filter(function (i) { return i.id === b.dataset.id })[0]; if (!picking) return
+        document.getElementById('dlgItem').textContent = picking.name
+        try { document.getElementById('dlgName').value = localStorage.getItem('registry.name') || '' } catch (e) {}
+        dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', '')
+      })
+      document.getElementById('dlgCancel').onclick = function () { dlg.close ? dlg.close() : dlg.removeAttribute('open') }
+      document.getElementById('dlgOk').onclick = function () {
+        var name = document.getElementById('dlgName').value.trim()
+        if (!name) { document.getElementById('dlgName').focus(); return }
+        try { localStorage.setItem('registry.name', name) } catch (e) {}
+        var btn = this; btn.disabled = true; btn.textContent = 'Claiming…'
+        fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'claim', t: token, id: picking.id, name: name }) })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j } }) })
+          .then(function (res) {
+            if (!res.ok) throw new Error(res.j.error || 'Couldn’t claim it')
+            picking.taken = true; render(); toast('Thank you! 🎉 It’s marked as yours.')
+          })
+          .catch(function (e) { toast(e.message); load() })
+          .then(function () { btn.disabled = false; btn.textContent = 'Claim it'; dlg.close ? dlg.close() : dlg.removeAttribute('open') })
+      }
+      load()
+    })()
+  </script>
+</body>
+</html>
