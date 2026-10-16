@@ -353,7 +353,7 @@ export const DAD_FEELINGS = [
   { id: 'anxious', label: 'Anxious', emoji: '😰', cope: ['Box breathing: in 4, hold 4, out 4, hold 4, for 2 minutes (tap "Breathe" below).', 'Write the worry down, then write the next concrete action. If there isn\'t one, it\'s not yours to carry tonight.', 'Name 3 things you can control today. Do one.'] },
   { id: 'overwhelmed', label: 'Overwhelmed', emoji: '🌊', cope: ['Shrink the horizon. What\'s the one thing for this week? Ignore the rest.', 'Make a shared to-do list so it isn\'t all living in your head.', 'Telling her "I\'m a little overwhelmed too" is OK. It brings you closer.'] },
   { id: 'money', label: 'Money stress', emoji: '💸', cope: ['Call your insurance and ask what prenatal care and delivery cost you out of pocket. Real numbers beat imagined ones.', 'Make a rough baby budget together. Lots of gear can be borrowed or bought used, except car seats.', 'Check your employer\'s parental leave and FMLA now, not in month 8.'] },
-  { id: 'worried', label: 'Worried about her / baby', emoji: '🫣', cope: ['First-trimester worry is nearly universal. Risk drops a lot once a heartbeat is seen, and again after week 12.', 'Learn the red-flag list (Look up → When to call). Knowing exactly when to act takes the edge off vague worry.', 'Go to the appointments. Hearing it from the provider beats Googling at 2am.'] },
+  { id: 'worried', label: 'Worried about her / baby', emoji: '🫣', cope: ['First-trimester worry is nearly universal. Risk drops a lot once a heartbeat is seen, and again after week 12.', 'Learn the red-flag list (Safe? tab → When to call). Knowing exactly when to act takes the edge off vague worry.', 'Go to the appointments. Hearing it from the provider beats Googling at 2am.'] },
   { id: 'leftout', label: 'Left out / disconnected', emoji: '🫥', cope: ['Read this week\'s baby update together tonight.', 'Ask her one curious question a day about how it feels. Not to fix anything, just to know.', 'Put the next appointment in your calendar and show up.'] },
   { id: 'irritable', label: 'Short-fused', emoji: '😤', cope: ['HALT check: are you Hungry, Angry, Lonely, or Tired? Fix the physical one first.', 'Take a 20-minute walk alone before a hard conversation. Say "I need a minute," not nothing.', 'Workout, gym, a run: burn it off somewhere that isn\'t at home.'] },
   { id: 'tired', label: 'Running on empty', emoji: '🪫', cope: ['You can\'t pour from an empty cup. Protect your 7 hours.', 'Say yes when people offer help, now and especially later.', 'Trade off. A night where you\'re both off duty, with takeout and no chores.'] },
@@ -531,4 +531,20 @@ export const REG_STARTER = [
   ['bath', 'Baby bathtub', ''], ['bath', 'Hooded towels', ''], ['bath', 'Baby nail clippers', ''],
   ['bath', 'Digital thermometer', 'Rectal readings are the most accurate for babies.'], ['bath', 'Nasal aspirator', ''],
   ['mom', 'Nursing bras', ''], ['mom', 'Postpartum pads', ''], ['mom', 'Peri bottle', ''],
+]
+
+// ── Him, looking after himself ──────────────────────────────────────────────
+// Shown on his own phone (Us → his side), built from the stress level he
+// logged. His logged feelings add their own coping steps (DAD_FEELINGS.cope).
+export const SELF_CARE_STRESS = {
+  5: ['Stop and do the 2-minute breathing reset now. It physically lowers your heart rate.', 'Tell one person today how much you\'re carrying: a friend, your brother, a counselor. Not just her.', 'Cut one non-essential thing from this week. Something has to give, and it shouldn\'t be your sleep.'],
+  4: ['Get 20 minutes of movement today: a walk, the gym, a run. Burn the stress off outside the house.', 'Write down what\'s weighing on you, then one next step for each. Worry shrinks on paper.'],
+  3: ['Protect your sleep tonight. 7 hours makes everything else easier.', 'Do one thing just for you today, even 15 minutes.'],
+  2: ['You\'re in a good spot. Bank it: get one thing done today that makes tomorrow easier.'],
+  1: ['Steady day. Notice what\'s working so you can lean on it when the harder weeks come.'],
+}
+export const SELF_CARE_BASICS = [
+  'Eat real meals. Running on coffee makes the short fuse shorter.',
+  'Keep one thing that\'s yours: the gym, a game night, a hobby. You\'ll be a better partner for it.',
+  'Around 1 in 10 expecting dads struggle with depression or anxiety. If you\'re low for 2+ weeks, talk to your doctor or call 988.',
 ]

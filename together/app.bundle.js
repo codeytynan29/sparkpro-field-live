@@ -370,7 +370,7 @@ const DAD_FEELINGS = [
   { id: 'anxious', label: 'Anxious', emoji: '😰', cope: ['Box breathing: in 4, hold 4, out 4, hold 4, for 2 minutes (tap "Breathe" below).', 'Write the worry down, then write the next concrete action. If there isn\'t one, it\'s not yours to carry tonight.', 'Name 3 things you can control today. Do one.'] },
   { id: 'overwhelmed', label: 'Overwhelmed', emoji: '🌊', cope: ['Shrink the horizon. What\'s the one thing for this week? Ignore the rest.', 'Make a shared to-do list so it isn\'t all living in your head.', 'Telling her "I\'m a little overwhelmed too" is OK. It brings you closer.'] },
   { id: 'money', label: 'Money stress', emoji: '💸', cope: ['Call your insurance and ask what prenatal care and delivery cost you out of pocket. Real numbers beat imagined ones.', 'Make a rough baby budget together. Lots of gear can be borrowed or bought used, except car seats.', 'Check your employer\'s parental leave and FMLA now, not in month 8.'] },
-  { id: 'worried', label: 'Worried about her / baby', emoji: '🫣', cope: ['First-trimester worry is nearly universal. Risk drops a lot once a heartbeat is seen, and again after week 12.', 'Learn the red-flag list (Look up → When to call). Knowing exactly when to act takes the edge off vague worry.', 'Go to the appointments. Hearing it from the provider beats Googling at 2am.'] },
+  { id: 'worried', label: 'Worried about her / baby', emoji: '🫣', cope: ['First-trimester worry is nearly universal. Risk drops a lot once a heartbeat is seen, and again after week 12.', 'Learn the red-flag list (Safe? tab → When to call). Knowing exactly when to act takes the edge off vague worry.', 'Go to the appointments. Hearing it from the provider beats Googling at 2am.'] },
   { id: 'leftout', label: 'Left out / disconnected', emoji: '🫥', cope: ['Read this week\'s baby update together tonight.', 'Ask her one curious question a day about how it feels. Not to fix anything, just to know.', 'Put the next appointment in your calendar and show up.'] },
   { id: 'irritable', label: 'Short-fused', emoji: '😤', cope: ['HALT check: are you Hungry, Angry, Lonely, or Tired? Fix the physical one first.', 'Take a 20-minute walk alone before a hard conversation. Say "I need a minute," not nothing.', 'Workout, gym, a run: burn it off somewhere that isn\'t at home.'] },
   { id: 'tired', label: 'Running on empty', emoji: '🪫', cope: ['You can\'t pour from an empty cup. Protect your 7 hours.', 'Say yes when people offer help, now and especially later.', 'Trade off. A night where you\'re both off duty, with takeout and no chores.'] },
@@ -550,7 +550,23 @@ const REG_STARTER = [
   ['mom', 'Nursing bras', ''], ['mom', 'Postpartum pads', ''], ['mom', 'Peri bottle', ''],
 ]
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_STARTER() { return REG_STARTER } }
+// ── Him, looking after himself ──────────────────────────────────────────────
+// Shown on his own phone (Us → his side), built from the stress level he
+// logged. His logged feelings add their own coping steps (DAD_FEELINGS.cope).
+const SELF_CARE_STRESS = {
+  5: ['Stop and do the 2-minute breathing reset now. It physically lowers your heart rate.', 'Tell one person today how much you\'re carrying: a friend, your brother, a counselor. Not just her.', 'Cut one non-essential thing from this week. Something has to give, and it shouldn\'t be your sleep.'],
+  4: ['Get 20 minutes of movement today: a walk, the gym, a run. Burn the stress off outside the house.', 'Write down what\'s weighing on you, then one next step for each. Worry shrinks on paper.'],
+  3: ['Protect your sleep tonight. 7 hours makes everything else easier.', 'Do one thing just for you today, even 15 minutes.'],
+  2: ['You\'re in a good spot. Bank it: get one thing done today that makes tomorrow easier.'],
+  1: ['Steady day. Notice what\'s working so you can lean on it when the harder weeks come.'],
+}
+const SELF_CARE_BASICS = [
+  'Eat real meals. Running on coffee makes the short fuse shorter.',
+  'Keep one thing that\'s yours: the gym, a game night, a hobby. You\'ll be a better partner for it.',
+  'Around 1 in 10 expecting dads struggle with depression or anxiety. If you\'re low for 2+ weeks, talk to your doctor or call 988.',
+]
+
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_STARTER() { return REG_STARTER }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS } }
 })()
 
 const S = (() => {
@@ -1373,7 +1389,8 @@ function perDay(kind, role, n) {
 function bars(days, val, max, label) {
   return `<div class="spark">${days.map(({ d, e }) => {
     const v = e ? val(e) : 0
-    return `<div title="${fmtDate(d)}"><i style="height:${v ? Math.max(8, v / max * 100) : 0}%"></i><span class="fine">${label ? label(e) || shortDay(d) : shortDay(d)}</span></div>`
+    const top = e && label ? label(e) : ''
+    return `<div title="${fmtDate(d)}"><b class="bar-top">${esc(top)}</b><i style="height:${v ? Math.max(8, v / max * 100) : 0}%"></i><span class="fine">${shortDay(d)}</span></div>`
   }).join('')}</div>`
 }
 function topCounts(list, n) {
@@ -1438,9 +1455,45 @@ function hisSide() {
       ${ci.data.note ? `<p class="quote-inline">“${esc(ci.data.note)}”</p>` : ''}
     </section>
     <section class="card"><h3>Stress this week</h3>${bars(week, e => e.data.stress, 5, e => e ? String(e.data.stress) : '')}<p class="fine">Higher bar = more stressed.</p></section>
-    ${common.length ? `<section class="card"><h3>On his mind lately</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
-    ${support.length ? `<section class="card"><h3>💛 ${me() === 'mom' ? 'How you can support him' : `How ${esc(n.mom)} can support you`}</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : ''}
+    ${common.length ? `<section class="card"><h3>${me() === 'dad' ? 'On your mind lately' : 'On his mind lately'}</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
+    ${me() === 'mom'
+      ? (support.length ? `<section class="card"><h3>💛 How you can support him</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : '')
+      : selfCareCard(ci, feel) + forHerCard()}
     ${me() === 'dad' ? '<p class="fine center">Check-ins marked private stay on your phone and never show here for her.</p>' : ''}`
+}
+
+// His phone: looking after himself, from what he logged
+function selfCareCard(ci, feel) {
+  const steps = [...(C.SELF_CARE_STRESS[ci.data.stress] || []), ...feel.flatMap(f => f.cope.slice(0, 2))]
+  const seen = new Set(), list = steps.filter(t => !seen.has(t) && seen.add(t)).slice(0, 5)
+  const basics = C.SELF_CARE_BASICS[dayIndex() % C.SELF_CARE_BASICS.length]
+  return `<section class="card">
+    <h3>🧘 Taking care of yourself</h3>
+    <p class="fine">Based on your last check-in: stress ${ci.data.stress}/5${feel.length ? ', ' + feel.map(f => f.label.toLowerCase()).join(', ') : ''}.</p>
+    <ol class="plan">${list.map(t => `<li>${esc(t)}</li>`).join('')}</ol>
+    <p class="fine">${esc(basics)}</p>
+    <button class="ghost" data-tab="checkin">🫁 Do the 2-minute breathing reset</button>
+  </section>`
+}
+
+// His phone: what he can do for her, from her latest check-in
+function forHerCard() {
+  const n = names(), g = gest()
+  const ci = latest('checkin', 'mom')
+  const today = ci && sameDay(ci.created_at)
+  const plan = ci ? gamePlan(ci).slice(0, 4) : []
+  // skip partner tips that repeat what the self-care card already says
+  const mine = new Set((latest('dadcheck', 'dad')?.data.feelings || []).flatMap(id => C.DAD_FEELINGS.find(f => f.id === id)?.cope || []))
+  const redFlag = [...mine].some(t => /red-flag/i.test(t))
+  const extra = [C.DAD_TRUTHS, C.DAD_TRIMESTER[g ? g.tri : 1]].map((list, k) => {
+    const ok = list.filter(t => !(redFlag && /red-flag/i.test(t)))
+    return pick(ok.length ? ok : list, dayIndex() + k)
+  })
+  return `<section class="card">
+    <h3>🧭 What you can do for ${esc(n.mom)}</h3>
+    ${ci ? `<p class="fine">${today ? 'From her check-in today' : `Her last check-in was ${fmtWhen(ci.created_at).toLowerCase()}. Ask how she's feeling today.`}</p>` : `<p class="fine">No check-in from her yet. A quick "How are you feeling?" is the best first step.</p>`}
+    <ol class="plan">${[...plan.map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`), ...extra.map(t => `<li>${esc(t)}</li>`)].join('')}</ol>
+  </section>`
 }
 
 function feed() {

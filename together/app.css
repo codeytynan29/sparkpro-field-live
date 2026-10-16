@@ -223,3 +223,4 @@ input.inp, select.inp { display: block; margin: 6px 0; }
 a.ghost { display: block; text-decoration: none; }
 .site { display: grid; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .btn2 { display: inline-block; justify-self: start; background: var(--soft); color: var(--ink); text-decoration: none; padding: 8px 14px; border-radius: 99px; font-weight: 600; font-size: .9rem; }
+.bar-top { font-size: .8rem; font-weight: 600; color: var(--muted); min-height: 1.1em; }

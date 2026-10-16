@@ -574,7 +574,8 @@ function perDay(kind, role, n) {
 function bars(days, val, max, label) {
   return `<div class="spark">${days.map(({ d, e }) => {
     const v = e ? val(e) : 0
-    return `<div title="${fmtDate(d)}"><i style="height:${v ? Math.max(8, v / max * 100) : 0}%"></i><span class="fine">${label ? label(e) || shortDay(d) : shortDay(d)}</span></div>`
+    const top = e && label ? label(e) : ''
+    return `<div title="${fmtDate(d)}"><b class="bar-top">${esc(top)}</b><i style="height:${v ? Math.max(8, v / max * 100) : 0}%"></i><span class="fine">${shortDay(d)}</span></div>`
   }).join('')}</div>`
 }
 function topCounts(list, n) {
@@ -639,9 +640,45 @@ function hisSide() {
       ${ci.data.note ? `<p class="quote-inline">“${esc(ci.data.note)}”</p>` : ''}
     </section>
     <section class="card"><h3>Stress this week</h3>${bars(week, e => e.data.stress, 5, e => e ? String(e.data.stress) : '')}<p class="fine">Higher bar = more stressed.</p></section>
-    ${common.length ? `<section class="card"><h3>On his mind lately</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
-    ${support.length ? `<section class="card"><h3>💛 ${me() === 'mom' ? 'How you can support him' : `How ${esc(n.mom)} can support you`}</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : ''}
+    ${common.length ? `<section class="card"><h3>${me() === 'dad' ? 'On your mind lately' : 'On his mind lately'}</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
+    ${me() === 'mom'
+      ? (support.length ? `<section class="card"><h3>💛 How you can support him</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : '')
+      : selfCareCard(ci, feel) + forHerCard()}
     ${me() === 'dad' ? '<p class="fine center">Check-ins marked private stay on your phone and never show here for her.</p>' : ''}`
+}
+
+// His phone: looking after himself, from what he logged
+function selfCareCard(ci, feel) {
+  const steps = [...(C.SELF_CARE_STRESS[ci.data.stress] || []), ...feel.flatMap(f => f.cope.slice(0, 2))]
+  const seen = new Set(), list = steps.filter(t => !seen.has(t) && seen.add(t)).slice(0, 5)
+  const basics = C.SELF_CARE_BASICS[dayIndex() % C.SELF_CARE_BASICS.length]
+  return `<section class="card">
+    <h3>🧘 Taking care of yourself</h3>
+    <p class="fine">Based on your last check-in: stress ${ci.data.stress}/5${feel.length ? ', ' + feel.map(f => f.label.toLowerCase()).join(', ') : ''}.</p>
+    <ol class="plan">${list.map(t => `<li>${esc(t)}</li>`).join('')}</ol>
+    <p class="fine">${esc(basics)}</p>
+    <button class="ghost" data-tab="checkin">🫁 Do the 2-minute breathing reset</button>
+  </section>`
+}
+
+// His phone: what he can do for her, from her latest check-in
+function forHerCard() {
+  const n = names(), g = gest()
+  const ci = latest('checkin', 'mom')
+  const today = ci && sameDay(ci.created_at)
+  const plan = ci ? gamePlan(ci).slice(0, 4) : []
+  // skip partner tips that repeat what the self-care card already says
+  const mine = new Set((latest('dadcheck', 'dad')?.data.feelings || []).flatMap(id => C.DAD_FEELINGS.find(f => f.id === id)?.cope || []))
+  const redFlag = [...mine].some(t => /red-flag/i.test(t))
+  const extra = [C.DAD_TRUTHS, C.DAD_TRIMESTER[g ? g.tri : 1]].map((list, k) => {
+    const ok = list.filter(t => !(redFlag && /red-flag/i.test(t)))
+    return pick(ok.length ? ok : list, dayIndex() + k)
+  })
+  return `<section class="card">
+    <h3>🧭 What you can do for ${esc(n.mom)}</h3>
+    ${ci ? `<p class="fine">${today ? 'From her check-in today' : `Her last check-in was ${fmtWhen(ci.created_at).toLowerCase()}. Ask how she's feeling today.`}</p>` : `<p class="fine">No check-in from her yet. A quick "How are you feeling?" is the best first step.</p>`}
+    <ol class="plan">${[...plan.map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`), ...extra.map(t => `<li>${esc(t)}</li>`)].join('')}</ol>
+  </section>`
 }
 
 function feed() {
