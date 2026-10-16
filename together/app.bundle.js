@@ -1229,7 +1229,7 @@ let autoJoining = false
 function personalLink() {
   const u = new URL(location.href)
   u.hash = ''
-  u.search = S.state.code && S.state.role ? `?c=${S.state.code}&r=${S.state.role}` : ''
+  u.search = S.state.code ? `?c=${S.state.code}` : ''
   return u.toString()
 }
 // Safari throws (and caps replaceState at 100 calls per 10 seconds), so this
@@ -2258,6 +2258,7 @@ app.addEventListener('click', async ev => {
   if (d.go) { tab = d.go; if (d.pv) planView = d.pv; render(); scrollTo(0, 0); return }
   if (d.pv) { planView = d.pv; render(); scrollTo(0, 0); return }
   if (d.goLookup) { tab = 'lookup'; lookupTab = d.goLookup; render(); scrollTo(0, 0); return }
+  if (d.role && linkCode) { const c = linkCode; linkCode = null; await joinFromLink(c, d.role); return }
   if (d.role) { S.state.role = d.role; S.save(); firstRun = true; onboardStep = S.syncAvailable() && !S.isPaired() ? 2 : 1; render(); return }
   if (d.lt) { lookupTab = d.lt; render(); return }
   if (d.us) { usView = d.us; render(); return }
@@ -2407,7 +2408,7 @@ app.addEventListener('click', async ev => {
       return
     }
     case 'share-code': {
-      const invite = new URL(location.href.split('?')[0].split('#')[0]); invite.search = `?c=${S.state.code}&r=${other()}`
+      const invite = new URL(location.href.split('?')[0].split('#')[0]); invite.search = `?c=${S.state.code}`
       const text = `Join me on Together, our pregnancy app 🤍\nOpen this on your phone: ${invite}\n(or enter code ${S.state.code})`
       if (navigator.share) navigator.share({ text }).catch(() => {})
       else { navigator.clipboard?.writeText(text); toast('Copied') }
@@ -2595,34 +2596,40 @@ S.onChange(evt => {
 // refresh "today" when the phone is picked up the next morning
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render() })
 
+// The same link works for both of you. A phone that doesn't know who it
+// belongs to yet asks "Who's using this phone?" once, then joins.
+let linkCode = null
 async function boot() {
-  const code = params.get('c'), role = params.get('r')
-  const clean = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const code = String(params.get('c') || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const r = params.get('r'), role = r === 'mom' || r === 'dad' ? r : S.state.role // older links carry &r=
   // A phone that unpaired or erased itself stays that way, even when it's
   // opened from an old home-screen icon that still carries the code.
-  const left = clean && S.leftCode() === clean
-  if (!S.state.coupleId && code && !left && (role === 'mom' || role === 'dad') && S.syncAvailable()) {
-    const brandNew = !S.state.role && !S.state.entries.length
-    // a phone that already holds its own entries asks before sharing them into a couple
-    if (S.state.entries.some(e => !e.local && !e.synced) && !await ask({ title: 'Connect this phone?', text: `This link connects to couple code ${clean.replace(/(.{4})(.{4})/, '$1-$2')} and shares what's on this phone with it. Only continue if your partner sent you this link.`, ok: 'Connect' })) {
-      try { window.history.replaceState(null, '', location.pathname) } catch {}
-      render(); S.start(); return
-    }
-    S.state.role = S.state.role || role
-    S.save()
-    autoJoining = true
-    render()
-    let ok = true
-    try { await S.joinCouple(code) } catch (e) { ok = false; console.warn(e); toast('Couldn\'t connect. Check your signal and reopen the link.') }
-    autoJoining = false
-    // a partner opening the invite for the first time gets the short welcome
-    const p = profile()
-    onboardStep = ok && brandNew ? (p.due || p.lmp ? 3 : 1) : 0
-    firstRun = ok && brandNew
-    render()
-    S.start()
+  if (!S.state.coupleId && code.length === 8 && S.leftCode() !== code && S.syncAvailable()) {
+    if (!role) { linkCode = code; render(); S.start(); return } // role picker first
+    await joinFromLink(code, role)
     return
   }
+  render()
+  S.start()
+}
+async function joinFromLink(code, role) {
+  const brandNew = !S.state.role && !S.state.entries.length
+  // a phone that already holds its own entries asks before sharing them into a couple
+  if (S.state.entries.some(e => !e.local && !e.synced) && !await ask({ title: 'Connect this phone?', text: `This link connects to couple code ${code.replace(/(.{4})(.{4})/, '$1-$2')} and shares what's on this phone with it. Only continue if your partner sent you this link.`, ok: 'Connect' })) {
+    try { window.history.replaceState(null, '', location.pathname) } catch {}
+    render(); S.start(); return
+  }
+  S.state.role = role
+  S.save()
+  autoJoining = true
+  render()
+  let ok = true
+  try { await S.joinCouple(code) } catch (e) { ok = false; console.warn(e); toast('Couldn\'t connect. Check your signal and reopen the link.') }
+  autoJoining = false
+  // someone opening the link for the first time gets the short welcome
+  const p = profile()
+  onboardStep = ok && brandNew ? (p.due || p.lmp ? 3 : 1) : 0
+  firstRun = ok && brandNew
   render()
   S.start()
 }

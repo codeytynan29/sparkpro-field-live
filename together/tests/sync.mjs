@@ -182,6 +182,16 @@ await test('links and numbers from the other phone can\'t run code', async page 
   ok(await page.locator('main img').count() === 0, 'injected <img> rendered on his side')
 })
 
+await test('one shared link: a new phone asks who it is, then joins', async page => {
+  await page.goto(BASE + 'repair.html'); await page.evaluate(() => localStorage.clear())
+  await page.goto(BASE + '?c=ABCD2345'); await sleep(400)
+  ok(await page.locator('[data-role=mom]').isVisible(), 'no "who is using this phone" choice')
+  await page.click('[data-role=mom]'); await sleep(600)
+  const st = await L(page)
+  ok(st.coupleId && st.role === 'mom', `not joined as mom: ${JSON.stringify({ c: st.coupleId, r: st.role })}`)
+  ok(page.url().includes('c=ABCD2345') && !page.url().includes('r='), 'link changed: ' + page.url())
+})
+
 await test('the empty registry button shows the real number', async page => {
   await local(page, { role: 'mom', entries: [], prefs: { due: '2027-06-20' } })
   await page.click('[data-tab=plan]'); await page.click('[data-pv=registry]')

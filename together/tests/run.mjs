@@ -164,7 +164,7 @@ await test('History lists both partners by day, OB summary counts symptoms', asy
 
 await test('paired phone writes the couple code into the address (personal link)', async page => {
   await seed(page, 'dad', [], { coupleId: '11111111-1111-4111-8111-111111111111', code: 'ABCD2345' })
-  ok(page.url().includes('c=ABCD2345') && page.url().includes('r=dad'), 'address not stamped: ' + page.url())
+  ok(page.url().includes('c=ABCD2345') && !page.url().includes('r='), 'address not stamped as one shared link: ' + page.url())
 })
 
 await test('dialogs are in-app, not browser pop-ups', async page => {
