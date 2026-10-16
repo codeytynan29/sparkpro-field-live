@@ -6,6 +6,8 @@
 //   POST { action: 'claim', t, id, name }  guest says "I'll get this"
 //   POST { action: 'status' | 'publish' | 'unpublish' | 'new-link', show_due }
 //        the couple manages sharing; needs their Supabase JWT
+//   POST { action: 'resolve', url }  expand an Amazon short link (a.co/…) so
+//        the app can read the product name from the full address
 // The share token is separate from the couple code, so a public link can never
 // be used to join the couple. verify_jwt is off because guests have no login.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
@@ -75,8 +77,15 @@ Deno.serve(async req => {
         .eq('couple_id', pub.couple_id).eq('kind', 'registry').maybeSingle()
       if (!row) return json({ error: 'That item is no longer on the registry.' }, 404)
       if (row.data?.got || row.data?.claimed) return json({ error: 'Someone already got this one.' }, 409)
+      // a guest can claim a handful of gifts a day, not empty the whole list
+      const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown'
+      const { count } = await sb.from('tg_claims').select('id', { count: 'exact', head: true })
+        .eq('ip', ip).gte('at', new Date(Date.now() - 864e5).toISOString())
+      if ((count || 0) >= 10) return json({ error: 'That\'s a lot of gifts for one day! Ask the couple if you meant to claim more.' }, 429)
+      await sb.from('tg_claims').insert({ ip, token: String(body.t) })
       const name = String(body.name || '').trim().slice(0, 40) || 'A guest'
-      const { error } = await sb.from('tg_entries').update({ data: { ...row.data, claimed: { name, at: new Date().toISOString() } } }).eq('id', row.id)
+      // merge just the claim into the item (never rewrite the couple's edits)
+      const { error } = await sb.rpc('tg_patch_entry', { p_id: row.id, p_patch: { claimed: { name, at: new Date().toISOString() } } })
       if (error) throw error
       return json({ ok: true })
     }
@@ -85,6 +94,21 @@ Deno.serve(async req => {
     if (!m) return json({ error: 'not signed in' }, 401)
     const { data: current } = await sb.from('tg_public').select('token, show_due').eq('couple_id', m.couple_id).maybeSingle()
 
+    if (body.action === 'resolve') {
+      // follow up to 3 redirects, only for Amazon's own short-link hosts
+      let url = String(body.url || '')
+      for (let i = 0; i < 3; i++) {
+        let host = ''
+        try { host = new URL(url).hostname.replace(/^www\./, '') } catch { break }
+        if (!['a.co', 'amzn.to', 'amzn.com', 'amzn.eu'].includes(host)) break
+        const res = await fetch(url, { redirect: 'manual', headers: { 'User-Agent': 'Mozilla/5.0' } })
+        const next = res.headers.get('location')
+        await res.body?.cancel()
+        if (!next) break
+        url = new URL(next, url).toString()
+      }
+      return json({ url })
+    }
     if (body.action === 'status') return json({ published: !!current, token: current?.token || null, show_due: current?.show_due ?? true })
     if (body.action === 'publish') {
       const row = { couple_id: m.couple_id, token: current?.token || newToken(), show_due: body.show_due !== false }

@@ -5,7 +5,9 @@
 //   notify-partner  "Mom just checked in" / a new note, sent to the other phone
 //   test            send a sample tip to the caller's own phone
 //   daily           called by pg_cron every 5 min; sends each phone's own
-//                   reminders (any number, any times) in its own time zone
+//                   reminders (any number, any times) in its own time zone,
+//                   sends any partner alert a phone failed to send (offline,
+//                   app closed too fast), and prunes forgotten devices
 // Phone requests carry the user's Supabase JWT and are checked here; the cron
 // call carries a shared secret from tg_config. Hence verify_jwt is off.
 import webpush from 'npm:web-push@3.6.7'
@@ -173,6 +175,60 @@ async function membership(userId: string) {
   return data?.[0] || null
 }
 
+// ── Server-side backstop for partner alerts ─────────────────────────────────
+// The phone sends the alert right after saving. If that never happened, the
+// cron sweep sends it once the entry reaches the server.
+async function markNotified(id: string) {
+  await sb.from('tg_notified').upsert({ entry_id: id }, { onConflict: 'entry_id', ignoreDuplicates: true })
+}
+async function namesFor(coupleId: string) {
+  const { data } = await sb.from('tg_entries').select('data').eq('couple_id', coupleId).eq('kind', 'profile').order('created_at', { ascending: true })
+  const p: Record<string, string> = {}
+  for (const r of data || []) Object.assign(p, r.data)
+  return { mom: p.momName || 'Mom', dad: p.dadName || 'Dad' }
+}
+// deno-lint-ignore no-explicit-any
+function alertFor(e: any, n: { mom: string; dad: string }) {
+  const who = e.author_role === 'mom' ? n.mom : n.dad
+  if (e.kind === 'note') return { title: `💌 ${who}`, body: String(e.data?.text || 'Sent you a note').slice(0, 140), tag: 'note' }
+  if (e.kind === 'registry') return { title: `🎁 ${who} added to the registry`, body: String(e.data?.name || '').slice(0, 120), tag: 'registry' }
+  const syms = Object.entries(e.data?.symptoms || {}).sort((a, b) => (b[1] as number) - (a[1] as number))
+  const top = syms.find(([id]) => SYMPTOM_NUDGE[id])
+  return { title: `${who} just checked in`, body: top ? SYMPTOM_NUDGE[top[0]] : 'Tap to see how she\'s feeling and today\'s game plan.', tag: 'checkin' }
+}
+async function sweepAlerts() {
+  // 2-minute grace so the phone's own alert always wins the race
+  const since = new Date(Date.now() - 6 * 3600 * 1000).toISOString(), until = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+  const { data: recent } = await sb.from('tg_entries').select('id, couple_id, author_role, kind, data, created_at')
+    .gte('created_at', since).lte('created_at', until).or('and(kind.eq.checkin,author_role.eq.mom),kind.eq.note').limit(200)
+  if (!recent?.length) return 0
+  const { data: done } = await sb.from('tg_notified').select('entry_id').in('entry_id', recent.map(e => e.id))
+  const seen = new Set((done || []).map(d => d.entry_id))
+  let sent = 0
+  for (const e of recent) {
+    if (seen.has(e.id)) continue
+    await markNotified(e.id)
+    const other = e.author_role === 'mom' ? 'dad' : 'mom'
+    const { data: subs } = await sb.from('tg_push_subs').select('*').eq('couple_id', e.couple_id).eq('role', other)
+    if (!subs?.length) continue
+    const msg = alertFor(e, await namesFor(e.couple_id))
+    for (const s of subs as Sub[]) if (await send(s, msg)) sent++
+  }
+  return sent
+}
+
+// A phone that lost its storage re-joins as a new device. Keep the 3 newest
+// devices per role so forgotten ones never fill the couple's 6 slots.
+async function pruneDevices() {
+  const { data } = await sb.from('tg_members').select('couple_id, user_id, role, joined_at').order('joined_at', { ascending: false })
+  const kept: Record<string, number> = {}
+  for (const m of data || []) {
+    const k = m.couple_id + ':' + m.role
+    kept[k] = (kept[k] || 0) + 1
+    if (kept[k] > 3) await sb.from('tg_members').delete().eq('couple_id', m.couple_id).eq('user_id', m.user_id)
+  }
+}
+
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
@@ -201,6 +257,8 @@ Deno.serve(async req => {
           if (msg && await send(s, { ...msg, tag: r.kind })) sent++
         }
       }
+      sent += await sweepAlerts().catch(e => { console.error('sweep', e); return 0 })
+      if (new Date().getUTCMinutes() < 5) await pruneDevices().catch(e => console.error('prune', e)) // hourly
       return json({ ok: true, sent })
     }
 
@@ -249,6 +307,8 @@ Deno.serve(async req => {
           // the app composes "She logged nausea today. Try X, or maybe Y."
           ? { title: String(body.title).slice(0, 80), body: String(body.body || '').slice(0, 220), tag: 'checkin' }
           : { title: `${who} just checked in`, body: 'Tap to see how she\'s feeling and today\'s game plan.', tag: 'checkin' }
+      // remember this entry was handled so the server sweep doesn't repeat it
+      if (body.entry_id) await markNotified(String(body.entry_id))
       const { data: subs } = await sb.from('tg_push_subs').select('*').eq('couple_id', m.couple_id).eq('role', other)
       let sent = 0
       for (const s of (subs || []) as Sub[]) if (await send(s, msg)) sent++

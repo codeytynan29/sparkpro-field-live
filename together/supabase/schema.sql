@@ -152,3 +152,25 @@ create table if not exists public.tg_public (
   created_at timestamptz not null default now()
 );
 alter table public.tg_public enable row level security;
+
+-- Edits merge on the server: only the changed fields are sent, so two phones
+-- (or a guest claiming a registry item) never erase each other's changes.
+create or replace function public.tg_patch_entry(p_id uuid, p_patch jsonb)
+returns void language sql security invoker set search_path = '' as $$
+  update public.tg_entries set data = data || p_patch where id = p_id
+$$;
+grant execute on function public.tg_patch_entry(uuid, jsonb) to authenticated;
+
+-- Either partner may remove a registry item (other entries stay author-only).
+drop policy if exists tg_entries_delete_registry on public.tg_entries;
+create policy tg_entries_delete_registry on public.tg_entries for delete to authenticated
+  using (kind = 'registry' and public.tg_is_member(couple_id));
+
+-- Partner alerts already sent (the tg-push cron sweep sends any the phone missed).
+create table if not exists public.tg_notified (entry_id uuid primary key, at timestamptz not null default now());
+alter table public.tg_notified enable row level security;
+
+-- Guest claims on public registries, for a per-IP daily limit.
+create table if not exists public.tg_claims (id bigint generated always as identity primary key, ip text not null, token text not null, at timestamptz not null default now());
+create index if not exists tg_claims_ip_at on public.tg_claims (ip, at);
+alter table public.tg_claims enable row level security;

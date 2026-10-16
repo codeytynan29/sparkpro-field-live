@@ -548,3 +548,11 @@ export const SELF_CARE_BASICS = [
   'Keep one thing that\'s yours: the gym, a game night, a hobby. You\'ll be a better partner for it.',
   'Around 1 in 10 expecting dads struggle with depression or anxiety. If you\'re low for 2+ weeks, talk to your doctor or call 988.',
 ]
+
+// ── Where the health information comes from ─────────────────────────────────
+// Shown wherever the app gives health or safety guidance. Update REVIEWED once
+// a clinician has actually reviewed the content.
+export const SOURCES = 'ACOG (American College of Obstetricians and Gynecologists), the FDA, the CDC and MotherToBaby'
+export const INFO_UPDATED = 'October 2026'
+export const REVIEWED = false
+export const DISCLAIMER_SHORT = 'Not medical advice. Compiled by an AI assistant from public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'

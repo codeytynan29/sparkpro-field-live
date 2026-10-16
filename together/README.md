@@ -32,7 +32,14 @@ Each phone signs in anonymously. Row Level Security lets a device read and write
 
 ## Editing
 
-The page loads one plain script, `app.bundle.js`, built from the modules below. After changing any of them, run `python3 together/build.py` and bump the `?v=` number in `index.html`.
+The page loads one plain script, `app.bundle.js`, built from the modules below. After changing any of them:
+
+```
+python3 together/build.py      # bundles, syntax-checks, stamps index.html with a content hash
+node together/tests/run.mjs    # 11 end-to-end checks in headless Chromium (needs Playwright)
+```
+
+The sync library (`vendor/supabase-js-2.45.4/`) ships with the app, so nothing loads from a CDN.
 
 ## Files
 

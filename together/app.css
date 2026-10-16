@@ -224,3 +224,27 @@ a.ghost { display: block; text-decoration: none; }
 .site { display: grid; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .btn2 { display: inline-block; justify-self: start; background: var(--soft); color: var(--ink); text-decoration: none; padding: 8px 14px; border-radius: 99px; font-weight: 600; font-size: .9rem; }
 .bar-top { font-size: .8rem; font-weight: 600; color: var(--muted); min-height: 1.1em; }
+
+/* disclaimer, dialogs, undo */
+.disclaimer { background: var(--ask-bg); color: var(--ink); border-radius: 12px; padding: 10px 12px; font-size: .82rem; margin-bottom: 10px; line-height: 1.4; }
+dialog.sheet { border: 0; border-radius: 20px; padding: 18px; width: calc(100% - 32px); max-width: 420px; background: var(--card); color: var(--ink); box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+dialog.sheet::backdrop { background: rgba(20, 10, 20, .45); }
+dialog.sheet h3 { margin-bottom: 6px; }
+.sheet-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.sheet-row .big { margin: 0; }
+.danger-btn { background: var(--avoid); color: #fff; border-color: transparent; }
+#toast.has-undo { pointer-events: auto; display: flex; gap: 12px; align-items: center; }
+#toast .undo { background: none; border: 0; color: var(--accent-2); font-weight: 700; font: inherit; padding: 0; }
+
+/* history */
+.hday { border-top: 1px solid var(--line); padding: 10px 0 4px; }
+.hday-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.hrow { background: var(--soft); border-radius: 12px; padding: 8px 10px; margin: 6px 0; font-size: .92rem; }
+.hwho { font-size: .78rem; color: var(--muted); margin-bottom: 2px; }
+.hrow .chips { margin: 4px 0 0; } .hrow .chip { font-size: .78rem; padding: 4px 8px; }
+.hrow .quote-inline { margin-top: 6px; padding: 6px 10px; font-size: .88rem; }
+pre.summary { white-space: pre-wrap; font: .86rem/1.45 -apple-system, BlinkMacSystemFont, sans-serif; background: var(--soft); border-radius: 12px; padding: 12px; margin: 8px 0; max-height: 340px; overflow: auto; }
+.tabs button { font-size: .72rem; } .tabs button span { font-size: 1.3rem; }
+details.disclaimer summary { cursor: pointer; list-style: none; color: var(--ink); font-weight: 500; }
+details.disclaimer summary::-webkit-details-marker { display: none; }
+details.disclaimer p { margin: 8px 0 0; }
