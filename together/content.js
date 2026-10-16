@@ -515,22 +515,60 @@ export const REG_CATS = [
   ['diapering', '🧷 Diapering'], ['clothing', '👕 Clothing'], ['bath', '🛁 Bath & health'],
   ['mom', '🤍 For mom'], ['other', '📦 Other'],
 ]
-// One-tap starter list. Notes carry the safety basics (AAP safe sleep, car seats).
-export const REG_STARTER = [
-  ['gear', 'Infant car seat', 'Rear-facing. Buy new: a used seat may have crash damage you can\'t see.'],
-  ['gear', 'Stroller', ''], ['gear', 'Diaper bag', ''], ['gear', 'Baby carrier', ''],
-  ['nursery', 'Crib or bassinet', 'Safe sleep: firm, flat surface. No bumpers, pillows or blankets.'],
-  ['nursery', 'Crib mattress', 'Firm and flat, fitted snugly to the crib.'],
-  ['nursery', 'Fitted crib sheets (3)', ''], ['nursery', 'Swaddles / sleep sacks', 'Stop swaddling once baby shows signs of rolling.'],
-  ['nursery', 'Baby monitor', ''],
-  ['feeding', 'Bottles', ''], ['feeding', 'Burp cloths', ''], ['feeding', 'Breast pump', 'Often free through health insurance. Call your plan first.'],
-  ['feeding', 'Nursing pillow', 'For feeding only, never for sleep.'],
-  ['diapering', 'Newborn diapers', ''], ['diapering', 'Size 1 diapers', ''], ['diapering', 'Wipes', ''],
-  ['diapering', 'Diaper cream', ''], ['diapering', 'Changing pad', ''],
-  ['clothing', 'Onesies (newborn & 0–3 mo)', ''], ['clothing', 'Footed pajamas', ''], ['clothing', 'Socks & hats', ''],
-  ['bath', 'Baby bathtub', ''], ['bath', 'Hooded towels', ''], ['bath', 'Baby nail clippers', ''],
-  ['bath', 'Digital thermometer', 'Rectal readings are the most accurate for babies.'], ['bath', 'Nasal aspirator', ''],
-  ['mom', 'Nursing bras', ''], ['mom', 'Postpartum pads', ''], ['mom', 'Peri bottle', ''],
+// Suggestions: kinds of items, not specific products (the app can't read live
+// store ratings, so it never names a "best" product). [id, cat, name, why,
+// what to look for, words that mean it's already on the list, recall agency]
+// recall: 'nhtsa' (car seats are recalled by NHTSA) | 'cpsc' (other baby gear) | ''
+export const REG_GUIDE = [
+  ['carseat', 'gear', 'Infant car seat', 'You can\'t leave the hospital without one.', 'Buy new. Check the "do not use after" date on the label. Mail in the registration card so you hear about recalls. Get the install checked free by a certified tech (search "car seat check" + your city).', 'car seat', 'nhtsa'],
+  ['stroller', 'gear', 'Stroller', 'Daily walks get you both out of the house.', 'Make sure your car seat clicks into it (a "travel system" or an adapter). Try the fold one-handed in the store.', 'stroller', 'cpsc'],
+  ['carrier', 'gear', 'Baby carrier', 'Hands free, and newborns settle against you.', 'Pick one labeled "hip-healthy" (legs in an M shape). Baby\'s face visible and kissable, never pressed into fabric.', 'carrier|wrap', 'cpsc'],
+  ['diaperbag', 'gear', 'Diaper bag', 'Grab-and-go for every outing.', 'A backpack style works for either of you.', 'diaper bag', ''],
+  ['bassinet', 'nursery', 'Bassinet', 'AAP advises baby sleep in your room for at least the first 6 months.', 'Flat, firm surface (no incline). Check the weight limit, and stop using it once baby can roll or push up.', 'bassinet', 'cpsc'],
+  ['crib', 'nursery', 'Crib', 'Where baby sleeps once the bassinet is outgrown.', 'New cribs sold in the US meet the federal safety standard. If it\'s used: no drop-side, no missing hardware, and run a recall check.', 'crib(?! sheet| mattress)', 'cpsc'],
+  ['mattress', 'nursery', 'Crib mattress', 'Comes separately from most cribs.', 'Firm and flat. It should fit so you can\'t fit more than two fingers between the mattress and the crib side.', 'mattress', 'cpsc'],
+  ['sheets', 'nursery', 'Fitted sheets (3)', 'Blowouts happen at 3 a.m.', 'Fitted only, made for your mattress size. Nothing else goes in the crib.', 'sheet', ''],
+  ['sacks', 'nursery', 'Swaddles & sleep sacks', 'Keep baby warm without loose blankets.', 'Stop swaddling at the first signs of rolling. Skip weighted sleep sacks (AAP advises against them).', 'swaddle|sleep sack', ''],
+  ['monitor', 'nursery', 'Baby monitor', 'Peace of mind when baby naps in another room.', 'For Wi-Fi monitors, change the default password. "Smart sock" breathing monitors are not proven to prevent SIDS (AAP).', 'monitor', ''],
+  ['noise', 'nursery', 'White noise machine', 'Helps many babies (and parents) sleep.', 'Keep it across the room, not in the crib, at a low volume.', 'white noise|sound machine', ''],
+  ['bottles', 'feeding', 'Bottles (a few kinds)', 'Even if breastfeeding, for pumped milk and dad feeds.', 'Buy one small pack of 2 or 3 brands first. Babies have strong opinions about nipples.', 'bottle(?! brush)', ''],
+  ['pump', 'feeding', 'Breast pump', 'For going back to work, or letting dad do a night feed.', 'Health insurance usually covers one for free (an ACA rule). Call the plan before buying.', 'pump', ''],
+  ['burp', 'feeding', 'Burp cloths', 'You\'ll use more than you think.', 'Cheap cloth diapers work great as burp cloths.', 'burp', ''],
+  ['nursingpillow', 'feeding', 'Nursing pillow', 'Saves her back and arms during feeds.', 'For awake feeding only. Never let baby sleep on it.', 'nursing pillow|boppy', 'cpsc'],
+  ['bottlebrush', 'feeding', 'Bottle brush & drying rack', 'Bottles need cleaning after every feed.', '', 'bottle brush|drying rack', ''],
+  ['diapers', 'diapering', 'Diapers (mostly size 1)', 'Newborns go through 8 to 12 a day.', 'Don\'t overbuy newborn size. Many babies outgrow it in a few weeks. Size 1 lasts longer.', 'diaper(?! bag| cream| pail)', ''],
+  ['wipes', 'diapering', 'Wipes', '', 'Fragrance-free for newborn skin.', 'wipes', ''],
+  ['cream', 'diapering', 'Diaper cream', 'For rashes.', 'A zinc oxide cream is the usual first pick. Ask your pediatrician.', 'cream|ointment', ''],
+  ['changepad', 'diapering', 'Changing pad', 'A safe spot for changes.', 'Keep one hand on baby. Babies roll sooner than you\'d expect.', 'changing pad', ''],
+  ['onesies', 'clothing', 'Onesies (0–3 months)', 'Everyday clothes.', 'Get more 0–3 months than newborn size. Zippers beat snaps at 3 a.m.', 'onesie|bodysuit', ''],
+  ['pjs', 'clothing', 'Zip-up sleepers', 'Easy night changes.', 'Snug-fitting or flame-resistant sleepwear is the safety rule for baby pajamas.', 'sleeper|pajama', ''],
+  ['hats', 'clothing', 'Socks & hats', '', '', 'sock|hat', ''],
+  ['tub', 'bath', 'Baby bathtub', 'Makes the slippery first baths easier.', 'A tub or bath seat is not a safety device. Never leave baby alone in water, even for a second.', 'tub', 'cpsc'],
+  ['thermo', 'bath', 'Digital thermometer', 'A fever under 3 months means calling the doctor right away.', 'Digital, used rectally, is the most accurate for babies. Not the forehead or ear kind for newborns.', 'thermometer', ''],
+  ['aspirator', 'bath', 'Nasal aspirator', 'Babies can\'t blow their noses.', 'Pair it with saline drops.', 'aspirator|snot', ''],
+  ['clippers', 'bath', 'Nail clippers or file', 'Newborn nails scratch faces.', 'A file is easier than clippers at first.', 'clipper|nail', ''],
+  ['firstaid', 'bath', 'Baby first-aid kit', '', 'Check that any infant medicine is dosed by weight, and ask the pediatrician before giving any.', 'first aid|first-aid', ''],
+  ['pads', 'mom', 'Postpartum pads & peri bottle', 'Recovery bleeding lasts weeks.', 'The hospital may send some home with you. Ask for extras.', 'pad|peri', ''],
+  ['nursingbra', 'mom', 'Nursing bras', '', 'Wait until late pregnancy to buy. Sizes change.', 'nursing bra', ''],
+  ['nipple', 'mom', 'Nipple cream', 'Early breastfeeding can be sore.', 'Lanolin or plant-based. Ask the lactation consultant at the hospital.', 'nipple', ''],
+  ['meals', 'mom', 'Meal delivery or freezer meals', 'The gift new parents say they valued most.', 'A great one to put on the public list for family.', 'meal', ''],
+]
+// Popular items safety experts say to leave off the list.
+export const REG_SKIP = [
+  ['Crib bumpers', 'Banned for sale in the US since 2022. A suffocation risk.'],
+  ['Inclined sleepers or rockers for sleep', 'Banned in 2022 after infant deaths. Babies sleep flat.'],
+  ['Baby nests, loungers & sleep positioners', 'The FDA and CPSC warn against them for sleep.'],
+  ['Weighted sleep sacks or swaddles', 'AAP advises against them.'],
+  ['Baby walkers', 'AAP calls for a ban. They cause falls down stairs.'],
+  ['Amber teething necklaces', 'FDA warns of choking and strangling.'],
+  ['A used car seat', 'It may have crash damage you can\'t see, or be expired.'],
+]
+// Shown next to the star rating box.
+export const RATING_TIPS = [
+  'Under about 50 reviews, the stars don\'t mean much yet.',
+  'Amazon often pools reviews across sizes and colors, so check that the reviews are about this exact item.',
+  'Fake 5-star reviews are common. The 1 to 3 star reviews tell you more: look for the same complaint repeated.',
+  'High stars don\'t mean safe. Recalled products can still show 4.5 stars, so run the recall check too.',
 ]
 
 // ── Him, looking after himself ──────────────────────────────────────────────

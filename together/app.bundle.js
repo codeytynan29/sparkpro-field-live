@@ -532,22 +532,60 @@ const REG_CATS = [
   ['diapering', '🧷 Diapering'], ['clothing', '👕 Clothing'], ['bath', '🛁 Bath & health'],
   ['mom', '🤍 For mom'], ['other', '📦 Other'],
 ]
-// One-tap starter list. Notes carry the safety basics (AAP safe sleep, car seats).
-const REG_STARTER = [
-  ['gear', 'Infant car seat', 'Rear-facing. Buy new: a used seat may have crash damage you can\'t see.'],
-  ['gear', 'Stroller', ''], ['gear', 'Diaper bag', ''], ['gear', 'Baby carrier', ''],
-  ['nursery', 'Crib or bassinet', 'Safe sleep: firm, flat surface. No bumpers, pillows or blankets.'],
-  ['nursery', 'Crib mattress', 'Firm and flat, fitted snugly to the crib.'],
-  ['nursery', 'Fitted crib sheets (3)', ''], ['nursery', 'Swaddles / sleep sacks', 'Stop swaddling once baby shows signs of rolling.'],
-  ['nursery', 'Baby monitor', ''],
-  ['feeding', 'Bottles', ''], ['feeding', 'Burp cloths', ''], ['feeding', 'Breast pump', 'Often free through health insurance. Call your plan first.'],
-  ['feeding', 'Nursing pillow', 'For feeding only, never for sleep.'],
-  ['diapering', 'Newborn diapers', ''], ['diapering', 'Size 1 diapers', ''], ['diapering', 'Wipes', ''],
-  ['diapering', 'Diaper cream', ''], ['diapering', 'Changing pad', ''],
-  ['clothing', 'Onesies (newborn & 0–3 mo)', ''], ['clothing', 'Footed pajamas', ''], ['clothing', 'Socks & hats', ''],
-  ['bath', 'Baby bathtub', ''], ['bath', 'Hooded towels', ''], ['bath', 'Baby nail clippers', ''],
-  ['bath', 'Digital thermometer', 'Rectal readings are the most accurate for babies.'], ['bath', 'Nasal aspirator', ''],
-  ['mom', 'Nursing bras', ''], ['mom', 'Postpartum pads', ''], ['mom', 'Peri bottle', ''],
+// Suggestions: kinds of items, not specific products (the app can't read live
+// store ratings, so it never names a "best" product). [id, cat, name, why,
+// what to look for, words that mean it's already on the list, recall agency]
+// recall: 'nhtsa' (car seats are recalled by NHTSA) | 'cpsc' (other baby gear) | ''
+const REG_GUIDE = [
+  ['carseat', 'gear', 'Infant car seat', 'You can\'t leave the hospital without one.', 'Buy new. Check the "do not use after" date on the label. Mail in the registration card so you hear about recalls. Get the install checked free by a certified tech (search "car seat check" + your city).', 'car seat', 'nhtsa'],
+  ['stroller', 'gear', 'Stroller', 'Daily walks get you both out of the house.', 'Make sure your car seat clicks into it (a "travel system" or an adapter). Try the fold one-handed in the store.', 'stroller', 'cpsc'],
+  ['carrier', 'gear', 'Baby carrier', 'Hands free, and newborns settle against you.', 'Pick one labeled "hip-healthy" (legs in an M shape). Baby\'s face visible and kissable, never pressed into fabric.', 'carrier|wrap', 'cpsc'],
+  ['diaperbag', 'gear', 'Diaper bag', 'Grab-and-go for every outing.', 'A backpack style works for either of you.', 'diaper bag', ''],
+  ['bassinet', 'nursery', 'Bassinet', 'AAP advises baby sleep in your room for at least the first 6 months.', 'Flat, firm surface (no incline). Check the weight limit, and stop using it once baby can roll or push up.', 'bassinet', 'cpsc'],
+  ['crib', 'nursery', 'Crib', 'Where baby sleeps once the bassinet is outgrown.', 'New cribs sold in the US meet the federal safety standard. If it\'s used: no drop-side, no missing hardware, and run a recall check.', 'crib(?! sheet| mattress)', 'cpsc'],
+  ['mattress', 'nursery', 'Crib mattress', 'Comes separately from most cribs.', 'Firm and flat. It should fit so you can\'t fit more than two fingers between the mattress and the crib side.', 'mattress', 'cpsc'],
+  ['sheets', 'nursery', 'Fitted sheets (3)', 'Blowouts happen at 3 a.m.', 'Fitted only, made for your mattress size. Nothing else goes in the crib.', 'sheet', ''],
+  ['sacks', 'nursery', 'Swaddles & sleep sacks', 'Keep baby warm without loose blankets.', 'Stop swaddling at the first signs of rolling. Skip weighted sleep sacks (AAP advises against them).', 'swaddle|sleep sack', ''],
+  ['monitor', 'nursery', 'Baby monitor', 'Peace of mind when baby naps in another room.', 'For Wi-Fi monitors, change the default password. "Smart sock" breathing monitors are not proven to prevent SIDS (AAP).', 'monitor', ''],
+  ['noise', 'nursery', 'White noise machine', 'Helps many babies (and parents) sleep.', 'Keep it across the room, not in the crib, at a low volume.', 'white noise|sound machine', ''],
+  ['bottles', 'feeding', 'Bottles (a few kinds)', 'Even if breastfeeding, for pumped milk and dad feeds.', 'Buy one small pack of 2 or 3 brands first. Babies have strong opinions about nipples.', 'bottle(?! brush)', ''],
+  ['pump', 'feeding', 'Breast pump', 'For going back to work, or letting dad do a night feed.', 'Health insurance usually covers one for free (an ACA rule). Call the plan before buying.', 'pump', ''],
+  ['burp', 'feeding', 'Burp cloths', 'You\'ll use more than you think.', 'Cheap cloth diapers work great as burp cloths.', 'burp', ''],
+  ['nursingpillow', 'feeding', 'Nursing pillow', 'Saves her back and arms during feeds.', 'For awake feeding only. Never let baby sleep on it.', 'nursing pillow|boppy', 'cpsc'],
+  ['bottlebrush', 'feeding', 'Bottle brush & drying rack', 'Bottles need cleaning after every feed.', '', 'bottle brush|drying rack', ''],
+  ['diapers', 'diapering', 'Diapers (mostly size 1)', 'Newborns go through 8 to 12 a day.', 'Don\'t overbuy newborn size. Many babies outgrow it in a few weeks. Size 1 lasts longer.', 'diaper(?! bag| cream| pail)', ''],
+  ['wipes', 'diapering', 'Wipes', '', 'Fragrance-free for newborn skin.', 'wipes', ''],
+  ['cream', 'diapering', 'Diaper cream', 'For rashes.', 'A zinc oxide cream is the usual first pick. Ask your pediatrician.', 'cream|ointment', ''],
+  ['changepad', 'diapering', 'Changing pad', 'A safe spot for changes.', 'Keep one hand on baby. Babies roll sooner than you\'d expect.', 'changing pad', ''],
+  ['onesies', 'clothing', 'Onesies (0–3 months)', 'Everyday clothes.', 'Get more 0–3 months than newborn size. Zippers beat snaps at 3 a.m.', 'onesie|bodysuit', ''],
+  ['pjs', 'clothing', 'Zip-up sleepers', 'Easy night changes.', 'Snug-fitting or flame-resistant sleepwear is the safety rule for baby pajamas.', 'sleeper|pajama', ''],
+  ['hats', 'clothing', 'Socks & hats', '', '', 'sock|hat', ''],
+  ['tub', 'bath', 'Baby bathtub', 'Makes the slippery first baths easier.', 'A tub or bath seat is not a safety device. Never leave baby alone in water, even for a second.', 'tub', 'cpsc'],
+  ['thermo', 'bath', 'Digital thermometer', 'A fever under 3 months means calling the doctor right away.', 'Digital, used rectally, is the most accurate for babies. Not the forehead or ear kind for newborns.', 'thermometer', ''],
+  ['aspirator', 'bath', 'Nasal aspirator', 'Babies can\'t blow their noses.', 'Pair it with saline drops.', 'aspirator|snot', ''],
+  ['clippers', 'bath', 'Nail clippers or file', 'Newborn nails scratch faces.', 'A file is easier than clippers at first.', 'clipper|nail', ''],
+  ['firstaid', 'bath', 'Baby first-aid kit', '', 'Check that any infant medicine is dosed by weight, and ask the pediatrician before giving any.', 'first aid|first-aid', ''],
+  ['pads', 'mom', 'Postpartum pads & peri bottle', 'Recovery bleeding lasts weeks.', 'The hospital may send some home with you. Ask for extras.', 'pad|peri', ''],
+  ['nursingbra', 'mom', 'Nursing bras', '', 'Wait until late pregnancy to buy. Sizes change.', 'nursing bra', ''],
+  ['nipple', 'mom', 'Nipple cream', 'Early breastfeeding can be sore.', 'Lanolin or plant-based. Ask the lactation consultant at the hospital.', 'nipple', ''],
+  ['meals', 'mom', 'Meal delivery or freezer meals', 'The gift new parents say they valued most.', 'A great one to put on the public list for family.', 'meal', ''],
+]
+// Popular items safety experts say to leave off the list.
+const REG_SKIP = [
+  ['Crib bumpers', 'Banned for sale in the US since 2022. A suffocation risk.'],
+  ['Inclined sleepers or rockers for sleep', 'Banned in 2022 after infant deaths. Babies sleep flat.'],
+  ['Baby nests, loungers & sleep positioners', 'The FDA and CPSC warn against them for sleep.'],
+  ['Weighted sleep sacks or swaddles', 'AAP advises against them.'],
+  ['Baby walkers', 'AAP calls for a ban. They cause falls down stairs.'],
+  ['Amber teething necklaces', 'FDA warns of choking and strangling.'],
+  ['A used car seat', 'It may have crash damage you can\'t see, or be expired.'],
+]
+// Shown next to the star rating box.
+const RATING_TIPS = [
+  'Under about 50 reviews, the stars don\'t mean much yet.',
+  'Amazon often pools reviews across sizes and colors, so check that the reviews are about this exact item.',
+  'Fake 5-star reviews are common. The 1 to 3 star reviews tell you more: look for the same complaint repeated.',
+  'High stars don\'t mean safe. Recalled products can still show 4.5 stars, so run the recall check too.',
 ]
 
 // ── Him, looking after himself ──────────────────────────────────────────────
@@ -574,7 +612,7 @@ const INFO_UPDATED = 'October 2026'
 const REVIEWED = false
 const DISCLAIMER_SHORT = 'Not medical advice. Compiled by an AI assistant from public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_STARTER() { return REG_STARTER }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT } }
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT } }
 })()
 
 const S = (() => {
@@ -1105,7 +1143,7 @@ function stampLink() {
 
 // Typed-but-unsaved values, keyed by input id. Every render puts them back, so
 // a live update from the other phone never wipes a half-filled form.
-const FORM_IDS = ['regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode']
+const FORM_IDS = ['regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'regStars', 'regReviews', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode']
 const formState = {}
 const clearForm = prefix => { for (const k of Object.keys(formState)) if (k.startsWith(prefix)) delete formState[k] }
 function restoreForms(focusId, sel) {
@@ -1807,6 +1845,56 @@ async function fillNameFromLink(url) {
     if (link && r?.url && link.value === url) { link.value = r.url; formState.regUrl = r.url }
   } catch (e) { console.warn('could not expand link', e) }
 }
+// ── Ratings, reviews and recall checks ──
+// The app can't read store ratings (Amazon only shares them with approved
+// affiliates), so stars are typed in by whoever adds the item.
+let sugCat = 'gear'
+const openDetails = new Set()
+const asinOf = url => (String(url).match(/\/(?:dp|gp\/product|product-reviews)\/([A-Z0-9]{10})/i) || [])[1] || ''
+const amazonSearch = (q, fourUp = true) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}${fourUp ? '&rh=p_72%3A1248882011' : ''}` // p_72 = "4 Stars & Up"
+function reviewsUrl(it) {
+  const asin = asinOf(it.url)
+  if (asin) return `https://www.amazon.com/product-reviews/${asin}?filterByStar=critical`
+  return it.url || amazonSearch(it.name, false)
+}
+// Car seats are recalled by NHTSA; other baby gear by the CPSC.
+function recallKind(name, cat) {
+  if (/car ?seat|booster/i.test(name)) return 'nhtsa'
+  return ['gear', 'nursery', 'bath', 'feeding'].includes(cat) ? 'cpsc' : ''
+}
+function recallUrl(kind, name) {
+  if (kind === 'nhtsa') return 'https://www.nhtsa.gov/recalls'
+  const q = String(name).replace(/[^\w\s-]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 4).join(' ')
+  return `https://www.cpsc.gov/Recalls?search_combined_fields=${encodeURIComponent(q)}`
+}
+const recallLink = (kind, name) => kind ? `<a class="chip" href="${esc(recallUrl(kind, name))}" target="_blank" rel="noopener">🛡️ Recall check${kind === 'nhtsa' ? ' (NHTSA)' : ''}</a>` : ''
+const parseStars = v => { const n = parseFloat(String(v).replace(',', '.')); return n >= 0 && n <= 5 ? Math.round(n * 10) / 10 : '' }
+async function lowRating(it) {
+  const r = await ask({ title: `${it.stars}★ is rated low`, text: `Want to know why? The 1 to 3 star reviews usually show the problem: it breaks, a safety worry, or it runs small. If the same complaint keeps coming up, it's worth picking something else. Run a recall check too.`, ok: 'Show me why', cancel: 'Keep it' })
+  if (r && !window.open(reviewsUrl(it), '_blank', 'noopener')) toast('Tap "why?" on the item to see its reviews')
+}
+function suggestCard(items) {
+  const onList = g => items.some(i => i.data.sug === g[0] || new RegExp(g[5], 'i').test(i.data.name || ''))
+  const cats = C.REG_CATS.filter(([id]) => C.REG_GUIDE.some(g => g[1] === id))
+  const list = C.REG_GUIDE.filter(g => g[1] === sugCat)
+  const missing = C.REG_GUIDE.filter(g => !onList(g)).length
+  return `<section class="card" id="regSuggest">
+    <h3>💡 Suggestions</h3>
+    <p class="fine">${missing ? `${missing} common item${missing === 1 ? '' : 's'} not on your list yet.` : 'You have all the usual basics covered.'} These are kinds of items with what to look for, not specific products. 🔎 opens Amazon showing only 4★ & up.</p>
+    <div class="chips">${cats.map(([id, l]) => `<button class="chip ${sugCat === id ? 'on' : ''}" data-sugcat="${id}">${l}</button>`).join('')}</div>
+    ${list.map(g => {
+      const [id, cat, name, why, look] = g, have = onList(g)
+      return `<div class="sug ${have ? 'have' : ''}">
+        <div><b>${esc(name)}</b>${why ? `<div class="fine">${esc(why)}</div>` : ''}${look ? `<div class="fine look">👀 ${esc(look)}</div>` : ''}</div>
+        <div class="sug-act">${have ? '<span class="fine">✓ On your list</span>' : `<button class="mini add" data-sug-add="${id}">＋ Add</button>`}
+          <a class="chip" href="${esc(amazonSearch(name))}" target="_blank" rel="noopener">🔎 4★+</a>${recallLink(g[6], name)}</div>
+      </div>`
+    }).join('')}
+    <details data-keep="skip" ${openDetails.has('skip') ? 'open' : ''}><summary>🚫 Leave these off the list</summary>
+      ${C.REG_SKIP.map(([n, w]) => `<div class="mile"><b>${esc(n)}<span class="why">${esc(w)}</span></b></div>`).join('')}
+    </details>
+  </section>`
+}
 const money = n => (n || n === 0) && !isNaN(n) ? '$' + Number(n).toFixed(Number(n) % 1 ? 2 : 0) : ''
 
 function registry() {
@@ -1834,6 +1922,8 @@ function registry() {
           <div class="reg-main">
             <div class="reg-name">${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
             <div class="fine">${[it.url ? storeOf(it.url) : '', money(it.price), 'added by ' + by, it.got && it.gotBy ? 'got by ' + esc(nameOf(it.gotBy)) : ''].filter(Boolean).join(' · ')}</div>
+            ${it.stars !== '' && it.stars != null ? `<div class="fine rating ${it.stars < 4 ? 'low' : ''}">${it.stars < 4 ? '⚠️ ' : '⭐ '}${it.stars}★${it.reviews ? ` · ${Number(it.reviews).toLocaleString()} reviews` : ''}${it.reviews && it.reviews < 50 ? ' (few reviews, take with salt)' : ''}${it.stars < 4 ? ` · rated low <a href="${esc(reviewsUrl(it))}" target="_blank" rel="noopener">why?</a>` : ''}${it.ratedAt ? ` <span class="faint">as of ${esc(fmtDate(parseDate(it.ratedAt)))}</span>` : ''}</div>` : ''}
+            ${!it.got && recallKind(it.name, it.cat) ? `<div class="reg-links">${recallLink(recallKind(it.name, it.cat), it.name)}</div>` : ''}
             ${it.claimed ? `<div class="claimed">🎁 <b>${esc(it.claimed.name)}</b> is getting this <button class="mini" data-reg-release="${i.id}">Release</button></div>` : ''}
             ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
           </div>
@@ -1841,7 +1931,8 @@ function registry() {
         </div>`
       }).join('')}</section>`
     }).join('')}
-    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? '<button class="big" data-act="reg-starter">Add a starter list (30 basics)</button>' : ''}</section>` : ''}
+    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? '<button class="big" data-act="reg-starter">Add all ${C.REG_GUIDE.length} suggested basics</button>' : ''}</section>` : ''}
+    ${suggestCard(items)}
     <section class="card" id="regForm">
       <h3>${e ? 'Edit item' : 'Add an item'}</h3>
       <label class="field">Paste a link (Amazon, Target, anywhere), optional
@@ -1850,12 +1941,19 @@ function registry() {
       <label class="field">What is it? <span class="fine">(filled in from the link when possible; store links sometimes cut the name short, so give it a look)</span>
         <input id="regName" placeholder="e.g. Infant car seat" value="${esc(d.name || '')}">
       </label>
-      <div class="store-search"><span class="fine">Find it:</span>${[['amazon', 'Amazon'], ['target', 'Target'], ['walmart', 'Walmart']].map(([id, l]) => `<button class="chip" data-act="reg-search" data-store="${id}">🔎 ${l}</button>`).join('')}</div>
+      <div class="store-search"><span class="fine">Find it:</span>${[['amazon', 'Amazon 4★+'], ['target', 'Target'], ['walmart', 'Walmart']].map(([id, l]) => `<button class="chip" data-act="reg-search" data-store="${id}">🔎 ${l}</button>`).join('')}</div>
       <p class="fine">Opens the store's search. Copy the product link there, paste it above, and the name fills in.</p>
       <div class="row2">
         <label class="field">Price <input id="regPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
         <label class="field">How many <input id="regQty" inputmode="numeric" value="${esc(d.qty || '1')}"></label>
       </div>
+      <div class="row2">
+        <label class="field">Star rating <input id="regStars" inputmode="decimal" placeholder="e.g. 4.6" value="${esc(d.stars ?? '')}"></label>
+        <label class="field">Reviews <input id="regReviews" inputmode="numeric" placeholder="e.g. 12,000" value="${esc(d.reviews || '')}"></label>
+      </div>
+      <details data-keep="ratingtips" ${openDetails.has('ratingtips') ? 'open' : ''}><summary class="fine">Optional: copy the stars from the store page. How to read ratings</summary>
+        <ul class="fine">${C.RATING_TIPS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      </details>
       <label class="field">Category
         <select id="regCat" class="inp">${C.REG_CATS.map(([id, l]) => `<option value="${id}" ${(d.cat || 'other') === id ? 'selected' : ''}>${l}</option>`).join('')}</select>
       </label>
@@ -2044,6 +2142,14 @@ app.addEventListener('click', async ev => {
   if (d.sendnote) { const e = await S.addEntry('note', { text: d.sendnote }); notifyPartner('note', d.sendnote, null, e.id); toast('Sent 💌'); return }
   if (d.react) { await S.addEntry('reaction', { to: d.react, emoji: d.emoji }); toast('Sent ' + d.emoji); return }
   if (d.regf) { regFilter = d.regf; render(); return }
+  if (d.sugcat) { sugCat = d.sugcat; render(); return }
+  if (d.sugAdd) {
+    const g = C.REG_GUIDE.find(x => x[0] === d.sugAdd); if (!g) return
+    const [sug, cat, name, , look] = g
+    const added = await S.addEntry('registry', { name, url: '', price: '', qty: '1', cat, notes: look, sug, got: false })
+    notifyPartner('registry', '', { title: `🎁 ${nameOf(me())} added to the registry`, body: name }, added.id)
+    toast(`Added ${name}. Tap ✏️ on it to add a link.`); return
+  }
   if (d.regRelease) {
     const it = entries('registry').find(x => x.id === d.regRelease)
     if (await ask({ title: 'Release this item?', text: `${it?.data.claimed?.name || 'A guest'} said they'd get it. Releasing lets other guests claim it again.`, ok: 'Release' })) S.updateEntry(d.regRelease, { claimed: null })
@@ -2155,17 +2261,27 @@ app.addEventListener('click', async ev => {
       const url = $('#regUrl').value.trim(), name = ($('#regName').value.trim() || nameFromUrl(url)).slice(0, 120)
       if (!name) return toast('Give it a name')
       if (url && !/^https?:\/\//i.test(url)) return toast('Links need to start with https://')
-      const item = { name, url, price: $('#regPrice').value.replace(/[^0-9.]/g, ''), qty: String(parseInt($('#regQty').value) || 1), cat: $('#regCat').value, notes: $('#regNotes').value.trim() }
-      if (editReg) { S.updateEntry(editReg, item); editReg = null; clearForm('reg'); toast('Saved'); return }
-      const added = await S.addEntry('registry', { ...item, got: false })
-      notifyPartner('registry', '', { title: `🎁 ${nameOf(me())} added to the registry`, body: name }, added.id)
-      clearForm('reg')
-      toast('Added 🎁'); return
+      const rawStars = $('#regStars').value.trim(), stars = parseStars(rawStars)
+      if (rawStars && stars === '') return toast('Star rating should be 0 to 5, like 4.6')
+      const reviews = parseInt($('#regReviews').value.replace(/[^0-9]/g, '')) || ''
+      const item = { name, url, price: $('#regPrice').value.replace(/[^0-9.]/g, ''), qty: String(parseInt($('#regQty').value) || 1), cat: $('#regCat').value, notes: $('#regNotes').value.trim(), stars, reviews }
+      const before = editReg ? entries('registry').find(x => x.id === editReg)?.data : null
+      if (stars !== '' && (!before || before.stars !== stars)) item.ratedAt = isoDate(new Date())
+      const warn = stars !== '' && stars < 4 && (!before || before.stars !== stars)
+      if (editReg) { S.updateEntry(editReg, item); editReg = null; clearForm('reg'); toast('Saved') }
+      else {
+        const added = await S.addEntry('registry', { ...item, got: false })
+        notifyPartner('registry', '', { title: `🎁 ${nameOf(me())} added to the registry`, body: name }, added.id)
+        clearForm('reg')
+        toast('Added 🎁')
+      }
+      if (warn) lowRating({ ...before, ...item })
+      return
     }
     case 'reg-search': {
       // Store search pages need no API key. On iPhone these usually open in the store's app.
       const q = encodeURIComponent(($('#regName').value.trim() || 'baby registry essentials'))
-      const url = { amazon: `https://www.amazon.com/s?k=${q}`, target: `https://www.target.com/s?searchTerm=${q}`, walmart: `https://www.walmart.com/search?q=${q}` }[d.store]
+      const url = { amazon: amazonSearch(decodeURIComponent(q)), target: `https://www.target.com/s?searchTerm=${q}`, walmart: `https://www.walmart.com/search?q=${q}` }[d.store]
       if (url) window.open(url, '_blank', 'noopener')
       return
     }
@@ -2205,7 +2321,7 @@ app.addEventListener('click', async ev => {
     case 'reg-starter': {
       if (entries('registry').length || startingList) return
       startingList = true; b.disabled = true
-      for (const [cat, name, notes] of C.REG_STARTER) await S.addEntry('registry', { name, url: '', price: '', qty: '1', cat, notes, got: false })
+      for (const [sug, cat, name, , look] of C.REG_GUIDE) await S.addEntry('registry', { name, url: '', price: '', qty: '1', cat, notes: look, sug, got: false })
       startingList = false
       toast('Starter list added. Edit or delete anything.'); return
     }
@@ -2250,6 +2366,7 @@ app.addEventListener('click', async ev => {
   }
 })
 
+app.addEventListener('toggle', ev => { const k = ev.target.dataset?.keep; if (k) ev.target.open ? openDetails.add(k) : openDetails.delete(k) }, true)
 app.addEventListener('input', ev => {
   if (ev.target.id === 'q') {
     lookupQuery = ev.target.value

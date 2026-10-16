@@ -248,3 +248,20 @@ pre.summary { white-space: pre-wrap; font: .86rem/1.45 -apple-system, BlinkMacSy
 details.disclaimer summary { cursor: pointer; list-style: none; color: var(--ink); font-weight: 500; }
 details.disclaimer summary::-webkit-details-marker { display: none; }
 details.disclaimer p { margin: 8px 0 0; }
+
+/* registry suggestions, ratings, recall checks */
+.sug { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.sug:last-of-type { border-bottom: 0; }
+.sug.have b { opacity: .6; }
+.sug .look { margin-top: 2px; }
+.sug-act { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sug-act .chip, .reg-links .chip { text-decoration: none; color: var(--ink); font-size: .8rem; padding: 5px 10px; }
+.mini.add { border: 1px dashed var(--accent); color: var(--accent); background: transparent; }
+.reg-links { margin-top: 4px; }
+.rating.low { color: #b45309; font-weight: 600; }
+.rating a { color: inherit; }
+.faint { opacity: .7; font-weight: 400; }
+#regSuggest details, #regForm details { margin: 8px 0; }
+#regSuggest summary, #regForm summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+#regForm details ul { margin: 6px 0 0; padding-left: 18px; }
+@media (prefers-color-scheme: dark) { .rating.low { color: #fbbf24; } }

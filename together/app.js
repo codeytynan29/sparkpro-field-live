@@ -228,7 +228,7 @@ function stampLink() {
 
 // Typed-but-unsaved values, keyed by input id. Every render puts them back, so
 // a live update from the other phone never wipes a half-filled form.
-const FORM_IDS = ['regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode']
+const FORM_IDS = ['regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'regStars', 'regReviews', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode']
 const formState = {}
 const clearForm = prefix => { for (const k of Object.keys(formState)) if (k.startsWith(prefix)) delete formState[k] }
 function restoreForms(focusId, sel) {
@@ -930,6 +930,56 @@ async function fillNameFromLink(url) {
     if (link && r?.url && link.value === url) { link.value = r.url; formState.regUrl = r.url }
   } catch (e) { console.warn('could not expand link', e) }
 }
+// ── Ratings, reviews and recall checks ──
+// The app can't read store ratings (Amazon only shares them with approved
+// affiliates), so stars are typed in by whoever adds the item.
+let sugCat = 'gear'
+const openDetails = new Set()
+const asinOf = url => (String(url).match(/\/(?:dp|gp\/product|product-reviews)\/([A-Z0-9]{10})/i) || [])[1] || ''
+const amazonSearch = (q, fourUp = true) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}${fourUp ? '&rh=p_72%3A1248882011' : ''}` // p_72 = "4 Stars & Up"
+function reviewsUrl(it) {
+  const asin = asinOf(it.url)
+  if (asin) return `https://www.amazon.com/product-reviews/${asin}?filterByStar=critical`
+  return it.url || amazonSearch(it.name, false)
+}
+// Car seats are recalled by NHTSA; other baby gear by the CPSC.
+function recallKind(name, cat) {
+  if (/car ?seat|booster/i.test(name)) return 'nhtsa'
+  return ['gear', 'nursery', 'bath', 'feeding'].includes(cat) ? 'cpsc' : ''
+}
+function recallUrl(kind, name) {
+  if (kind === 'nhtsa') return 'https://www.nhtsa.gov/recalls'
+  const q = String(name).replace(/[^\w\s-]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 4).join(' ')
+  return `https://www.cpsc.gov/Recalls?search_combined_fields=${encodeURIComponent(q)}`
+}
+const recallLink = (kind, name) => kind ? `<a class="chip" href="${esc(recallUrl(kind, name))}" target="_blank" rel="noopener">🛡️ Recall check${kind === 'nhtsa' ? ' (NHTSA)' : ''}</a>` : ''
+const parseStars = v => { const n = parseFloat(String(v).replace(',', '.')); return n >= 0 && n <= 5 ? Math.round(n * 10) / 10 : '' }
+async function lowRating(it) {
+  const r = await ask({ title: `${it.stars}★ is rated low`, text: `Want to know why? The 1 to 3 star reviews usually show the problem: it breaks, a safety worry, or it runs small. If the same complaint keeps coming up, it's worth picking something else. Run a recall check too.`, ok: 'Show me why', cancel: 'Keep it' })
+  if (r && !window.open(reviewsUrl(it), '_blank', 'noopener')) toast('Tap "why?" on the item to see its reviews')
+}
+function suggestCard(items) {
+  const onList = g => items.some(i => i.data.sug === g[0] || new RegExp(g[5], 'i').test(i.data.name || ''))
+  const cats = C.REG_CATS.filter(([id]) => C.REG_GUIDE.some(g => g[1] === id))
+  const list = C.REG_GUIDE.filter(g => g[1] === sugCat)
+  const missing = C.REG_GUIDE.filter(g => !onList(g)).length
+  return `<section class="card" id="regSuggest">
+    <h3>💡 Suggestions</h3>
+    <p class="fine">${missing ? `${missing} common item${missing === 1 ? '' : 's'} not on your list yet.` : 'You have all the usual basics covered.'} These are kinds of items with what to look for, not specific products. 🔎 opens Amazon showing only 4★ & up.</p>
+    <div class="chips">${cats.map(([id, l]) => `<button class="chip ${sugCat === id ? 'on' : ''}" data-sugcat="${id}">${l}</button>`).join('')}</div>
+    ${list.map(g => {
+      const [id, cat, name, why, look] = g, have = onList(g)
+      return `<div class="sug ${have ? 'have' : ''}">
+        <div><b>${esc(name)}</b>${why ? `<div class="fine">${esc(why)}</div>` : ''}${look ? `<div class="fine look">👀 ${esc(look)}</div>` : ''}</div>
+        <div class="sug-act">${have ? '<span class="fine">✓ On your list</span>' : `<button class="mini add" data-sug-add="${id}">＋ Add</button>`}
+          <a class="chip" href="${esc(amazonSearch(name))}" target="_blank" rel="noopener">🔎 4★+</a>${recallLink(g[6], name)}</div>
+      </div>`
+    }).join('')}
+    <details data-keep="skip" ${openDetails.has('skip') ? 'open' : ''}><summary>🚫 Leave these off the list</summary>
+      ${C.REG_SKIP.map(([n, w]) => `<div class="mile"><b>${esc(n)}<span class="why">${esc(w)}</span></b></div>`).join('')}
+    </details>
+  </section>`
+}
 const money = n => (n || n === 0) && !isNaN(n) ? '$' + Number(n).toFixed(Number(n) % 1 ? 2 : 0) : ''
 
 function registry() {
@@ -957,6 +1007,8 @@ function registry() {
           <div class="reg-main">
             <div class="reg-name">${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
             <div class="fine">${[it.url ? storeOf(it.url) : '', money(it.price), 'added by ' + by, it.got && it.gotBy ? 'got by ' + esc(nameOf(it.gotBy)) : ''].filter(Boolean).join(' · ')}</div>
+            ${it.stars !== '' && it.stars != null ? `<div class="fine rating ${it.stars < 4 ? 'low' : ''}">${it.stars < 4 ? '⚠️ ' : '⭐ '}${it.stars}★${it.reviews ? ` · ${Number(it.reviews).toLocaleString()} reviews` : ''}${it.reviews && it.reviews < 50 ? ' (few reviews, take with salt)' : ''}${it.stars < 4 ? ` · rated low <a href="${esc(reviewsUrl(it))}" target="_blank" rel="noopener">why?</a>` : ''}${it.ratedAt ? ` <span class="faint">as of ${esc(fmtDate(parseDate(it.ratedAt)))}</span>` : ''}</div>` : ''}
+            ${!it.got && recallKind(it.name, it.cat) ? `<div class="reg-links">${recallLink(recallKind(it.name, it.cat), it.name)}</div>` : ''}
             ${it.claimed ? `<div class="claimed">🎁 <b>${esc(it.claimed.name)}</b> is getting this <button class="mini" data-reg-release="${i.id}">Release</button></div>` : ''}
             ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
           </div>
@@ -964,7 +1016,8 @@ function registry() {
         </div>`
       }).join('')}</section>`
     }).join('')}
-    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? '<button class="big" data-act="reg-starter">Add a starter list (30 basics)</button>' : ''}</section>` : ''}
+    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? '<button class="big" data-act="reg-starter">Add all ${C.REG_GUIDE.length} suggested basics</button>' : ''}</section>` : ''}
+    ${suggestCard(items)}
     <section class="card" id="regForm">
       <h3>${e ? 'Edit item' : 'Add an item'}</h3>
       <label class="field">Paste a link (Amazon, Target, anywhere), optional
@@ -973,12 +1026,19 @@ function registry() {
       <label class="field">What is it? <span class="fine">(filled in from the link when possible; store links sometimes cut the name short, so give it a look)</span>
         <input id="regName" placeholder="e.g. Infant car seat" value="${esc(d.name || '')}">
       </label>
-      <div class="store-search"><span class="fine">Find it:</span>${[['amazon', 'Amazon'], ['target', 'Target'], ['walmart', 'Walmart']].map(([id, l]) => `<button class="chip" data-act="reg-search" data-store="${id}">🔎 ${l}</button>`).join('')}</div>
+      <div class="store-search"><span class="fine">Find it:</span>${[['amazon', 'Amazon 4★+'], ['target', 'Target'], ['walmart', 'Walmart']].map(([id, l]) => `<button class="chip" data-act="reg-search" data-store="${id}">🔎 ${l}</button>`).join('')}</div>
       <p class="fine">Opens the store's search. Copy the product link there, paste it above, and the name fills in.</p>
       <div class="row2">
         <label class="field">Price <input id="regPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
         <label class="field">How many <input id="regQty" inputmode="numeric" value="${esc(d.qty || '1')}"></label>
       </div>
+      <div class="row2">
+        <label class="field">Star rating <input id="regStars" inputmode="decimal" placeholder="e.g. 4.6" value="${esc(d.stars ?? '')}"></label>
+        <label class="field">Reviews <input id="regReviews" inputmode="numeric" placeholder="e.g. 12,000" value="${esc(d.reviews || '')}"></label>
+      </div>
+      <details data-keep="ratingtips" ${openDetails.has('ratingtips') ? 'open' : ''}><summary class="fine">Optional: copy the stars from the store page. How to read ratings</summary>
+        <ul class="fine">${C.RATING_TIPS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      </details>
       <label class="field">Category
         <select id="regCat" class="inp">${C.REG_CATS.map(([id, l]) => `<option value="${id}" ${(d.cat || 'other') === id ? 'selected' : ''}>${l}</option>`).join('')}</select>
       </label>
@@ -1167,6 +1227,14 @@ app.addEventListener('click', async ev => {
   if (d.sendnote) { const e = await S.addEntry('note', { text: d.sendnote }); notifyPartner('note', d.sendnote, null, e.id); toast('Sent 💌'); return }
   if (d.react) { await S.addEntry('reaction', { to: d.react, emoji: d.emoji }); toast('Sent ' + d.emoji); return }
   if (d.regf) { regFilter = d.regf; render(); return }
+  if (d.sugcat) { sugCat = d.sugcat; render(); return }
+  if (d.sugAdd) {
+    const g = C.REG_GUIDE.find(x => x[0] === d.sugAdd); if (!g) return
+    const [sug, cat, name, , look] = g
+    const added = await S.addEntry('registry', { name, url: '', price: '', qty: '1', cat, notes: look, sug, got: false })
+    notifyPartner('registry', '', { title: `🎁 ${nameOf(me())} added to the registry`, body: name }, added.id)
+    toast(`Added ${name}. Tap ✏️ on it to add a link.`); return
+  }
   if (d.regRelease) {
     const it = entries('registry').find(x => x.id === d.regRelease)
     if (await ask({ title: 'Release this item?', text: `${it?.data.claimed?.name || 'A guest'} said they'd get it. Releasing lets other guests claim it again.`, ok: 'Release' })) S.updateEntry(d.regRelease, { claimed: null })
@@ -1278,17 +1346,27 @@ app.addEventListener('click', async ev => {
       const url = $('#regUrl').value.trim(), name = ($('#regName').value.trim() || nameFromUrl(url)).slice(0, 120)
       if (!name) return toast('Give it a name')
       if (url && !/^https?:\/\//i.test(url)) return toast('Links need to start with https://')
-      const item = { name, url, price: $('#regPrice').value.replace(/[^0-9.]/g, ''), qty: String(parseInt($('#regQty').value) || 1), cat: $('#regCat').value, notes: $('#regNotes').value.trim() }
-      if (editReg) { S.updateEntry(editReg, item); editReg = null; clearForm('reg'); toast('Saved'); return }
-      const added = await S.addEntry('registry', { ...item, got: false })
-      notifyPartner('registry', '', { title: `🎁 ${nameOf(me())} added to the registry`, body: name }, added.id)
-      clearForm('reg')
-      toast('Added 🎁'); return
+      const rawStars = $('#regStars').value.trim(), stars = parseStars(rawStars)
+      if (rawStars && stars === '') return toast('Star rating should be 0 to 5, like 4.6')
+      const reviews = parseInt($('#regReviews').value.replace(/[^0-9]/g, '')) || ''
+      const item = { name, url, price: $('#regPrice').value.replace(/[^0-9.]/g, ''), qty: String(parseInt($('#regQty').value) || 1), cat: $('#regCat').value, notes: $('#regNotes').value.trim(), stars, reviews }
+      const before = editReg ? entries('registry').find(x => x.id === editReg)?.data : null
+      if (stars !== '' && (!before || before.stars !== stars)) item.ratedAt = isoDate(new Date())
+      const warn = stars !== '' && stars < 4 && (!before || before.stars !== stars)
+      if (editReg) { S.updateEntry(editReg, item); editReg = null; clearForm('reg'); toast('Saved') }
+      else {
+        const added = await S.addEntry('registry', { ...item, got: false })
+        notifyPartner('registry', '', { title: `🎁 ${nameOf(me())} added to the registry`, body: name }, added.id)
+        clearForm('reg')
+        toast('Added 🎁')
+      }
+      if (warn) lowRating({ ...before, ...item })
+      return
     }
     case 'reg-search': {
       // Store search pages need no API key. On iPhone these usually open in the store's app.
       const q = encodeURIComponent(($('#regName').value.trim() || 'baby registry essentials'))
-      const url = { amazon: `https://www.amazon.com/s?k=${q}`, target: `https://www.target.com/s?searchTerm=${q}`, walmart: `https://www.walmart.com/search?q=${q}` }[d.store]
+      const url = { amazon: amazonSearch(decodeURIComponent(q)), target: `https://www.target.com/s?searchTerm=${q}`, walmart: `https://www.walmart.com/search?q=${q}` }[d.store]
       if (url) window.open(url, '_blank', 'noopener')
       return
     }
@@ -1328,7 +1406,7 @@ app.addEventListener('click', async ev => {
     case 'reg-starter': {
       if (entries('registry').length || startingList) return
       startingList = true; b.disabled = true
-      for (const [cat, name, notes] of C.REG_STARTER) await S.addEntry('registry', { name, url: '', price: '', qty: '1', cat, notes, got: false })
+      for (const [sug, cat, name, , look] of C.REG_GUIDE) await S.addEntry('registry', { name, url: '', price: '', qty: '1', cat, notes: look, sug, got: false })
       startingList = false
       toast('Starter list added. Edit or delete anything.'); return
     }
@@ -1373,6 +1451,7 @@ app.addEventListener('click', async ev => {
   }
 })
 
+app.addEventListener('toggle', ev => { const k = ev.target.dataset?.keep; if (k) ev.target.open ? openDetails.add(k) : openDetails.delete(k) }, true)
 app.addEventListener('input', ev => {
   if (ev.target.id === 'q') {
     lookupQuery = ev.target.value
