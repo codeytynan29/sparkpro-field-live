@@ -564,23 +564,21 @@ function checkinCard(ci, title) {
 function checkin() { return me() === 'mom' ? momCheckin() : dadCheckin() }
 
 // A check-in loaded back into the form (values cleaned, in case it came from another phone)
-function editDraft(e, auto = false) {
+function editDraft(e) {
   const symptoms = {}
   for (const [id, l] of Object.entries(e.data.symptoms || {})) { const v = num(l, 0, 3) | 0; if (v) symptoms[id] = v }
-  return { kind: 'checkin', editing: e.id, auto, mood: num(e.data.mood, 0, 5) | 0, energy: num(e.data.energy, 0, 5) | 0, symptoms, temp: String(e.data.temp || ''), note: String(e.data.note || '') }
+  return { kind: 'checkin', editing: e.id, mood: num(e.data.mood, 0, 5) | 0, energy: num(e.data.energy, 0, 5) | 0, symptoms, temp: String(e.data.temp || ''), note: String(e.data.note || '') }
 }
 
 function momCheckin() {
-  // already checked in today: open that one to update, instead of a blank form that would duplicate it
-  const todays = entries('checkin', 'mom').filter(e => sameDay(e.created_at)).at(-1)
-  if (!(draft && draft.kind === 'checkin')) draft = todays && me() === 'mom' ? editDraft(todays, true) : { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }
+  draft = draft && draft.kind === 'checkin' ? draft : { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }
   const lvl = ['', 'mild', 'moderate', 'strong']
   const g = gest()
   // late-pregnancy-only symptoms are hidden early so the list stays short
   const wkNow = g ? g.week : 0
   const list = [...C.SYMPTOMS.filter(s => !(s.id === 'movement' && wkNow < 24) && !(s.id === 'swelling' && wkNow < 12) && !(s.id === 'backpain' && wkNow < 10)), ...customSymptoms()]
   return `
-    ${draft.editing ? `<section class="card soft"><p>✏️ <b>${draft.auto ? 'You already checked in today. Change anything here to update it.' : `Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())}`}</b></p><button class="ghost" data-act="${draft.auto ? 'new-checkin' : 'cancel-edit'}">${draft.auto ? 'Log a separate check-in instead' : 'Cancel editing'}</button></section>` : ''}
+    ${draft.editing ? `<section class="card soft"><p>✏️ <b>Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())}</b></p><button class="ghost" data-act="cancel-edit">Cancel editing</button></section>` : ''}
     <section class="card">
       <h3>How are you feeling today?</h3>
       <div class="moods">${C.MOOD.map(m => `<button data-mood="${m.v}" class="${draft.mood === m.v ? 'on' : ''}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
@@ -1371,7 +1369,6 @@ app.addEventListener('click', async ev => {
     }
     case 'cancel-appt': editAppt = null; clearForm('appt'); render(); return
     case 'cancel-edit': draft = null; render(); return
-    case 'new-checkin': draft = { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }; render(); scrollTo(0, 0); return
     case 'add-symptom': {
       const label = ((await ask({ title: 'Add your own symptom', ok: 'Add', input: true, placeholder: 'e.g. Metallic taste' })) || '').slice(0, 40)
       if (!label) return

@@ -160,16 +160,6 @@ await test('editing a check-in with a symptom this phone doesn\'t know doesn\'t 
   ok(!(await page.innerText('main')).includes('Something went wrong'), 'crash screen shown')
 })
 
-await test('checking in a second time today updates the first one', async page => {
-  await local(page, { role: 'mom', prefs: { due: '2027-06-20' }, entries: [
-    { id: 'c1', kind: 'checkin', author_role: 'mom', created_at: new Date().toISOString(), data: { mood: 2, symptoms: {}, temp: '', note: '' } }] })
-  await page.click('[data-tab=checkin]')
-  ok((await page.innerText('main')).includes('already checked in today'), 'no "already checked in" notice')
-  await page.click('[data-mood="4"]'); await page.click('[data-act=save-checkin]')
-  const cis = (await L(page)).entries.filter(e => e.kind === 'checkin')
-  ok(cis.length === 1 && cis[0].data.mood === 4, `got ${cis.length} check-ins`)
-})
-
 await test('links and numbers from the other phone can\'t run code', async page => {
   await local(page, { role: 'mom', prefs: { due: '2027-06-20' }, entries: [
     { id: 'r1', kind: 'registry', author_role: 'dad', created_at: new Date().toISOString(), data: { name: 'Bad', url: 'javascript:alert(1)', cat: 'gear', stars: '<img src=x onerror=alert(2)>', got: false } },

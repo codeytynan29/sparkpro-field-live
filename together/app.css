@@ -145,8 +145,7 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 500; margi
 .timeline .fine { flex-basis: 100%; padding-left: 48px; }
 .timeline details p { font-size: .9rem; padding-left: 48px; }
 
-/* wraps to a second row rather than hiding options off the edge */
-.seg { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.seg { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; scrollbar-width: none; }
 .seg button { flex: none; background: var(--card); border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: .88rem; }
 .seg button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .search { margin: 0 0 10px; }
