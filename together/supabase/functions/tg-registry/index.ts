@@ -78,15 +78,16 @@ Deno.serve(async req => {
       if (!row) return json({ error: 'That item is no longer on the registry.' }, 404)
       if (row.data?.got || row.data?.claimed) return json({ error: 'Someone already got this one.' }, 409)
       // a guest can claim a handful of gifts a day, not empty the whole list
-      const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown'
+      const ip = req.headers.get('cf-connecting-ip') || req.headers.get('x-real-ip') || (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown'
       const { count } = await sb.from('tg_claims').select('id', { count: 'exact', head: true })
         .eq('ip', ip).gte('at', new Date(Date.now() - 864e5).toISOString())
       if ((count || 0) >= 10) return json({ error: 'That\'s a lot of gifts for one day! Ask the couple if you meant to claim more.' }, 429)
       await sb.from('tg_claims').insert({ ip, token: String(body.t) })
       const name = String(body.name || '').trim().slice(0, 40) || 'A guest'
-      // merge just the claim into the item (never rewrite the couple's edits)
-      const { error } = await sb.rpc('tg_patch_entry', { p_id: row.id, p_patch: { claimed: { name, at: new Date().toISOString() } } })
+      // merge just the claim into the item, and only if nobody beat them to it
+      const { data: won, error } = await sb.rpc('tg_claim', { p_id: row.id, p_couple: pub.couple_id, p_name: name })
       if (error) throw error
+      if (!won) return json({ error: 'Someone already got this one.' }, 409)
       return json({ ok: true })
     }
 
@@ -129,6 +130,6 @@ Deno.serve(async req => {
     return json({ error: 'unknown action' }, 400)
   } catch (e) {
     console.error(e)
-    return json({ error: (e as Error).message }, 500)
+    return json({ error: 'Something went wrong. Try again in a minute.' }, 500)
   }
 })

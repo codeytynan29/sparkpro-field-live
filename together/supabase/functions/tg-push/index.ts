@@ -4,6 +4,7 @@
 //   unsubscribe     a phone turns reminders off
 //   notify-partner  "Mom just checked in" / a new note, sent to the other phone
 //   test            send a sample tip to the caller's own phone
+//   devices         list this couple's phones; remove-device drops one
 //   daily           called by pg_cron every 5 min; sends each phone's own
 //                   reminders (any number, any times) in its own time zone,
 //                   sends any partner alert a phone failed to send (offline,
@@ -152,7 +153,7 @@ async function send(sub: Sub, msg: { title: string; body: string; tag?: string }
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
       JSON.stringify({ title: msg.title, body: msg.body, tag: msg.tag || 'together' }),
-      { TTL: 60 * 60 * 6 },
+      { TTL: 60 * 60 * 6, timeout: 8000 },
     )
     return true
   } catch (e) {
@@ -217,17 +218,26 @@ async function sweepAlerts() {
   return sent
 }
 
-// A phone that lost its storage re-joins as a new device. Keep the 3 newest
-// devices per role so forgotten ones never fill the couple's 6 slots.
+// A phone that lost its storage re-joins as a new device. Devices nobody has
+// opened in 45 days are dropped, but never the most recent one per person, so
+// a phone in active use is never kicked out.
 async function pruneDevices() {
-  const { data } = await sb.from('tg_members').select('couple_id, user_id, role, joined_at').order('joined_at', { ascending: false })
-  const kept: Record<string, number> = {}
+  const { data } = await sb.from('tg_members').select('couple_id, user_id, role, last_seen').order('last_seen', { ascending: false })
+  const newest = new Set<string>()
+  const stale = Date.now() - 45 * 864e5
   for (const m of data || []) {
     const k = m.couple_id + ':' + m.role
-    kept[k] = (kept[k] || 0) + 1
-    if (kept[k] > 3) await sb.from('tg_members').delete().eq('couple_id', m.couple_id).eq('user_id', m.user_id)
+    if (!newest.has(k)) { newest.add(k); continue }
+    if (Date.parse(m.last_seen) < stale) await removeDevice(m.couple_id, m.user_id)
   }
 }
+async function removeDevice(coupleId: string, userId: string) {
+  await sb.from('tg_push_subs').delete().eq('couple_id', coupleId).eq('user_id', userId)
+  await sb.from('tg_members').delete().eq('couple_id', coupleId).eq('user_id', userId)
+}
+// Real browser push services only, so this server never POSTs anywhere else.
+const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /^android\.googleapis\.com$/, /(^|\.)push\.apple\.com$/, /^updates\.push\.services\.mozilla\.com$/, /(^|\.)notify\.windows\.com$/]
+const okEndpoint = (u: string) => { try { const x = new URL(u); return x.protocol === 'https:' && PUSH_HOSTS.some(r => r.test(x.hostname)) } catch { return false } }
 
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
@@ -269,7 +279,11 @@ Deno.serve(async req => {
 
     if (action === 'subscribe') {
       const s = body.subscription
-      if (!s?.endpoint || !s?.keys?.p256dh || !s?.keys?.auth) return json({ error: 'bad subscription' }, 400)
+      if (!s?.endpoint || !s?.keys?.p256dh || !s?.keys?.auth || !okEndpoint(String(s.endpoint))) return json({ error: 'bad subscription' }, 400)
+      const { data: existing } = await sb.from('tg_push_subs').select('couple_id').eq('endpoint', s.endpoint).maybeSingle()
+      if (existing && existing.couple_id !== m.couple_id) return json({ error: 'bad subscription' }, 400)
+      const { count } = await sb.from('tg_push_subs').select('endpoint', { count: 'exact', head: true }).eq('user_id', user.id)
+      if (!existing && (count || 0) >= 5) return json({ error: 'too many devices' }, 400)
       let tz = String(body.tz || 'America/Los_Angeles')
       try { new Intl.DateTimeFormat('en', { timeZone: tz }) } catch { tz = 'America/Los_Angeles' }
       const hour = Math.min(23, Math.max(0, Number(body.hour) | 0))
@@ -296,7 +310,23 @@ Deno.serve(async req => {
       return json({ ok: true, sent })
     }
 
+    if (action === 'devices') {
+      const { data } = await sb.from('tg_members').select('user_id, role, joined_at, last_seen').eq('couple_id', m.couple_id).order('last_seen', { ascending: false })
+      return json({ devices: (data || []).map(d => ({ ...d, me: d.user_id === user.id })) })
+    }
+
+    if (action === 'remove-device') {
+      const id = String(body.user_id || '')
+      if (!id || id === user.id) return json({ error: 'pick another device' }, 400)
+      await removeDevice(m.couple_id, id)
+      return json({ ok: true })
+    }
+
     if (action === 'notify-partner') {
+      // a partner alert is a nudge, not a megaphone: 30 an hour per phone
+      const { count } = await sb.from('tg_push_log').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('at', new Date(Date.now() - 3600e3).toISOString())
+      if ((count || 0) >= 30) return json({ ok: true, sent: 0, limited: true })
+      await sb.from('tg_push_log').insert({ user_id: user.id })
       const other = m.role === 'mom' ? 'dad' : 'mom'
       const who = String(body.name || (m.role === 'mom' ? 'Mom' : 'Dad')).slice(0, 40)
       const kind = body.kind === 'note' ? 'note' : 'checkin'
@@ -308,7 +338,12 @@ Deno.serve(async req => {
           ? { title: String(body.title).slice(0, 80), body: String(body.body || '').slice(0, 220), tag: 'checkin' }
           : { title: `${who} just checked in`, body: 'Tap to see how she\'s feeling and today\'s game plan.', tag: 'checkin' }
       // remember this entry was handled so the server sweep doesn't repeat it
-      if (body.entry_id) await markNotified(String(body.entry_id))
+      // (the entry may still be uploading, so a missing row is fine; another couple's row is not)
+      const eid = String(body.entry_id || '')
+      if (/^[0-9a-f-]{36}$/i.test(eid)) {
+        const { data: row } = await sb.from('tg_entries').select('couple_id').eq('id', eid).maybeSingle()
+        if (!row || row.couple_id === m.couple_id) await markNotified(eid)
+      }
       const { data: subs } = await sb.from('tg_push_subs').select('*').eq('couple_id', m.couple_id).eq('role', other)
       let sent = 0
       for (const s of (subs || []) as Sub[]) if (await send(s, msg)) sent++
@@ -318,6 +353,6 @@ Deno.serve(async req => {
     return json({ error: 'unknown action' }, 400)
   } catch (e) {
     console.error(e)
-    return json({ error: (e as Error).message }, 500)
+    return json({ error: 'Something went wrong on the server. Try again in a minute.' }, 500)
   }
 })

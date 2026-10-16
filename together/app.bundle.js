@@ -89,17 +89,20 @@ const WEEK_NOTES = {
 
 // key: week to start showing it. role: who it matters to (both if omitted).
 const MILESTONES = [
-  { week: 4, title: 'Positive test', detail: 'Start a prenatal vitamin with at least 400 mcg folic acid if she hasn\'t already. Call the OB/midwife to book the first visit.' },
+  { week: 4, title: 'Positive test', detail: 'Start a prenatal vitamin with at least 400 mcg folic acid (and 150 mcg iodine) if she hasn\'t already. Call the OB/midwife to book the first visit. Skip hot tubs and saunas from now on.' },
+  { week: 5, title: 'Tell the OB early about…', detail: 'A past ectopic pregnancy, tubal surgery, or an IUD in place when she got pregnant: these mean an early ultrasound to check where the pregnancy is. Also mention any bleeding if she knows she\'s Rh-negative (she may need an Rh shot), and every medicine or supplement she takes.' },
+  { week: 8, title: 'Flu & COVID shots', detail: 'A flu shot is recommended in any trimester during flu season. ACOG also recommends the COVID vaccine in pregnancy; the CDC currently leaves it to her and her provider to decide. Ask at the first visit.' },
   { week: 6, title: 'Heartbeat may be visible', detail: 'On a transvaginal ultrasound, cardiac activity is often seen 6–7 weeks. Not seeing it this early is common — dating can be off by days.' },
   { week: 8, title: 'First prenatal visit (typically 8–10 wks)', detail: 'Dating ultrasound, bloodwork (blood type, Rh factor, immunity, anemia), urine test. Bring your questions — you can go too.' },
   { week: 10, title: 'NIPT blood screen (from 10 wks)', detail: 'Cell-free DNA screening for common chromosomal conditions. Can also report fetal sex. It\'s a screen, not a diagnosis.' },
-  { week: 11, title: 'NT scan (11–14 wks)', detail: 'Nuchal translucency ultrasound, sometimes combined with blood work as first-trimester screening.' },
+  { week: 11, title: 'NT scan (11–13 wks)', detail: 'Nuchal translucency ultrasound, sometimes combined with blood work as first-trimester screening.' },
   { week: 14, title: 'Second trimester begins', detail: 'Nausea and fatigue often ease. A good time to plan a babymoon or tell more people, if you\'ve been waiting.' },
   { week: 15, title: 'Quad screen option (15–22 wks)', detail: 'Some providers offer an AFP / quad screen, including for neural tube defects.' },
   { week: 18, title: 'Anatomy scan (18–22 wks)', detail: 'The big detailed ultrasound — organs, spine, heart, growth, placenta. Sex is usually visible if you want to know.' },
   { week: 24, title: 'Glucose test (24–28 wks)', detail: 'Screens for gestational diabetes. She drinks a sugary drink and has blood drawn about an hour later.' },
   { week: 27, title: 'Tdap vaccine (27–36 wks)', detail: 'Recommended each pregnancy to pass whooping-cough protection to baby. Partners and close family should be up to date too.' },
   { week: 28, title: 'Third trimester + Rh shot if needed', detail: 'If she\'s Rh-negative, Rh immune globulin is usually given around 28 wks. Start learning baby\'s movement pattern.' },
+  { week: 32, title: 'RSV vaccine (32–36 wks, in RSV season)', detail: 'One dose (Abrysvo) protects baby from RSV for the first months. It\'s given during RSV season, roughly September to January. If her 32–36 weeks fall outside that, or she skips it, baby can get an RSV antibody shot after birth instead. Ask the OB which applies.' },
   { week: 32, title: 'Visits get more frequent', detail: 'Typically every 2 weeks from ~28–36, then weekly. Pre-register at the hospital, take a birth class.' },
   { week: 36, title: 'GBS swab (36–37 wks)', detail: 'Group B strep check. Bag packed, car seat installed, route planned.' },
   { week: 39, title: 'Full term', detail: 'Anytime now. Know the call-in rules your provider gave you (e.g. contraction timing, water breaking).' },
@@ -130,7 +133,7 @@ const SYMPTOMS = [
   { id: 'cramping', label: 'Cramping', emoji: '🌀',
     meaning: 'Mild, period-like cramping is common early on as the uterus grows and stretches. Can also happen after sex or with gas/constipation.',
     help: ['Heating pad on low (not hot) or a warm (not hot) bath.', 'Get her horizontal with water and a show. Let her rest.', 'Acetaminophen is the usual pain reliever in pregnancy — not ibuprofen. Check with the OB.'],
-    flag: 'Severe or one-sided pain, pain with bleeding, shoulder-tip pain, or feeling faint — call the OB now or go to the ER (can be a sign of ectopic pregnancy or miscarriage).', flagAt: 3 },
+    flag: 'Severe pain on one side, shoulder-tip pain, dizziness or fainting — go to the ER or call 911 (possible ectopic pregnancy). Strong cramping or cramping with bleeding — call the OB now.', flagAt: 3 },
   { id: 'spotting', label: 'Spotting', emoji: '🩸',
     meaning: 'Light spotting (pink/brown, a few drops) is fairly common in early pregnancy — implantation, after sex, or after a pelvic exam.',
     help: ['Stay calm out loud — your tone sets hers. Light spotting alone is often nothing.', 'Help her note color, amount and timing so she can tell the OB clearly.', 'Call the OB line together; they field this question constantly.'],
@@ -154,11 +157,11 @@ const SYMPTOMS = [
   { id: 'moody', label: 'Moody / weepy', emoji: '🌦️',
     meaning: 'Hormonal shifts plus fatigue plus a huge life change. Mood swings are expected.',
     help: ['Listen without fixing. "That sounds hard" beats a solution.', 'Don\'t take a sharp moment personally — and don\'t keep score.', 'Ask: "Do you want comfort, distraction, or space?"'],
-    flag: 'Sadness or hopelessness most days for 2+ weeks, losing interest in everything, or any thoughts of self-harm — tell the OB. If she\'s in crisis, call or text 988 (US).', flagAt: 0 },
+    flag: 'Sadness or hopelessness most days for 2+ weeks, losing interest in everything, or any thoughts of self-harm — tell the OB. The National Maternal Mental Health Hotline is free, 24/7, call or text: 1-833-TLC-MAMA (1-833-852-6262). In a crisis, call or text 988.', flagAt: 0 },
   { id: 'anxious', label: 'Anxious', emoji: '😟',
     meaning: 'Very common, especially in the first trimester before scans and milestones offer reassurance.',
     help: ['Mark the next appointment on the shared calendar so she can see the next checkpoint.', 'Make "worry time" — 10 minutes to talk about it, then a planned distraction.', 'Do the breathing exercise together (in the You tab).'],
-    flag: 'Panic attacks, constant worry that stops sleep or eating, or intrusive thoughts — perinatal anxiety is common and treatable. Tell the OB. Crisis: 988.', flagAt: 0 },
+    flag: 'Panic attacks, constant worry that stops sleep or eating, or intrusive thoughts — perinatal anxiety is common and treatable. Tell the OB, or call/text 1-833-TLC-MAMA (free, 24/7). Crisis: 988.', flagAt: 0 },
   { id: 'aversions', label: 'Food aversions', emoji: '🙅',
     meaning: 'Smell and taste sensitivity spikes with hormones. Former favorites can become intolerable overnight.',
     help: ['Eat the trigger foods away from her, or not at all for now.', 'Take the trash out daily, clean the fridge.', 'Ask what sounds OK right now and just go get it.'],
@@ -193,7 +196,7 @@ const SYMPTOMS = [
     flag: 'Sudden swelling of the face or hands, or swelling with headache/vision changes — call the OB now (preeclampsia). One leg swollen, red and painful — seek care (blood clot).', flagAt: 3 },
   { id: 'fever', label: 'Fever / chills', emoji: '🌡️',
     meaning: 'Fever in pregnancy should be treated and checked — it\'s not one to sit through.',
-    help: ['Take her temperature and log it below.', 'Acetaminophen is generally the fever reducer used in pregnancy — check dose with the OB.', 'Call the OB line.'],
+    help: ['Take her temperature and log it below.', 'Acetaminophen is generally the fever reducer used in pregnancy — check dose with the OB. Bringing a fever down matters: high fever early in pregnancy is linked to neural tube problems.', 'Call the OB line.'],
     flag: 'Temperature of 100.4°F (38°C) or higher — call the OB.', flagAt: 1 },
   { id: 'discharge', label: 'Discharge change', emoji: '💧',
     meaning: 'More thin, milky, mild-smelling discharge is normal in pregnancy.',
@@ -208,29 +211,35 @@ const SYMPTOMS = [
     help: ['Slow down the pace on walks. Let her set it.', 'Sit upright, open a window.'],
     flag: 'Sudden or severe shortness of breath, chest pain, or coughing blood — call 911.', flagAt: 3 },
   { id: 'movement', label: 'Less baby movement', emoji: '👶',
-    meaning: 'From about 28 weeks, a noticeable drop in baby\'s usual movement pattern needs checking — don\'t wait until tomorrow.',
-    help: ['Help her lie on her left side, have a cold drink and count movements.', 'If movements still feel reduced, call the OB or labor & delivery now.'],
-    flag: 'Noticeably fewer movements than normal after 28 weeks — call labor & delivery now.', flagAt: 1 },
+    meaning: 'Once she knows baby\'s pattern (from about 24 weeks), fewer movements or a change in the pattern needs checking the same day. Don\'t wait until tomorrow, and don\'t wait to count kicks first.',
+    help: ['Help her call labor & delivery right away. Checking takes a short visit, and they would much rather see her.', 'Skip the tricks people suggest to "wake the baby" (cold drinks, sugar, poking). They can delay getting checked.', 'Drive her in, or call 911 if she has no movement at all and can\'t get there quickly.'],
+    flag: 'Fewer movements than normal or a change in the pattern (from 24 weeks) — call labor & delivery now. No movement at all — go in now.', flagAt: 1 },
 ]
 
 const RED_FLAGS = [
-  ['Call 911', [
+  ['Call 911 or go to the ER', [
     'Heavy bleeding (soaking a pad in an hour) or passing large clots',
-    'Severe chest pain or trouble breathing',
+    'Severe pain on one side of the belly, especially with shoulder-tip pain, dizziness or fainting (early pregnancy: possible ectopic pregnancy)',
+    'Severe chest pain, trouble breathing, or coughing up blood',
     'Fainting or seizure',
-    'Thoughts of harming herself or the baby (or call/text 988)',
+    'Thoughts of harming herself or the baby (or call/text 988, or the maternal mental health hotline 1-833-TLC-MAMA)',
   ]],
   ['Call the OB / labor & delivery now', [
     'Any vaginal bleeding beyond light spotting',
-    'Severe or one-sided belly pain, or shoulder-tip pain (early pregnancy: ectopic risk)',
+    'Belly pain or cramping that is strong, one-sided, or doesn\'t go away',
     'Fever of 100.4°F / 38°C or higher',
     'Severe headache, vision changes, or sudden swelling of face or hands',
+    'Racing or pounding heartbeat',
+    'Overwhelming tiredness that isn\'t normal for her',
     'Can\'t keep fluids down for 24 hours',
     'Burning or pain when peeing (possible UTI)',
     'Fluid leaking or gushing from the vagina',
-    'After 28 weeks: baby is moving noticeably less than usual',
+    'Any fall, car accident or blow to the belly, even if she feels fine',
+    'From 24 weeks: baby moving less than usual, or a change in the pattern',
+    'Third trimester: severe itching, especially palms and soles (a liver condition that needs checking)',
     'Before 37 weeks: regular contractions or rhythmic back pain',
     'One leg red, swollen and painful',
+    'After birth, for up to a year: any of these warning signs still count. Blood pressure problems can start days or weeks after delivery.',
   ]],
   ['Mention at the next visit', [
     'Ongoing heartburn, constipation, or trouble sleeping',
@@ -246,12 +255,12 @@ const RED_FLAGS = [
 // avoid = generally avoided unless her OB specifically prescribes it.
 const MEDS = [
   { name: 'Acetaminophen', aka: 'Tylenol', use: 'Pain, fever, headache', tier: 'ok',
-    note: 'The pain reliever and fever reducer ACOG recommends in pregnancy. Use the lowest dose that works for the shortest time. In 2025 the FDA started a label change about a possible link between long-term use and neurodevelopmental conditions. ACOG and other medical groups say the evidence doesn\'t show it causes harm, and that untreated fever and pain carry risks too. Talk with the OB about regular use.' },
+    note: 'The pain reliever and fever reducer ACOG recommends in pregnancy. Use the lowest dose that works for the shortest time. In 2025 the FDA started a label change about a possible link between long-term use and neurodevelopmental conditions. ACOG and other medical groups say the evidence doesn\'t show it causes harm, and that untreated fever and pain carry risks too. Talk with the OB about regular use. Watch for double-dosing: NyQuil, DayQuil, TheraFlu, Excedrin and many cold and flu products also contain acetaminophen, so don\'t take them with Tylenol, and stay under the daily maximum on the label (ask the OB for her limit).' },
   { name: 'Ibuprofen', aka: 'Advil, Motrin', use: 'Pain, inflammation', tier: 'avoid',
     note: 'An NSAID. Generally avoided in pregnancy unless the OB okays it. The FDA warns against NSAIDs from 20 weeks on (they can cause baby kidney problems and low amniotic fluid), and they\'re especially risky after 30 weeks. Use acetaminophen instead.' },
   { name: 'Naproxen', aka: 'Aleve', use: 'Pain, inflammation', tier: 'avoid',
     note: 'NSAID — same warnings as ibuprofen. Avoid unless prescribed.' },
-  { name: 'Aspirin', aka: 'Bayer, Excedrin (contains aspirin)', use: 'Pain', tier: 'avoid',
+  { name: 'Aspirin', aka: 'Bayer, Excedrin (aspirin + acetaminophen + about 65 mg caffeine a tablet)', use: 'Pain', tier: 'avoid',
     note: 'Don\'t use for pain. Low-dose (81 mg) aspirin is sometimes prescribed from ~12 weeks to lower preeclampsia risk, but only when her OB recommends it.' },
   { name: 'Doxylamine + vitamin B6', aka: 'Unisom SleepTabs + B6, Diclegis, Bonjesta', use: 'Morning sickness', tier: 'ok',
     note: 'ACOG\'s first-line treatment for pregnancy nausea. B6 alone is the usual first step. Causes drowsiness. Get the dose from the OB.' },
@@ -279,12 +288,12 @@ const MEDS = [
     note: 'Drug-free and safe. Use distilled or boiled water for rinses.' },
   { name: 'Oxymetazoline', aka: 'Afrin', use: 'Congestion', tier: 'ask',
     note: 'Sometimes okayed for 2–3 days at most. Ask first, and never use it longer (it causes rebound congestion).' },
-  { name: 'Dextromethorphan', aka: 'Robitussin DM, Delsym', use: 'Cough', tier: 'ok',
-    note: 'Generally considered OK. Choose a single-ingredient, alcohol-free version.' },
+  { name: 'Dextromethorphan', aka: 'Delsym (single-ingredient)', use: 'Cough', tier: 'ok',
+    note: 'Generally considered OK on its own. Check the label: dextromethorphan should be the only active ingredient, alcohol-free. Robitussin DM and many other "DM" products also contain guaifenesin (see below), which is one to ask about first.' },
   { name: 'Guaifenesin', aka: 'Mucinex, Robitussin (plain)', use: 'Chest congestion', tier: 'ask',
     note: 'Often avoided in the first trimester. Ask first.' },
   { name: 'Multi-symptom cold/flu', aka: 'NyQuil, DayQuil, TheraFlu', use: 'Cold & flu', tier: 'ask',
-    note: 'Often contain phenylephrine, alcohol, or several drugs at once. Treating one symptom at a time with single-ingredient products is safer. Ask first.' },
+    note: 'Often contain phenylephrine, alcohol, or several drugs at once, and most also contain acetaminophen (never take them with Tylenol). Treating one symptom at a time with single-ingredient products is safer. Ask first.' },
   { name: 'Calcium carbonate', aka: 'Tums, Rolaids', use: 'Heartburn', tier: 'ok',
     note: 'Generally considered OK. Don\'t go over the daily max on the label.' },
   { name: 'Famotidine', aka: 'Pepcid', use: 'Heartburn', tier: 'ok',
@@ -314,13 +323,13 @@ const MEDS = [
   { name: 'Benzoyl peroxide / azelaic acid', aka: 'Acne washes', use: 'Acne', tier: 'ok',
     note: 'Topical use is generally considered OK.' },
   { name: 'Prenatal vitamin', aka: 'With folic acid', use: 'Every day', tier: 'ok',
-    note: 'Recommended. At least 400 mcg of folic acid a day, ideally starting before conception, helps prevent neural tube defects.' },
+    note: 'Recommended. At least 400 mcg of folic acid a day, ideally starting before conception, helps prevent neural tube defects. Some people need much more (up to 4 mg) on the OB\'s advice: a past pregnancy with a neural tube defect, certain seizure medicines, or diabetes. Check that it has 150 mcg of iodine; not all prenatals do.' },
   { name: 'Fish oil / DHA', aka: 'Omega-3', use: 'Supplement', tier: 'ok',
     note: 'Purified fish oil or DHA is generally considered OK, and many prenatals include it. Avoid cod liver oil, which has too much vitamin A.' },
   { name: 'Herbal supplements & teas', aka: 'Teas, tinctures, "natural" remedies', use: 'Various', tier: 'ask',
     note: 'Supplements aren\'t regulated like drugs, and some herbs aren\'t safe in pregnancy. Ask about each one.' },
   { name: 'Caffeine', aka: 'Coffee, energy drinks', use: '', tier: 'ask',
-    note: 'ACOG says under 200 mg a day is fine, which is about one 12 oz coffee. Skip energy drinks and caffeine pills.' },
+    note: 'ACOG says under 200 mg a day is fine, which is about one 12 oz home-brewed coffee. Coffee-shop coffee is often much stronger: one 16 oz cup can be over 300 mg. Skip energy drinks and caffeine pills.' },
   { name: 'Cannabis / CBD', aka: 'Marijuana, THC, CBD oil, edibles', use: '', tier: 'avoid',
     note: 'ACOG recommends avoiding it in pregnancy, including for nausea.' },
   { name: 'Alcohol', aka: 'Beer, wine, spirits', use: '', tier: 'avoid',
@@ -354,14 +363,15 @@ const FOODS = [
   { name: 'Liver', tier: 'ask', note: 'Very high in vitamin A. Eat it rarely, if at all.' },
   { name: 'Raw sprouts (alfalfa, bean, clover)', tier: 'avoid', note: 'Bacteria hide in the seeds. OK when cooked thoroughly.' },
   { name: 'Unwashed fruits & veggies', tier: 'ask', note: 'Rinse all produce well under running water (toxoplasmosis, listeria).' },
-  { name: 'Pre-cut melon left out', tier: 'avoid', note: 'Eat cut melon right away, or refrigerate it and eat within a day.' },
+  { name: 'Cut melon left out', tier: 'avoid', note: 'Listeria risk. Toss cut melon left out more than 4 hours. Refrigerated, it keeps up to a week.' },
   { name: 'Unpasteurized juice / cider', tier: 'avoid', note: 'Choose pasteurized versions.' },
-  { name: 'Coffee / tea / soda', tier: 'ok', note: 'Fine while total caffeine stays under 200 mg a day (about a 12 oz coffee).' },
+  { name: 'Coffee / tea / soda', tier: 'ok', note: 'Fine while total caffeine stays under 200 mg a day (about a 12 oz home-brewed coffee; a large coffee-shop cup can be over the limit on its own).' },
   { name: 'Energy drinks', tier: 'avoid', note: 'High caffeine plus other stimulants. Skip them.' },
   { name: 'Alcohol (incl. kombucha with alcohol)', tier: 'avoid', note: 'There is no known safe amount. Non-alcoholic versions are generally fine. Some N/A beers still contain up to 0.5% alcohol.' },
   { name: 'Herbal tea', tier: 'ask', note: 'Ginger and peppermint are commonly considered OK in normal amounts. Ask about others, and about large amounts.' },
   { name: 'Leftovers', tier: 'ok', note: 'Refrigerate within 2 hours, eat within 3–4 days, and reheat until steaming.' },
   { name: 'Peanuts & common allergens', tier: 'ok', note: 'No need to avoid them unless she\'s allergic. Avoiding them doesn\'t prevent allergies in the baby.' },
+  { name: 'Hot tubs, saunas, very hot baths (not a food, but…)', tier: 'avoid', note: 'Getting very hot (a core temperature over about 101°F) early in pregnancy is linked to neural tube defects. Skip hot tubs and saunas. Warm baths and showers are fine.' },
   { name: 'Cat litter (not a food, but…)', tier: 'avoid', note: 'Toxoplasmosis risk. You take over the litter box now. If she must do it, gloves and handwashing.' },
 ]
 
@@ -507,7 +517,7 @@ const NUDGE = {
   discharge: { try: ['picking up breathable cotton underwear', 'helping her call the OB if it itches or smells strong'], call: 'A gush or steady trickle of fluid: call the OB now.' },
   cramps_leg: { try: ['a calf massage before bed', 'gently flexing her foot toes-up when a cramp hits'] },
   breath: { try: ['slowing the pace on walks', 'opening a window and letting her sit upright'], call: 'Sudden or severe shortness of breath, or chest pain: call 911.' },
-  movement: { try: ['helping her lie on her left side with a cold drink and count kicks', 'calling labor & delivery if it still feels reduced'], call: 'Noticeably less movement after 28 weeks: call labor & delivery now.' },
+  movement: { try: ['calling labor & delivery together right now', 'driving her in to get checked'], call: 'Less movement than usual: call labor & delivery now, without waiting to count kicks.' },
 }
 const MOOD_NUDGE = {
   1: { feel: 'having a rough day', try: ['clearing tonight\'s plans and keeping things low-key', 'asking her: comfort, distraction, or space?'] },
@@ -537,7 +547,7 @@ const REG_CATS = [
 // what to look for, words that mean it's already on the list, recall agency]
 // recall: 'nhtsa' (car seats are recalled by NHTSA) | 'cpsc' (other baby gear) | ''
 const REG_GUIDE = [
-  ['carseat', 'gear', 'Infant car seat', 'You can\'t leave the hospital without one.', 'Buy new. Check the "do not use after" date on the label. Mail in the registration card so you hear about recalls. Get the install checked free by a certified tech (search "car seat check" + your city).', 'car seat', 'nhtsa'],
+  ['carseat', 'gear', 'Infant car seat', 'You can\'t leave the hospital without one.', 'Best bought new. A used seat is only OK if you know its whole history: never in a crash, not expired, all parts and the manual. Check the "do not use after" date on the label. Keep baby rear-facing as long as the seat allows, and no puffy coats under the straps. Mail in the registration card so you hear about recalls. Get the install checked free by a certified tech (search "car seat check" + your city).', 'car seat', 'nhtsa'],
   ['stroller', 'gear', 'Stroller', 'Daily walks get you both out of the house.', 'Make sure your car seat clicks into it (a "travel system" or an adapter). Try the fold one-handed in the store.', 'stroller', 'cpsc'],
   ['carrier', 'gear', 'Baby carrier', 'Hands free, and newborns settle against you.', 'Pick one labeled "hip-healthy" (legs in an M shape). Baby\'s face visible and kissable, never pressed into fabric.', 'carrier|wrap', 'cpsc'],
   ['diaperbag', 'gear', 'Diaper bag', 'Grab-and-go for every outing.', 'A backpack style works for either of you.', 'diaper bag', ''],
@@ -561,7 +571,8 @@ const REG_GUIDE = [
   ['pjs', 'clothing', 'Zip-up sleepers', 'Easy night changes.', 'Snug-fitting or flame-resistant sleepwear is the safety rule for baby pajamas.', 'sleeper|pajama', ''],
   ['hats', 'clothing', 'Socks & hats', '', '', 'sock|hat', ''],
   ['tub', 'bath', 'Baby bathtub', 'Makes the slippery first baths easier.', 'A tub or bath seat is not a safety device. Never leave baby alone in water, even for a second.', 'tub', 'cpsc'],
-  ['thermo', 'bath', 'Digital thermometer', 'A fever under 3 months means calling the doctor right away.', 'Digital, used rectally, is the most accurate for babies. Not the forehead or ear kind for newborns.', 'thermometer', ''],
+  ['thermo', 'bath', 'Digital thermometer', 'A fever under 3 months means calling the doctor right away.', 'Digital, used rectally, is the most accurate for babies. Not the forehead or ear kind for newborns. Under 3 months, a rectal reading of 100.4°F (38°C) or higher means calling the doctor right away.', 'thermometer', ''],
+  ['alarms', 'nursery', 'Smoke & carbon monoxide alarms', 'Cheap, and the most important safety gear in the house.', 'One on every floor and outside the bedrooms. Test them monthly and change batteries twice a year.', 'smoke|carbon monoxide|co alarm|detector', ''],
   ['aspirator', 'bath', 'Nasal aspirator', 'Babies can\'t blow their noses.', 'Pair it with saline drops.', 'aspirator|snot', ''],
   ['clippers', 'bath', 'Nail clippers or file', 'Newborn nails scratch faces.', 'A file is easier than clippers at first.', 'clipper|nail', ''],
   ['firstaid', 'bath', 'Baby first-aid kit', '', 'Check that any infant medicine is dosed by weight, and ask the pediatrician before giving any.', 'first aid|first-aid', ''],
@@ -578,7 +589,7 @@ const REG_SKIP = [
   ['Weighted sleep sacks or swaddles', 'AAP advises against them.'],
   ['Baby walkers', 'AAP calls for a ban. They cause falls down stairs.'],
   ['Amber teething necklaces', 'FDA warns of choking and strangling.'],
-  ['A used car seat', 'It may have crash damage you can\'t see, or be expired.'],
+  ['A used car seat you don\'t know the history of', 'It may have crash damage you can\'t see, or be expired.'],
 ]
 // Shown next to the star rating box.
 const RATING_TIPS = [
@@ -601,7 +612,7 @@ const SELF_CARE_STRESS = {
 const SELF_CARE_BASICS = [
   'Eat real meals. Running on coffee makes the short fuse shorter.',
   'Keep one thing that\'s yours: the gym, a game night, a hobby. You\'ll be a better partner for it.',
-  'Around 1 in 10 expecting dads struggle with depression or anxiety. If you\'re low for 2+ weeks, talk to your doctor or call 988.',
+  'Around 1 in 10 expecting dads struggle with depression or anxiety. If you\'re low for 2+ weeks, talk to your doctor or Postpartum Support International (1-800-944-4773, dads included). In a crisis, call or text 988.',
 ]
 
 // ── Where the health information comes from ─────────────────────────────────
@@ -632,9 +643,14 @@ const S = (() => {
 
 const LS = 'together.v1'
 const UNDO_MS = 6000
+const LEFT = 'together.left' // couple code this phone chose to leave (survives "Erase")
 const listeners = new Set()
 let sb = null
 let channel = null
+// When this phone last uploaded or patched an entry. A pull that started
+// before that moment may hold a stale copy, so it must not overwrite or drop it.
+const touched = new Map()
+const touch = id => touched.set(id, Date.now())
 
 const state = load()
 
@@ -654,8 +670,12 @@ function load() {
   return s
 }
 
+let warnedFull = false
 function save() {
-  try { localStorage.setItem(LS, JSON.stringify(state)) } catch {}
+  try { localStorage.setItem(LS, JSON.stringify(state)) } catch (e) {
+    console.error('could not save', e)
+    if (!warnedFull) { warnedFull = true; emit({ type: 'storage-full' }) }
+  }
 }
 
 const syncAvailable = () => !!(SUPABASE_URL && SUPABASE_KEY)
@@ -713,7 +733,8 @@ function removeEntry(id) {
   const e = state.entries.find(x => x.id === id)
   if (!e) return null
   state.entries = state.entries.filter(x => x.id !== id)
-  state.outbox = state.outbox.filter(x => x !== id)
+  // in place: flush() may be walking this same queue right now
+  const i = state.outbox.indexOf(id); if (i >= 0) state.outbox.splice(i, 1)
   delete state.patches[id]
   if (!e.local && e.synced) state.deletes.push({ id, at: Date.now() })
   save()
@@ -735,42 +756,74 @@ function restoreEntry(e) {
   flush()
 }
 
-let flushing = false
-async function flush() {
-  if (!sb || !state.coupleId || flushing || !pendingCount()) return
-  flushing = true
+// Errors the server will keep giving no matter how often we retry (not
+// allowed, bad data). Those items are dropped so they can't block the queue.
+const permanent = err => !!err && /^(42|22|23|PGRST)/.test(String(err.code || ''))
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+
+// One flush at a time. Asking again while one runs queues one more pass, and
+// callers can await whichever pass is running (so a pull never overtakes it).
+let running = null, again = false
+function flush() {
+  if (!sb || !state.coupleId || !pendingCount()) return running || Promise.resolve()
+  if (running) { again = true; return running }
+  again = false
+  running = flushOnce().finally(() => {
+    running = null
+    if (again) flush()
+    else if (state.deletes.length) setTimeout(flush, UNDO_MS)
+  })
+  return running
+}
+async function flushOnce() {
   try {
     while (state.outbox.length) {
       const id = state.outbox[0]
       const e = state.entries.find(x => x.id === id)
       if (e) {
+        const sent = JSON.parse(JSON.stringify(e.data))
         const { error } = await sb.from('tg_entries').upsert({
-          id: e.id, couple_id: state.coupleId, author_role: e.author_role, kind: e.kind, data: e.data, created_at: e.created_at,
+          id: e.id, couple_id: state.coupleId, author_role: e.author_role, kind: e.kind, data: sent, created_at: e.created_at,
         }, { onConflict: 'id', ignoreDuplicates: true })
-        if (error) throw error
-        e.synced = true
+        if (error && !permanent(error)) throw error
+        e.synced = !error
+        if (error) { e.rejected = true; console.warn('server refused entry', id, error) }
+        touch(id)
+        const cur = state.entries.find(x => x.id === id)
+        if (!error && !cur) state.deletes.push({ id, at: Date.now() }) // deleted while it was uploading
+        if (!error && cur) {
+          cur.synced = true
+          // edited while it was uploading: send just the fields that changed
+          const diff = Object.fromEntries(Object.entries(cur.data).filter(([k, v]) => !same(v, sent[k])))
+          if (Object.keys(diff).length) state.patches[id] = { ...diff, ...(state.patches[id] || {}) }
+        }
       }
-      state.outbox.shift(); save()
+      const i = state.outbox.indexOf(id); if (i >= 0) state.outbox.splice(i, 1)
+      save()
     }
     for (const id of Object.keys(state.patches)) {
-      const { error } = await sb.rpc('tg_patch_entry', { p_id: id, p_patch: state.patches[id] })
-      if (error) throw error
-      delete state.patches[id]; save()
+      const patch = state.patches[id]
+      const { data: ok, error } = await sb.rpc('tg_patch', { p_id: id, p_patch: patch })
+      if (error && !permanent(error)) throw error
+      touch(id)
+      // only clear it if nothing new was merged in while it was on the way
+      if (state.patches[id] === patch) delete state.patches[id]
+      if (error || ok === false) console.warn('edit not applied', id, error)
+      save()
     }
     const due = state.deletes.filter(d => Date.now() - d.at >= UNDO_MS)
     for (const d of due) {
-      const { error } = await sb.from('tg_entries').delete().eq('id', d.id)
-      if (error) throw error
+      const { data: ok, error } = await sb.rpc('tg_delete', { p_id: d.id })
+      if (error && !permanent(error)) throw error
+      touch(d.id)
       state.deletes = state.deletes.filter(x => x.id !== d.id); save()
+      if (error || ok === false) emit({ type: 'delete-refused', id: d.id })
     }
     state.lastSync = Date.now(); save()
     setStatus('live')
   } catch (err) {
     console.warn('sync push failed, will retry', err)
     setStatus('offline')
-  } finally {
-    flushing = false
-    if (state.deletes.length) setTimeout(flush, UNDO_MS)
   }
 }
 
@@ -803,42 +856,61 @@ async function start() {
   }
   if (started) return
   started = true
-  const catchUp = () => { if (!state.coupleId) return; if (!sb) { start(); return } flush(); pull() }
+  const catchUp = () => { if (!state.coupleId) return; if (!sb) { start(); return } flush().then(() => pull()) }
   window.addEventListener('online', catchUp)
   document.addEventListener('visibilitychange', () => { if (!document.hidden) catchUp() })
   // live updates can drop silently (sleep, network switch); re-check every minute
   setInterval(() => { if (!document.hidden) catchUp() }, 60000)
 }
 
-async function pull() {
+async function pull(quiet = false) {
   if (!sb || !state.coupleId) return
-  const { data, error } = await sb.from('tg_entries').select('id,author_role,kind,data,created_at')
-    .eq('couple_id', state.coupleId).order('created_at', { ascending: true }).limit(5000)
-  if (error) { setStatus('offline'); return }
+  const started = Date.now()
+  // page through: the server returns at most 1000 rows per request
+  const data = []
+  for (let from = 0; ; from += 1000) {
+    const { data: page, error } = await sb.from('tg_entries').select('id,author_role,kind,data,created_at')
+      .eq('couple_id', state.coupleId).order('created_at', { ascending: true }).order('id').range(from, from + 999)
+    if (error) { setStatus('offline'); return }
+    data.push(...page)
+    if (page.length < 1000) break
+  }
+  // Nothing came back but this phone has synced entries: it may have been
+  // removed from the couple. Keep everything on screen instead of wiping it.
+  if (!data.length && state.entries.some(e => e.synced)) {
+    const { data: role } = await sb.rpc('tg_my_role', { c: state.coupleId })
+    if (!role) { setStatus('removed'); return }
+  }
+  const fresh = id => (touched.get(id) || 0) >= started // changed here after this pull began
   const remoteIds = new Set(data.map(e => e.id))
   const deleting = new Set(state.deletes.map(d => d.id))
   // Drop only rows that were synced before and have since been deleted remotely.
   // Anything never uploaded (logged before pairing, or offline) must survive.
-  state.entries = state.entries.filter(e => e.local || !e.synced || remoteIds.has(e.id))
-  const added = merge(data.filter(e => !deleting.has(e.id)).map(e => ({ ...e, synced: true })))
+  state.entries = state.entries.filter(e => e.local || !e.synced || remoteIds.has(e.id) || fresh(e.id))
+  const added = merge(data.filter(e => !deleting.has(e.id) && !fresh(e.id)).map(e => ({ ...e, synced: true })))
   state.lastSync = Date.now()
   save()
   setStatus('live')
-  emit({ type: 'remote', added: added.filter(e => e.author_role !== state.role) })
+  emit({ type: 'remote', added: quiet ? [] : added.filter(e => e.author_role !== state.role) })
 }
 
 async function connect() {
   // Queue everything this device logged before pairing *before* the first pull,
   // so nothing local is ever mistaken for a remote deletion.
   if (!state.entries.some(e => e.kind === 'profile') && state.prefs && (state.prefs.lmp || state.prefs.due)) {
-    const { due, lmp, momName, dadName, obPhone } = state.prefs
-    merge([{ id: uuid(), kind: 'profile', data: { due, lmp, momName, dadName, obPhone }, author_role: state.role, created_at: new Date().toISOString() }])
+    // only the fields actually filled in, so blanks never overwrite the partner's
+    const data = Object.fromEntries(['due', 'lmp', 'momName', 'dadName', 'obPhone'].map(k => [k, state.prefs[k]]).filter(([, v]) => v))
+    merge([{ id: uuid(), kind: 'profile', data, author_role: state.role, created_at: new Date().toISOString() }])
   }
   const queued = new Set(state.outbox)
-  for (const e of state.entries) if (!e.local && !e.synced && !queued.has(e.id)) state.outbox.push(e.id)
+  for (const e of state.entries) if (!e.local && !e.synced && !e.rejected && !queued.has(e.id)) state.outbox.push(e.id)
   save()
+  sb.rpc('tg_touch', { c: state.coupleId }).then(() => {}, () => {})
+  // the code may have been changed from the other phone
+  sb.from('tg_couples').select('code').eq('id', state.coupleId).maybeSingle()
+    .then(({ data }) => { if (data?.code && data.code !== state.code) { state.code = data.code; save(); emit({ type: 'local' }) } }, () => {})
   await flush()
-  await pull()
+  await pull(true)
   if (channel) sb.removeChannel(channel)
   const row = r => ({ id: r.id, author_role: r.author_role, kind: r.kind, data: r.data, created_at: r.created_at, synced: true })
   channel = sb.channel('couple:' + state.coupleId)
@@ -876,6 +948,7 @@ async function createCouple() {
 
 async function joinCouple(code) {
   const c = await client()
+  try { localStorage.removeItem(LEFT) } catch {}
   const { data, error } = await c.rpc('tg_join_couple', { p_code: code, p_role: state.role })
   if (error) throw error
   state.coupleId = data.couple_id; state.code = data.code; save()
@@ -883,6 +956,7 @@ async function joinCouple(code) {
 }
 
 function unpair() {
+  try { if (state.code) localStorage.setItem(LEFT, state.code) } catch {}
   if (channel && sb) sb.removeChannel(channel)
   channel = null
   state.coupleId = null; state.code = null; state.outbox = []; state.patches = {}; state.deletes = []
@@ -893,6 +967,27 @@ function unpair() {
 function resetAll() {
   unpair()
   try { localStorage.removeItem(LS); localStorage.removeItem('together.auth') } catch {}
+}
+// The couple code this phone deliberately left; a link with it won't auto-rejoin.
+const leftCode = () => { try { return localStorage.getItem(LEFT) } catch { return null } }
+
+// This phone becomes the other person: re-join under the new role so the
+// server tags new entries (and partner alerts) correctly.
+async function switchRole(role) {
+  state.role = role; save()
+  if (!state.coupleId || !state.code) return
+  const c = await client()
+  const { error } = await c.rpc('tg_join_couple', { p_code: state.code, p_role: role })
+  if (error) throw error
+}
+
+// A new couple code. Paired phones stay paired; old invite links stop working.
+async function rotateCode() {
+  const c = await client()
+  const { data, error } = await c.rpc('tg_rotate_code')
+  if (error) throw error
+  state.code = data; save()
+  return data
 }
 
 // Calls the tg-push function as this phone's anonymous user.
@@ -913,7 +1008,7 @@ async function fn(name, body = {}) {
   return data
 }
 
-return { get state() { return state }, get save() { return save }, get syncAvailable() { return syncAvailable }, get isPaired() { return isPaired }, get pendingCount() { return pendingCount }, get onChange() { return onChange }, get addEntry() { return addEntry }, get updateEntry() { return updateEntry }, get removeEntry() { return removeEntry }, get restoreEntry() { return restoreEntry }, get flush() { return flush }, get status() { return status }, get start() { return start }, get createCouple() { return createCouple }, get joinCouple() { return joinCouple }, get unpair() { return unpair }, get resetAll() { return resetAll }, get push() { return push }, get fn() { return fn } }
+return { get state() { return state }, get save() { return save }, get syncAvailable() { return syncAvailable }, get isPaired() { return isPaired }, get pendingCount() { return pendingCount }, get onChange() { return onChange }, get addEntry() { return addEntry }, get updateEntry() { return updateEntry }, get removeEntry() { return removeEntry }, get restoreEntry() { return restoreEntry }, get flush() { return flush }, get status() { return status }, get start() { return start }, get createCouple() { return createCouple }, get joinCouple() { return joinCouple }, get unpair() { return unpair }, get resetAll() { return resetAll }, get leftCode() { return leftCode }, get switchRole() { return switchRole }, get rotateCode() { return rotateCode }, get push() { return push }, get fn() { return fn } }
 })()
 
 // ── Together: the app ───────────────────────────────────────────────────────
@@ -924,6 +1019,10 @@ return { get state() { return state }, get save() { return save }, get syncAvail
 const $ = sel => document.querySelector(sel)
 const app = $('#app')
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+// Links typed on the other phone (or by anyone with the code) only ever open
+// as web pages, never as javascript: or other schemes.
+const safeUrl = u => /^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : ''
+const num = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : 0 }
 const DAY = 86400000
 
 let tab = 'today'
@@ -941,6 +1040,9 @@ let toastTimer = null
 const parseDate = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
 const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d }
+// Calendar-day math (a day across a daylight-saving change is 23 or 25 hours)
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
+const dayDiff = (a, b) => Math.round((a - b) / DAY)
 const fmtDate = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 const fmtWhen = iso => {
   const d = new Date(iso), days = Math.round((today0() - new Date(d).setHours(0, 0, 0, 0)) / DAY)
@@ -950,10 +1052,10 @@ const fmtWhen = iso => {
 const sameDay = (iso, d = new Date()) => new Date(iso).toDateString() === d.toDateString()
 
 // Latest shared profile entry wins, so if either person corrects the LMP the
-// other phone follows.
+// other phone follows. Blank fields never erase what the other phone filled in.
 function profile() {
   const p = { ...(S.state.prefs || {}) }
-  for (const e of S.state.entries) if (e.kind === 'profile') Object.assign(p, e.data)
+  for (const e of S.state.entries) if (e.kind === 'profile') for (const [k, v] of Object.entries(e.data || {})) if (v !== '' && v != null) p[k] = v
   return p
 }
 
@@ -961,12 +1063,12 @@ function gest() {
   const p = profile()
   // The OB's due date wins when there is one; otherwise estimate from the LMP.
   if (!p.due && !p.lmp) return null
-  const due = p.due ? parseDate(p.due) : new Date(parseDate(p.lmp).getTime() + 280 * DAY)
-  const lmp = new Date(due.getTime() - 280 * DAY)
-  const days = Math.floor((today0() - lmp) / DAY)
-  const week = Math.floor(days / 7), day = days % 7
+  const due = p.due ? parseDate(p.due) : addDays(parseDate(p.lmp), 280)
+  const lmp = addDays(due, -280)
+  const days = dayDiff(today0(), lmp)
+  const week = Math.floor(days / 7), day = ((days % 7) + 7) % 7
   const tri = week < 14 ? 1 : week < 28 ? 2 : 3
-  return { days, week, day, due, lmp, fromDoctor: !!p.due, tri, left: Math.ceil((due - today0()) / DAY), pct: Math.min(100, Math.max(0, days / 280 * 100)) }
+  return { days, week, day, due, lmp, fromDoctor: !!p.due, tri, left: dayDiff(due, today0()), pct: Math.min(100, Math.max(0, days / 280 * 100)) }
 }
 
 const names = () => { const p = profile(); return { mom: p.momName || 'Mom', dad: p.dadName || 'Dad' } }
@@ -1174,7 +1276,7 @@ function renderScreen() {
   }
   if (!S.state.role || onboardStep) { app.innerHTML = onboarding(); return }
   const g = gest()
-  const sync = { local: '', live: '<span class="dot live"></span>Live', connecting: '<span class="dot"></span>Connecting', offline: `<span class="dot off"></span>Offline${S.pendingCount() ? ` · ${S.pendingCount()} waiting` : ' — will sync'}`, unpaired: '<span class="dot off"></span>Not paired' }[S.status]
+  const sync = { local: '', live: '<span class="dot live"></span>Live', connecting: '<span class="dot"></span>Connecting', offline: `<span class="dot off"></span>Offline${S.pendingCount() ? ` · ${S.pendingCount()} waiting` : ' — will sync'}`, unpaired: '<span class="dot off"></span>Not paired', removed: '<span class="dot off"></span>Disconnected' }[S.status]
   app.innerHTML = `
     <header class="top">
       <div>
@@ -1318,8 +1420,10 @@ function pairingCard(inOnboarding) {
       <button class="ghost" data-act="share-code">Share code</button>
       <p class="fine"><b>One and done:</b> add Together to your home screen from <i>this</i> page (Share → Add to Home Screen). The icon remembers your pairing, so you never need the code again.</p>
       <button class="ghost" data-act="copy-link">Copy my personal link</button>
+      <p class="fine">Your personal link and code work like a key to your shared space. Don't post them anywhere public.</p>
       ${inOnboarding ? '' : '<button class="ghost danger" data-act="unpair">Unpair this phone</button>'}
-    </div>`
+    </div>
+    ${inOnboarding ? '' : devicesCard()}`
   }
   return `<div class="card soft">
     <p>Pair once and every check-in, note and appointment shows up on both phones as it happens.</p>
@@ -1329,6 +1433,29 @@ function pairingCard(inOnboarding) {
       <input id="joinCode" placeholder="ABCD-2345" autocapitalize="characters" autocomplete="off">
     </label>
     <button class="big" data-act="join-couple">Join</button>
+  </div>`
+}
+
+// Every phone (and browser) that has joined your couple. iPhones count Safari,
+// the home-screen icon and in-app browsers separately, so a few per person is normal.
+let devices = null, devicesLoading = false
+function loadDevices() {
+  if (devicesLoading || devices) return
+  devicesLoading = true
+  S.push('devices').then(r => { devices = r.devices || [] }, () => { devices = 'error' })
+    .finally(() => { devicesLoading = false; if (tab === 'plan' && planView === 'settings') render() })
+}
+function devicesCard() {
+  loadDevices()
+  const n = names()
+  const ago = iso => { const d = dayDiff(today0(), new Date(new Date(iso).setHours(0, 0, 0, 0))); return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago` }
+  const list = Array.isArray(devices) ? devices : []
+  return `<div class="card soft">
+    <h4>📱 Connected devices</h4>
+    ${devices === 'error' ? '<p class="fine">Couldn\'t load the list. Check your signal.</p>' : !devices ? '<p class="fine">Loading…</p>'
+      : list.map(d => `<div class="mile"><b>${d.role === 'mom' ? '🤰 ' + esc(n.mom) : '🧔 ' + esc(n.dad)}${d.me ? ' · this phone' : ''}<span class="why">Last opened ${ago(d.last_seen || d.joined_at)} · joined ${esc(fmtDate(new Date(d.joined_at)))}</span></b>${d.me ? '' : `<span><button class="mini del" data-rm-dev="${esc(d.user_id)}" aria-label="Remove device">Remove</button></span>`}</div>`).join('')}
+    <p class="fine">A few per person is normal: Safari and the home-screen icon count separately. Don't recognize one? Remove it, then tap <b>Change couple code</b> so old links stop working.</p>
+    <button class="ghost" data-act="rotate-code">Change couple code</button>
   </div>`
 }
 
@@ -1343,7 +1470,7 @@ function today() {
   const flags = flagsFor(herToday)
   const enc = pick(me() === 'mom' ? C.ENCOURAGE_MOM : C.ENCOURAGE_DAD, dayIndex())
   const upcoming = g ? C.MILESTONES.filter(m => m.week >= g.week).slice(0, 2) : []
-  const appts = entries('appointment').filter(a => a.data.date >= isoDate(new Date())).sort((a, b) => a.data.date.localeCompare(b.data.date)).slice(0, 2)
+  const appts = entries('appointment').filter(a => a.data.date && a.data.date >= isoDate(new Date())).sort((a, b) => a.data.date.localeCompare(b.data.date)).slice(0, 2)
   const lastNote = entries('note', other()).at(-1)
 
   let main = ''
@@ -1375,7 +1502,7 @@ function today() {
           <p class="fine">Tap one to start. Add symptoms and notes on the next screen.</p>
         </section>`
     const dadCI = entries('dadcheck', 'dad').filter(e => !e.local).at(-1)
-    if (dadCI && sameDay(dadCI.created_at)) main += `<section class="card soft"><p>${esc(n.dad)} checked in too: <b>${dadCI.data.feelings?.map(f => C.DAD_FEELINGS.find(x => x.id === f)?.label).filter(Boolean).join(', ') || 'stress ' + dadCI.data.stress + '/5'}</b></p></section>`
+    if (dadCI && sameDay(dadCI.created_at)) main += `<section class="card soft"><p>${esc(n.dad)} checked in too: <b>${dadCI.data.feelings?.map(f => C.DAD_FEELINGS.find(x => x.id === f)?.label).filter(Boolean).join(', ') || 'stress ' + num(dadCI.data.stress, 1, 5) + '/5'}</b></p></section>`
   }
 
   return `
@@ -1392,7 +1519,7 @@ function today() {
     <section class="card quote"><p>“${esc(enc)}”</p></section>
     ${upcoming.length || appts.length ? `<section class="card"><h3>Coming up</h3>
       ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
-      ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(new Date(g.lmp.getTime() + m.week * 7 * DAY))}` : ' · now'}</span></div>`).join('')}
+      ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
     </section>` : ''}`
 }
 
@@ -1434,7 +1561,7 @@ function checkinCard(ci, title) {
       ${energy ? `<div><span>${energy.emoji}</span>Energy: ${energy.label}</div>` : ''}
       ${d.temp ? `<div><span>🌡️</span>${esc(d.temp)}°</div>` : ''}
     </div>
-    ${syms.length ? `<div class="chips">${syms.map(([id, l]) => { const s = symptom(id); return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${lvl[l]}</span>` : '' }).join('')}</div>` : ''}
+    ${syms.length ? `<div class="chips">${syms.map(([id, l]) => { const s = symptom(id); l = num(l, 1, 3) | 0; return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${lvl[l]}</span>` : '' }).join('')}</div>` : ''}
     ${d.note ? `<p class="quote-inline">“${esc(d.note)}”</p>` : ''}
     <div class="react">
       ${hearts.length ? `<span>${hearts.map(h => esc(h.data.emoji)).join('')} from ${esc(nameOf(hearts[0].author_role))}</span>` : ''}
@@ -1446,15 +1573,24 @@ function checkinCard(ci, title) {
 // ── Check-in ────────────────────────────────────────────────────────────────
 function checkin() { return me() === 'mom' ? momCheckin() : dadCheckin() }
 
+// A check-in loaded back into the form (values cleaned, in case it came from another phone)
+function editDraft(e, auto = false) {
+  const symptoms = {}
+  for (const [id, l] of Object.entries(e.data.symptoms || {})) { const v = num(l, 0, 3) | 0; if (v) symptoms[id] = v }
+  return { kind: 'checkin', editing: e.id, auto, mood: num(e.data.mood, 0, 5) | 0, energy: num(e.data.energy, 0, 5) | 0, symptoms, temp: String(e.data.temp || ''), note: String(e.data.note || '') }
+}
+
 function momCheckin() {
-  draft = draft && draft.kind === 'checkin' ? draft : { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }
+  // already checked in today: open that one to update, instead of a blank form that would duplicate it
+  const todays = entries('checkin', 'mom').filter(e => sameDay(e.created_at)).at(-1)
+  if (!(draft && draft.kind === 'checkin')) draft = todays && me() === 'mom' ? editDraft(todays, true) : { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }
   const lvl = ['', 'mild', 'moderate', 'strong']
   const g = gest()
   // late-pregnancy-only symptoms are hidden early so the list stays short
   const wkNow = g ? g.week : 0
   const list = [...C.SYMPTOMS.filter(s => !(s.id === 'movement' && wkNow < 24) && !(s.id === 'swelling' && wkNow < 12) && !(s.id === 'backpain' && wkNow < 10)), ...customSymptoms()]
   return `
-    ${draft.editing ? `<section class="card soft"><p>✏️ <b>Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())}</b></p><button class="ghost" data-act="cancel-edit">Cancel editing</button></section>` : ''}
+    ${draft.editing ? `<section class="card soft"><p>✏️ <b>${draft.auto ? 'You already checked in today. Change anything here to update it.' : `Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())}`}</b></p><button class="ghost" data-act="${draft.auto ? 'new-checkin' : 'cancel-edit'}">${draft.auto ? 'Log a separate check-in instead' : 'Cancel editing'}</button></section>` : ''}
     <section class="card">
       <h3>How are you feeling today?</h3>
       <div class="moods">${C.MOOD.map(m => `<button data-mood="${m.v}" class="${draft.mood === m.v ? 'on' : ''}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
@@ -1466,7 +1602,8 @@ function momCheckin() {
       <p class="fine">Tap once for mild, again for moderate, again for strong, a fourth time to clear.</p>
       <div class="chips">${list.map(s => { const l = draft.symptoms[s.id] || 0; return `<button class="chip ${l ? 'on l' + l : ''}" data-sym="${s.id}">${s.emoji} ${esc(s.label)}${l ? ' · ' + lvl[l] : ''}</button>` }).join('')}<button class="chip add" data-act="add-symptom">＋ Add your own</button></div>
       ${Object.keys(draft.symptoms).length ? `<div class="explain">${Object.entries(draft.symptoms).map(([id, l]) => {
-        const s = symptom(id); const flag = s.flag && s.flagAt && l >= s.flagAt
+        const s = symptom(id); if (!s) return ''
+        const flag = s.flag && s.flagAt && l >= s.flagAt
         return `<div class="ex ${flag ? 'warn' : ''}"><b>${s.emoji} ${esc(s.label)}</b><p>${esc(s.meaning)}</p>${s.flag ? `<p class="flag">${flag ? '⚠️ ' : 'Call if: '}${esc(s.flag)}</p>` : ''}</div>`
       }).join('')}<p class="fine">${esc(C.DISCLAIMER_SHORT)}</p></div>` : ''}
     </section>
@@ -1531,7 +1668,7 @@ function recentList(kind, role) {
   if (kind === 'checkin') {
     return `<section class="card"><h3>Last 7 check-ins</h3><div class="spark">${list.slice().reverse().map(e => `<div title="${fmtWhen(e.created_at)}"><i style="height:${(e.data.mood || 0) * 20}%"></i><span>${C.MOOD.find(m => m.v === e.data.mood)?.emoji || ''}</span></div>`).join('')}</div></section>`
   }
-  return `<section class="card"><h3>Recent</h3>${list.map(e => `<div class="mile"><b>Stress ${e.data.stress}/5 ${e.local ? '🔒' : ''}</b><span>${fmtWhen(e.created_at)}</span></div>`).join('')}</section>`
+  return `<section class="card"><h3>Recent</h3>${list.map(e => `<div class="mile"><b>Stress ${num(e.data.stress, 1, 5)}/5 ${e.local ? '🔒' : ''}</b><span>${fmtWhen(e.created_at)}</span></div>`).join('')}</section>`
 }
 
 let breathTimer = null
@@ -1587,7 +1724,7 @@ function timeline() {
     </button>
     <button class="duo-card ${usView === 'him' ? 'on' : ''}" data-us="him">
       <div class="fine">🧔 ${esc(n.dad)}</div>
-      ${hisCI ? `<div class="big-emoji">${hisFeel(hisCI)[0]?.emoji || '🙂'}</div><div>Stress ${hisCI.data.stress}/5</div><div class="fine">${fmtWhen(hisCI.created_at)}</div>` : '<div class="big-emoji">–</div><div class="fine">No check-in yet</div>'}
+      ${hisCI ? `<div class="big-emoji">${hisFeel(hisCI)[0]?.emoji || '🙂'}</div><div>Stress ${num(hisCI.data.stress, 1, 5)}/5</div><div class="fine">${fmtWhen(hisCI.created_at)}</div>` : '<div class="big-emoji">–</div><div class="fine">No check-in yet</div>'}
     </button>
   </div>
   <div class="seg">${[['her', `${esc(n.mom)}'s side`], ['him', `${esc(n.dad)}'s side`], ['history', 'History'], ['feed', 'Notes']].map(([id, l]) => `<button data-us="${id}" class="${usView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
@@ -1625,11 +1762,11 @@ function hisSide() {
   return `
     <section class="card">
       <div class="ci-head"><h3>${me() === 'dad' ? 'Your latest check-in' : `${esc(n.dad)}'s latest check-in`} ${ci.local ? '🔒' : ''}</h3><span class="fine">${fmtWhen(ci.created_at)}</span></div>
-      <div class="ci-stats"><div><span>🌡️</span>Stress ${ci.data.stress}/5</div></div>
+      <div class="ci-stats"><div><span>🌡️</span>Stress ${num(ci.data.stress, 1, 5)}/5</div></div>
       ${feel.length ? `<div class="chips">${feel.map(f => `<span class="chip on">${f.emoji} ${esc(f.label)}</span>`).join('')}</div>` : ''}
       ${ci.data.note ? `<p class="quote-inline">“${esc(ci.data.note)}”</p>` : ''}
     </section>
-    <section class="card"><h3>Stress this week</h3>${bars(week, e => e.data.stress, 5, e => e ? String(e.data.stress) : '')}<p class="fine">Higher bar = more stressed.</p></section>
+    <section class="card"><h3>Stress this week</h3>${bars(week, e => e.data.stress, 5, e => e ? String(num(e.data.stress, 1, 5)) : '')}<p class="fine">Higher bar = more stressed.</p></section>
     ${common.length ? `<section class="card"><h3>${me() === 'dad' ? 'On your mind lately' : 'On his mind lately'}</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
     ${me() === 'mom'
       ? (support.length ? `<section class="card"><h3>💛 How you can support him</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : '')
@@ -1644,7 +1781,7 @@ function selfCareCard(ci, feel) {
   const basics = C.SELF_CARE_BASICS[dayIndex() % C.SELF_CARE_BASICS.length]
   return `<section class="card">
     <h3>🧘 Taking care of yourself</h3>
-    <p class="fine">Based on your last check-in: stress ${ci.data.stress}/5${feel.length ? ', ' + feel.map(f => f.label.toLowerCase()).join(', ') : ''}.</p>
+    <p class="fine">Based on your last check-in: stress ${num(ci.data.stress, 1, 5)}/5${feel.length ? ', ' + feel.map(f => f.label.toLowerCase()).join(', ') : ''}.</p>
     <ol class="plan">${list.map(t => `<li>${esc(t)}</li>`).join('')}</ol>
     <p class="fine">${esc(basics)}</p>
     <button class="ghost" data-tab="checkin">🫁 Do the 2-minute breathing reset</button>
@@ -1673,7 +1810,7 @@ function forHerCard() {
 
 // ── History & the OB visit summary ──────────────────────────────────────────
 const LVL = ['', 'mild', 'moderate', 'strong']
-const weekAt = iso => { const g = gest(); if (!g) return ''; const d = Math.floor((new Date(iso).setHours(0, 0, 0, 0) - g.lmp) / DAY); return d >= 0 ? `Week ${Math.floor(d / 7)}+${d % 7}` : '' }
+const weekAt = iso => { const g = gest(); if (!g) return ''; const d = dayDiff(new Date(iso).setHours(0, 0, 0, 0), g.lmp); return d >= 0 ? `Week ${Math.floor(d / 7)}+${d % 7}` : '' }
 const visibleDad = () => entries('dadcheck', 'dad').filter(e => !(e.local && me() !== 'dad'))
 
 function historyView() {
@@ -1707,14 +1844,14 @@ function historyRow(e) {
   const t = new Date(e.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
   if (e.kind === 'checkin') {
     const d = e.data, mood = C.MOOD.find(m => m.v === d.mood), en = C.ENERGY.find(m => m.v === d.energy)
-    const syms = Object.entries(d.symptoms || {}).map(([id, l]) => { const s = symptom(id); return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${LVL[l]}</span>` : '' }).join('')
+    const syms = Object.entries(d.symptoms || {}).map(([id, l]) => { const s = symptom(id); l = num(l, 1, 3) | 0; return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${LVL[l]}</span>` : '' }).join('')
     return `<div class="hrow"><div class="hwho">🤰 ${esc(names().mom)} · ${t}</div>
       <div>${mood ? `${mood.emoji} ${mood.label}` : ''}${en ? ` · energy ${en.label.toLowerCase()}` : ''}${d.temp ? ` · 🌡️ ${esc(d.temp)}°` : ''}</div>
       ${syms ? `<div class="chips">${syms}</div>` : ''}${d.note ? `<div class="quote-inline">“${esc(d.note)}”</div>` : ''}</div>`
   }
   const f = (e.data.feelings || []).map(id => C.DAD_FEELINGS.find(x => x.id === id)).filter(Boolean)
   return `<div class="hrow"><div class="hwho">🧔 ${esc(names().dad)} · ${t}${e.local ? ' · 🔒 private' : ''}</div>
-    <div>Stress ${e.data.stress}/5${f.length ? ' · ' + f.map(x => x.emoji + ' ' + esc(x.label)).join(', ') : ''}</div>
+    <div>Stress ${num(e.data.stress, 1, 5)}/5${f.length ? ' · ' + f.map(x => x.emoji + ' ' + esc(x.label)).join(', ') : ''}</div>
     ${e.data.note ? `<div class="quote-inline">“${esc(e.data.note)}”</div>` : ''}</div>`
 }
 
@@ -1776,7 +1913,7 @@ function feed() {
       if (e.kind === 'dadcheck') {
         if (e.local && me() !== 'dad') return ''
         const f = (e.data.feelings || []).map(id => C.DAD_FEELINGS.find(x => x.id === id)).filter(Boolean)
-        return `<section class="card soft"><div class="from">${who} · ${fmtWhen(e.created_at)} ${e.local ? '🔒 private' : ''} ${del}</div><p>Stress ${e.data.stress}/5 ${f.map(x => x.emoji + ' ' + esc(x.label)).join(', ')}</p>${e.data.note ? `<p class="quote-inline">“${esc(e.data.note)}”</p>` : ''}</section>`
+        return `<section class="card soft"><div class="from">${who} · ${fmtWhen(e.created_at)} ${e.local ? '🔒 private' : ''} ${del}</div><p>Stress ${num(e.data.stress, 1, 5)}/5 ${f.map(x => x.emoji + ' ' + esc(x.label)).join(', ')}</p>${e.data.note ? `<p class="quote-inline">“${esc(e.data.note)}”</p>` : ''}</section>`
       }
       return ''
     }).join('') : '<section class="card soft center"><p>Nothing yet. Check-ins and notes from both of you will show up here.</p></section>'}`
@@ -1855,7 +1992,7 @@ const amazonSearch = (q, fourUp = true) => `https://www.amazon.com/s?k=${encodeU
 function reviewsUrl(it) {
   const asin = asinOf(it.url)
   if (asin) return `https://www.amazon.com/product-reviews/${asin}?filterByStar=critical`
-  return it.url || amazonSearch(it.name, false)
+  return safeUrl(it.url) || amazonSearch(it.name, false)
 }
 // Car seats are recalled by NHTSA; other baby gear by the CPSC.
 function recallKind(name, cat) {
@@ -1870,7 +2007,7 @@ function recallUrl(kind, name) {
 const recallLink = (kind, name) => kind ? `<a class="chip" href="${esc(recallUrl(kind, name))}" target="_blank" rel="noopener">🛡️ Recall check${kind === 'nhtsa' ? ' (NHTSA)' : ''}</a>` : ''
 const parseStars = v => { const n = parseFloat(String(v).replace(',', '.')); return n >= 0 && n <= 5 ? Math.round(n * 10) / 10 : '' }
 async function lowRating(it) {
-  const r = await ask({ title: `${it.stars}★ is rated low`, text: `Want to know why? The 1 to 3 star reviews usually show the problem: it breaks, a safety worry, or it runs small. If the same complaint keeps coming up, it's worth picking something else. Run a recall check too.`, ok: 'Show me why', cancel: 'Keep it' })
+  const r = await ask({ title: `${num(it.stars, 0, 5)}★ is rated low`, text: `Want to know why? The 1 to 3 star reviews usually show the problem: it breaks, a safety worry, or it runs small. If the same complaint keeps coming up, it's worth picking something else. Run a recall check too.`, ok: 'Show me why', cancel: 'Keep it' })
   if (r && !window.open(reviewsUrl(it), '_blank', 'noopener')) toast('Tap "why?" on the item to see its reviews')
 }
 function suggestCard(items) {
@@ -1920,9 +2057,9 @@ function registry() {
         return `<div class="reg ${it.got ? 'got' : ''}">
           <button class="tick" data-reg-got="${i.id}" aria-label="Got it">${it.got ? '✅' : '⬜'}</button>
           <div class="reg-main">
-            <div class="reg-name">${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
+            <div class="reg-name">${safeUrl(it.url) ? `<a href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
             <div class="fine">${[it.url ? storeOf(it.url) : '', money(it.price), 'added by ' + by, it.got && it.gotBy ? 'got by ' + esc(nameOf(it.gotBy)) : ''].filter(Boolean).join(' · ')}</div>
-            ${it.stars !== '' && it.stars != null ? `<div class="fine rating ${it.stars < 4 ? 'low' : ''}">${it.stars < 4 ? '⚠️ ' : '⭐ '}${it.stars}★${it.reviews ? ` · ${Number(it.reviews).toLocaleString()} reviews` : ''}${it.reviews && it.reviews < 50 ? ' (few reviews, take with salt)' : ''}${it.stars < 4 ? ` · rated low <a href="${esc(reviewsUrl(it))}" target="_blank" rel="noopener">why?</a>` : ''}${it.ratedAt ? ` <span class="faint">as of ${esc(fmtDate(parseDate(it.ratedAt)))}</span>` : ''}</div>` : ''}
+            ${it.stars !== '' && it.stars != null ? `<div class="fine rating ${it.stars < 4 ? 'low' : ''}">${it.stars < 4 ? '⚠️ ' : '⭐ '}${num(it.stars, 0, 5)}★${it.reviews ? ` · ${Number(it.reviews).toLocaleString()} reviews` : ''}${it.reviews && it.reviews < 50 ? ' (few reviews, take with salt)' : ''}${it.stars < 4 ? ` · rated low <a href="${esc(reviewsUrl(it))}" target="_blank" rel="noopener">why?</a>` : ''}${it.ratedAt ? ` <span class="faint">as of ${esc(fmtDate(parseDate(it.ratedAt)))}</span>` : ''}</div>` : ''}
             ${!it.got && recallKind(it.name, it.cat) ? `<div class="reg-links">${recallLink(recallKind(it.name, it.cat), it.name)}</div>` : ''}
             ${it.claimed ? `<div class="claimed">🎁 <b>${esc(it.claimed.name)}</b> is getting this <button class="mini" data-reg-release="${i.id}">Release</button></div>` : ''}
             ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
@@ -1931,7 +2068,7 @@ function registry() {
         </div>`
       }).join('')}</section>`
     }).join('')}
-    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? '<button class="big" data-act="reg-starter">Add all ${C.REG_GUIDE.length} suggested basics</button>' : ''}</section>` : ''}
+    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? `<button class="big" data-act="reg-starter">Add all ${C.REG_GUIDE.length} suggested basics</button>` : ''}</section>` : ''}
     ${suggestCard(items)}
     <section class="card" id="regForm">
       <h3>${e ? 'Edit item' : 'Add an item'}</h3>
@@ -1963,7 +2100,7 @@ function registry() {
     </section>
     <section class="card">
       <h3>🔗 Our store registries</h3>
-      ${links.length ? links.map((l, i) => `<div class="mile"><a href="${esc(l.url)}" target="_blank" rel="noopener"><b>${esc(l.name)}</b></a><span><button class="mini del" data-reg-link-del="${i}">✕</button></span></div>`).join('') : '<p class="fine">Keep your Amazon, Target or Babylist registry links here so both of you can open them in one tap.</p>'}
+      ${links.length ? links.map((l, i) => `<div class="mile"><a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener"><b>${esc(l.name)}</b></a><span><button class="mini del" data-reg-link-del="${i}">✕</button></span></div>`).join('') : '<p class="fine">Keep your Amazon, Target or Babylist registry links here so both of you can open them in one tap.</p>'}
       <div class="row2"><input id="linkName" placeholder="e.g. Amazon registry"><input id="linkUrl" type="url" placeholder="https://…"></div>
       <button class="ghost" data-act="reg-link-add">＋ Save registry link</button>
       <p class="fine">Tip: Amazon's Baby Registry lets you add your partner as a co-registrant, so you can both add straight from the Amazon app too.</p>
@@ -2039,18 +2176,18 @@ function plan() {
 function calendar() {
   const g = gest()
   const lmp = g ? g.lmp : null
-  const appts = entries('appointment').slice().sort((a, b) => a.data.date.localeCompare(b.data.date))
+  const appts = entries('appointment').filter(a => a.data.date).sort((a, b) => a.data.date.localeCompare(b.data.date))
   return `
     <section class="card">
       <h3>Appointments</h3>
-      ${appts.length ? appts.map(a => `<div class="mile ${a.data.date < isoDate(new Date()) ? 'past' : ''}"><b>📅 ${esc(a.data.title)}${a.data.notes ? `<span class="why">${esc(a.data.notes)}</span>` : ''}</b><span>${fmtDate(parseDate(a.data.date))}${a.data.time ? ' · ' + esc(fmtTime(a.data.time)) : ''} <button class="mini" data-edit-appt="${a.id}">✏️</button> ${a.author_role === me() ? `<button class="mini del" data-del="${a.id}">✕</button>` : ''}</span></div>`).join('') : '<p class="fine">Add the OB visits so you both see what\'s next.</p>'}
+      ${appts.length ? appts.map(a => `<div class="mile appt ${a.data.date < isoDate(new Date()) ? 'past' : ''}"><b>📅 ${esc(a.data.title)}${a.data.notes ? `<span class="why">${esc(a.data.notes)}</span>` : ''}</b><span>${fmtDate(parseDate(a.data.date))}${a.data.time ? ' · ' + esc(fmtTime(a.data.time)) : ''} <button class="mini" data-edit-appt="${a.id}">✏️</button> ${a.author_role === me() ? `<button class="mini del" data-del="${a.id}">✕</button>` : ''}</span></div>`).join('') : '<p class="fine">Add the OB visits so you both see what\'s next.</p>'}
       ${apptForm()}
     </section>
     <section class="card">
       <h3>Milestones</h3>
       <div class="timeline">${C.MILESTONES.map(m => {
         const st = !g ? '' : g.week > m.week + 1 ? 'past' : g.week >= m.week ? 'now' : ''
-        const when = lmp ? fmtDate(new Date(lmp.getTime() + m.week * 7 * DAY)) : ''
+        const when = lmp ? fmtDate(addDays(lmp, m.week * 7)) : ''
         return `<details class="tl ${st}"><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${when}</span></summary><p>${esc(m.detail)}</p></details>`
       }).join('')}</div>
     </section>
@@ -2084,6 +2221,7 @@ function settings() {
     </section>
     <section class="card soft">
       <h3>Sync</h3>
+      ${S.status === 'removed' ? '<p><b>This phone was removed from your couple.</b> Everything here is still saved on it. To reconnect, tap Unpair above, then join again with your couple code.</p>' : ''}
       <p class="fine">${!S.syncAvailable() ? 'This copy runs on this phone only.' : !S.isPaired() ? 'Not paired yet.' : `Status: <b>${esc(S.status)}</b>${ago != null ? ` · last synced ${ago < 1 ? 'just now' : ago + ' min ago'}` : ''}${waiting ? ` · ${waiting} change${waiting === 1 ? '' : 's'} waiting to send` : ''}`}</p>
     </section>
     ${disclaimerCard()}`
@@ -2166,18 +2304,28 @@ app.addEventListener('click', async ev => {
   if (d.editAppt) { editAppt = d.editAppt; clearForm('appt'); render(); document.getElementById('apptTitle')?.scrollIntoView({ block: 'center' }); return }
   if (d.editCi) {
     const e = entries('checkin').find(x => x.id === d.editCi); if (!e) return
-    draft = { kind: 'checkin', editing: e.id, mood: e.data.mood || 0, energy: e.data.energy || 0, symptoms: { ...(e.data.symptoms || {}) }, temp: e.data.temp || '', note: e.data.note || '' }
+    draft = editDraft(e)
     tab = 'checkin'; render(); scrollTo(0, 0); return
   }
   if (d.del) { const gone = S.removeEntry(d.del); if (gone) undoToast('Deleted', () => S.restoreEntry(gone)); return }
+  if (d.rmDev) {
+    if (!await ask({ title: 'Remove this device?', text: 'It stops syncing right away. If it\'s one of yours, you can reconnect it later with your couple code.', ok: 'Remove', danger: true })) return
+    try { await S.push('remove-device', { user_id: d.rmDev }); devices = null; toast('Device removed') } catch (e) { toast('Couldn\'t remove it. Check your signal.') }
+    render(); return
+  }
 
   switch (d.act) {
     case 'save-dates': {
       const due = $('#due').value, lmp = due ? '' : $('#lmp').value
       if (!due && !lmp) return toast('Add the due date (or the first day of the last period)')
-      const data = { due, lmp, momName: $('#momName').value.trim(), dadName: $('#dadName').value.trim(), obPhone: $('#obPhone').value.trim() }
+      const typed = { due, lmp, momName: $('#momName').value.trim(), dadName: $('#dadName').value.trim(), obPhone: $('#obPhone').value.trim() }
+      // share only what changed, so this phone never overwrites the other's
+      // details with blanks or with values it never touched
+      const cur = profile()
+      const data = Object.fromEntries(Object.entries(typed).filter(([k, v]) => v && v !== cur[k]))
+      // switching from a period date to the doctor's due date: the due date wins anyway
       S.state.prefs = { ...S.state.prefs, ...data }
-      await S.addEntry('profile', data)
+      if (Object.keys(data).length) await S.addEntry('profile', data)
       onboardStep = firstRun ? 3 : 0
       firstRun = false
       render(); return
@@ -2192,7 +2340,14 @@ app.addEventListener('click', async ev => {
       onboardStep = p.due || p.lmp ? 3 : 1; render(); scrollTo(0, 0); return
     }
     case 'edit-dates': onboardStep = 1; render(); scrollTo(0, 0); return
-    case 'switch-role': S.state.role = other(); S.save(); draft = null; render(); toast('This phone is now ' + nameOf(me())); return
+    case 'switch-role': {
+      const to = other()
+      if (!await ask({ title: `Make this ${nameOf(to)}'s phone?`, text: `New check-ins and notes from this phone will be saved as ${nameOf(to)}'s, and partner alerts will go to ${nameOf(me())} instead. Only do this if you handed this phone to the other person.`, ok: 'Switch' })) return
+      try { await S.switchRole(to) } catch (e) { S.state.role = other(); S.save(); return toast('Couldn\'t switch. Check your signal and try again.') }
+      draft = null; stamped = ''; render(); toast('This phone is now ' + nameOf(me()))
+      if (pushPrefs().on) savePushSubscription().catch(() => {})
+      return
+    }
     case 'save-checkin': {
       if (!draft.mood) return
       const ciData = { mood: draft.mood, energy: draft.energy || null, symptoms: draft.symptoms, temp: draft.temp.trim(), note: draft.note.trim() }
@@ -2225,6 +2380,7 @@ app.addEventListener('click', async ev => {
     }
     case 'cancel-appt': editAppt = null; clearForm('appt'); render(); return
     case 'cancel-edit': draft = null; render(); return
+    case 'new-checkin': draft = { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }; render(); scrollTo(0, 0); return
     case 'add-symptom': {
       const label = ((await ask({ title: 'Add your own symptom', ok: 'Add', input: true, placeholder: 'e.g. Metallic taste' })) || '').slice(0, 40)
       if (!label) return
@@ -2351,6 +2507,11 @@ app.addEventListener('click', async ev => {
       S.state.prefs = { ...S.state.prefs, push: { ...pushPrefs(), on: false } }; S.save()
       render(); toast('Reminders off'); return
     }
+    case 'rotate-code': {
+      if (!await ask({ title: 'Change your couple code?', text: 'Phones already connected stay connected. Old invite links, personal links and home-screen icons stop working for any phone that isn\'t connected yet. After this, re-add Together to your home screen from this page.', ok: 'Change code' })) return
+      try { const code = await S.rotateCode(); stamped = ''; render(); toast('New code: ' + code.replace(/(.{4})(.{4})/, '$1-$2')) } catch (e) { toast('Couldn\'t change it. Check your signal.') }
+      return
+    }
     case 'copy-link':
       navigator.clipboard?.writeText(personalLink()).then(() => toast('Link copied. Keep it somewhere safe.'), () => toast(personalLink()))
       return
@@ -2361,7 +2522,8 @@ app.addEventListener('click', async ev => {
       return
     }
     case 'reset':
-      if (await ask({ title: 'Erase everything on this phone?', text: 'Shared entries stay in your couple\'s space and come back if you rejoin. Private check-ins on this phone are gone for good.', ok: 'Erase', danger: true })) { S.resetAll(); location.reload() }
+      // drop ?c= from the address too, or the reload would pair it right back
+      if (await ask({ title: 'Erase everything on this phone?', text: 'Shared entries stay in your couple\'s space and come back if you rejoin. Private check-ins on this phone are gone for good.', ok: 'Erase', danger: true })) { S.resetAll(); location.replace(location.pathname) }
       return
   }
 })
@@ -2411,6 +2573,8 @@ app.addEventListener('focusout', () => setTimeout(() => {
 }, 50))
 const claimSeen = new Set()
 S.onChange(evt => {
+  if (evt.type === 'storage-full') toast('This phone is out of storage space, so new changes may not be saved. Free up some space.')
+  if (evt.type === 'delete-refused') toast('That one can only be removed by the person who added it.')
   const u = evt.updated
   if (u && u.kind === 'registry' && u.data?.claimed && !claimSeen.has(u.id + u.data.claimed.at)) {
     claimSeen.add(u.id + u.data.claimed.at)
@@ -2433,8 +2597,17 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) rend
 
 async function boot() {
   const code = params.get('c'), role = params.get('r')
-  if (!S.state.coupleId && code && (role === 'mom' || role === 'dad') && S.syncAvailable()) {
+  const clean = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  // A phone that unpaired or erased itself stays that way, even when it's
+  // opened from an old home-screen icon that still carries the code.
+  const left = clean && S.leftCode() === clean
+  if (!S.state.coupleId && code && !left && (role === 'mom' || role === 'dad') && S.syncAvailable()) {
     const brandNew = !S.state.role && !S.state.entries.length
+    // a phone that already holds its own entries asks before sharing them into a couple
+    if (S.state.entries.some(e => !e.local && !e.synced) && !await ask({ title: 'Connect this phone?', text: `This link connects to couple code ${clean.replace(/(.{4})(.{4})/, '$1-$2')} and shares what's on this phone with it. Only continue if your partner sent you this link.`, ok: 'Connect' })) {
+      try { window.history.replaceState(null, '', location.pathname) } catch {}
+      render(); S.start(); return
+    }
     S.state.role = S.state.role || role
     S.save()
     autoJoining = true

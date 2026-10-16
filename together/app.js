@@ -9,6 +9,10 @@ import { VAPID_PUBLIC } from './config.js?v=6'
 const $ = sel => document.querySelector(sel)
 const app = $('#app')
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+// Links typed on the other phone (or by anyone with the code) only ever open
+// as web pages, never as javascript: or other schemes.
+const safeUrl = u => /^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : ''
+const num = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : 0 }
 const DAY = 86400000
 
 let tab = 'today'
@@ -26,6 +30,9 @@ let toastTimer = null
 const parseDate = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
 const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d }
+// Calendar-day math (a day across a daylight-saving change is 23 or 25 hours)
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
+const dayDiff = (a, b) => Math.round((a - b) / DAY)
 const fmtDate = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 const fmtWhen = iso => {
   const d = new Date(iso), days = Math.round((today0() - new Date(d).setHours(0, 0, 0, 0)) / DAY)
@@ -35,10 +42,10 @@ const fmtWhen = iso => {
 const sameDay = (iso, d = new Date()) => new Date(iso).toDateString() === d.toDateString()
 
 // Latest shared profile entry wins, so if either person corrects the LMP the
-// other phone follows.
+// other phone follows. Blank fields never erase what the other phone filled in.
 function profile() {
   const p = { ...(S.state.prefs || {}) }
-  for (const e of S.state.entries) if (e.kind === 'profile') Object.assign(p, e.data)
+  for (const e of S.state.entries) if (e.kind === 'profile') for (const [k, v] of Object.entries(e.data || {})) if (v !== '' && v != null) p[k] = v
   return p
 }
 
@@ -46,12 +53,12 @@ function gest() {
   const p = profile()
   // The OB's due date wins when there is one; otherwise estimate from the LMP.
   if (!p.due && !p.lmp) return null
-  const due = p.due ? parseDate(p.due) : new Date(parseDate(p.lmp).getTime() + 280 * DAY)
-  const lmp = new Date(due.getTime() - 280 * DAY)
-  const days = Math.floor((today0() - lmp) / DAY)
-  const week = Math.floor(days / 7), day = days % 7
+  const due = p.due ? parseDate(p.due) : addDays(parseDate(p.lmp), 280)
+  const lmp = addDays(due, -280)
+  const days = dayDiff(today0(), lmp)
+  const week = Math.floor(days / 7), day = ((days % 7) + 7) % 7
   const tri = week < 14 ? 1 : week < 28 ? 2 : 3
-  return { days, week, day, due, lmp, fromDoctor: !!p.due, tri, left: Math.ceil((due - today0()) / DAY), pct: Math.min(100, Math.max(0, days / 280 * 100)) }
+  return { days, week, day, due, lmp, fromDoctor: !!p.due, tri, left: dayDiff(due, today0()), pct: Math.min(100, Math.max(0, days / 280 * 100)) }
 }
 
 const names = () => { const p = profile(); return { mom: p.momName || 'Mom', dad: p.dadName || 'Dad' } }
@@ -259,7 +266,7 @@ function renderScreen() {
   }
   if (!S.state.role || onboardStep) { app.innerHTML = onboarding(); return }
   const g = gest()
-  const sync = { local: '', live: '<span class="dot live"></span>Live', connecting: '<span class="dot"></span>Connecting', offline: `<span class="dot off"></span>Offline${S.pendingCount() ? ` · ${S.pendingCount()} waiting` : ' — will sync'}`, unpaired: '<span class="dot off"></span>Not paired' }[S.status]
+  const sync = { local: '', live: '<span class="dot live"></span>Live', connecting: '<span class="dot"></span>Connecting', offline: `<span class="dot off"></span>Offline${S.pendingCount() ? ` · ${S.pendingCount()} waiting` : ' — will sync'}`, unpaired: '<span class="dot off"></span>Not paired', removed: '<span class="dot off"></span>Disconnected' }[S.status]
   app.innerHTML = `
     <header class="top">
       <div>
@@ -403,8 +410,10 @@ function pairingCard(inOnboarding) {
       <button class="ghost" data-act="share-code">Share code</button>
       <p class="fine"><b>One and done:</b> add Together to your home screen from <i>this</i> page (Share → Add to Home Screen). The icon remembers your pairing, so you never need the code again.</p>
       <button class="ghost" data-act="copy-link">Copy my personal link</button>
+      <p class="fine">Your personal link and code work like a key to your shared space. Don't post them anywhere public.</p>
       ${inOnboarding ? '' : '<button class="ghost danger" data-act="unpair">Unpair this phone</button>'}
-    </div>`
+    </div>
+    ${inOnboarding ? '' : devicesCard()}`
   }
   return `<div class="card soft">
     <p>Pair once and every check-in, note and appointment shows up on both phones as it happens.</p>
@@ -414,6 +423,29 @@ function pairingCard(inOnboarding) {
       <input id="joinCode" placeholder="ABCD-2345" autocapitalize="characters" autocomplete="off">
     </label>
     <button class="big" data-act="join-couple">Join</button>
+  </div>`
+}
+
+// Every phone (and browser) that has joined your couple. iPhones count Safari,
+// the home-screen icon and in-app browsers separately, so a few per person is normal.
+let devices = null, devicesLoading = false
+function loadDevices() {
+  if (devicesLoading || devices) return
+  devicesLoading = true
+  S.push('devices').then(r => { devices = r.devices || [] }, () => { devices = 'error' })
+    .finally(() => { devicesLoading = false; if (tab === 'plan' && planView === 'settings') render() })
+}
+function devicesCard() {
+  loadDevices()
+  const n = names()
+  const ago = iso => { const d = dayDiff(today0(), new Date(new Date(iso).setHours(0, 0, 0, 0))); return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago` }
+  const list = Array.isArray(devices) ? devices : []
+  return `<div class="card soft">
+    <h4>📱 Connected devices</h4>
+    ${devices === 'error' ? '<p class="fine">Couldn\'t load the list. Check your signal.</p>' : !devices ? '<p class="fine">Loading…</p>'
+      : list.map(d => `<div class="mile"><b>${d.role === 'mom' ? '🤰 ' + esc(n.mom) : '🧔 ' + esc(n.dad)}${d.me ? ' · this phone' : ''}<span class="why">Last opened ${ago(d.last_seen || d.joined_at)} · joined ${esc(fmtDate(new Date(d.joined_at)))}</span></b>${d.me ? '' : `<span><button class="mini del" data-rm-dev="${esc(d.user_id)}" aria-label="Remove device">Remove</button></span>`}</div>`).join('')}
+    <p class="fine">A few per person is normal: Safari and the home-screen icon count separately. Don't recognize one? Remove it, then tap <b>Change couple code</b> so old links stop working.</p>
+    <button class="ghost" data-act="rotate-code">Change couple code</button>
   </div>`
 }
 
@@ -428,7 +460,7 @@ function today() {
   const flags = flagsFor(herToday)
   const enc = pick(me() === 'mom' ? C.ENCOURAGE_MOM : C.ENCOURAGE_DAD, dayIndex())
   const upcoming = g ? C.MILESTONES.filter(m => m.week >= g.week).slice(0, 2) : []
-  const appts = entries('appointment').filter(a => a.data.date >= isoDate(new Date())).sort((a, b) => a.data.date.localeCompare(b.data.date)).slice(0, 2)
+  const appts = entries('appointment').filter(a => a.data.date && a.data.date >= isoDate(new Date())).sort((a, b) => a.data.date.localeCompare(b.data.date)).slice(0, 2)
   const lastNote = entries('note', other()).at(-1)
 
   let main = ''
@@ -460,7 +492,7 @@ function today() {
           <p class="fine">Tap one to start. Add symptoms and notes on the next screen.</p>
         </section>`
     const dadCI = entries('dadcheck', 'dad').filter(e => !e.local).at(-1)
-    if (dadCI && sameDay(dadCI.created_at)) main += `<section class="card soft"><p>${esc(n.dad)} checked in too: <b>${dadCI.data.feelings?.map(f => C.DAD_FEELINGS.find(x => x.id === f)?.label).filter(Boolean).join(', ') || 'stress ' + dadCI.data.stress + '/5'}</b></p></section>`
+    if (dadCI && sameDay(dadCI.created_at)) main += `<section class="card soft"><p>${esc(n.dad)} checked in too: <b>${dadCI.data.feelings?.map(f => C.DAD_FEELINGS.find(x => x.id === f)?.label).filter(Boolean).join(', ') || 'stress ' + num(dadCI.data.stress, 1, 5) + '/5'}</b></p></section>`
   }
 
   return `
@@ -477,7 +509,7 @@ function today() {
     <section class="card quote"><p>“${esc(enc)}”</p></section>
     ${upcoming.length || appts.length ? `<section class="card"><h3>Coming up</h3>
       ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
-      ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(new Date(g.lmp.getTime() + m.week * 7 * DAY))}` : ' · now'}</span></div>`).join('')}
+      ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
     </section>` : ''}`
 }
 
@@ -519,7 +551,7 @@ function checkinCard(ci, title) {
       ${energy ? `<div><span>${energy.emoji}</span>Energy: ${energy.label}</div>` : ''}
       ${d.temp ? `<div><span>🌡️</span>${esc(d.temp)}°</div>` : ''}
     </div>
-    ${syms.length ? `<div class="chips">${syms.map(([id, l]) => { const s = symptom(id); return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${lvl[l]}</span>` : '' }).join('')}</div>` : ''}
+    ${syms.length ? `<div class="chips">${syms.map(([id, l]) => { const s = symptom(id); l = num(l, 1, 3) | 0; return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${lvl[l]}</span>` : '' }).join('')}</div>` : ''}
     ${d.note ? `<p class="quote-inline">“${esc(d.note)}”</p>` : ''}
     <div class="react">
       ${hearts.length ? `<span>${hearts.map(h => esc(h.data.emoji)).join('')} from ${esc(nameOf(hearts[0].author_role))}</span>` : ''}
@@ -531,15 +563,24 @@ function checkinCard(ci, title) {
 // ── Check-in ────────────────────────────────────────────────────────────────
 function checkin() { return me() === 'mom' ? momCheckin() : dadCheckin() }
 
+// A check-in loaded back into the form (values cleaned, in case it came from another phone)
+function editDraft(e, auto = false) {
+  const symptoms = {}
+  for (const [id, l] of Object.entries(e.data.symptoms || {})) { const v = num(l, 0, 3) | 0; if (v) symptoms[id] = v }
+  return { kind: 'checkin', editing: e.id, auto, mood: num(e.data.mood, 0, 5) | 0, energy: num(e.data.energy, 0, 5) | 0, symptoms, temp: String(e.data.temp || ''), note: String(e.data.note || '') }
+}
+
 function momCheckin() {
-  draft = draft && draft.kind === 'checkin' ? draft : { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }
+  // already checked in today: open that one to update, instead of a blank form that would duplicate it
+  const todays = entries('checkin', 'mom').filter(e => sameDay(e.created_at)).at(-1)
+  if (!(draft && draft.kind === 'checkin')) draft = todays && me() === 'mom' ? editDraft(todays, true) : { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }
   const lvl = ['', 'mild', 'moderate', 'strong']
   const g = gest()
   // late-pregnancy-only symptoms are hidden early so the list stays short
   const wkNow = g ? g.week : 0
   const list = [...C.SYMPTOMS.filter(s => !(s.id === 'movement' && wkNow < 24) && !(s.id === 'swelling' && wkNow < 12) && !(s.id === 'backpain' && wkNow < 10)), ...customSymptoms()]
   return `
-    ${draft.editing ? `<section class="card soft"><p>✏️ <b>Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())}</b></p><button class="ghost" data-act="cancel-edit">Cancel editing</button></section>` : ''}
+    ${draft.editing ? `<section class="card soft"><p>✏️ <b>${draft.auto ? 'You already checked in today. Change anything here to update it.' : `Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())}`}</b></p><button class="ghost" data-act="${draft.auto ? 'new-checkin' : 'cancel-edit'}">${draft.auto ? 'Log a separate check-in instead' : 'Cancel editing'}</button></section>` : ''}
     <section class="card">
       <h3>How are you feeling today?</h3>
       <div class="moods">${C.MOOD.map(m => `<button data-mood="${m.v}" class="${draft.mood === m.v ? 'on' : ''}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
@@ -551,7 +592,8 @@ function momCheckin() {
       <p class="fine">Tap once for mild, again for moderate, again for strong, a fourth time to clear.</p>
       <div class="chips">${list.map(s => { const l = draft.symptoms[s.id] || 0; return `<button class="chip ${l ? 'on l' + l : ''}" data-sym="${s.id}">${s.emoji} ${esc(s.label)}${l ? ' · ' + lvl[l] : ''}</button>` }).join('')}<button class="chip add" data-act="add-symptom">＋ Add your own</button></div>
       ${Object.keys(draft.symptoms).length ? `<div class="explain">${Object.entries(draft.symptoms).map(([id, l]) => {
-        const s = symptom(id); const flag = s.flag && s.flagAt && l >= s.flagAt
+        const s = symptom(id); if (!s) return ''
+        const flag = s.flag && s.flagAt && l >= s.flagAt
         return `<div class="ex ${flag ? 'warn' : ''}"><b>${s.emoji} ${esc(s.label)}</b><p>${esc(s.meaning)}</p>${s.flag ? `<p class="flag">${flag ? '⚠️ ' : 'Call if: '}${esc(s.flag)}</p>` : ''}</div>`
       }).join('')}<p class="fine">${esc(C.DISCLAIMER_SHORT)}</p></div>` : ''}
     </section>
@@ -616,7 +658,7 @@ function recentList(kind, role) {
   if (kind === 'checkin') {
     return `<section class="card"><h3>Last 7 check-ins</h3><div class="spark">${list.slice().reverse().map(e => `<div title="${fmtWhen(e.created_at)}"><i style="height:${(e.data.mood || 0) * 20}%"></i><span>${C.MOOD.find(m => m.v === e.data.mood)?.emoji || ''}</span></div>`).join('')}</div></section>`
   }
-  return `<section class="card"><h3>Recent</h3>${list.map(e => `<div class="mile"><b>Stress ${e.data.stress}/5 ${e.local ? '🔒' : ''}</b><span>${fmtWhen(e.created_at)}</span></div>`).join('')}</section>`
+  return `<section class="card"><h3>Recent</h3>${list.map(e => `<div class="mile"><b>Stress ${num(e.data.stress, 1, 5)}/5 ${e.local ? '🔒' : ''}</b><span>${fmtWhen(e.created_at)}</span></div>`).join('')}</section>`
 }
 
 let breathTimer = null
@@ -672,7 +714,7 @@ function timeline() {
     </button>
     <button class="duo-card ${usView === 'him' ? 'on' : ''}" data-us="him">
       <div class="fine">🧔 ${esc(n.dad)}</div>
-      ${hisCI ? `<div class="big-emoji">${hisFeel(hisCI)[0]?.emoji || '🙂'}</div><div>Stress ${hisCI.data.stress}/5</div><div class="fine">${fmtWhen(hisCI.created_at)}</div>` : '<div class="big-emoji">–</div><div class="fine">No check-in yet</div>'}
+      ${hisCI ? `<div class="big-emoji">${hisFeel(hisCI)[0]?.emoji || '🙂'}</div><div>Stress ${num(hisCI.data.stress, 1, 5)}/5</div><div class="fine">${fmtWhen(hisCI.created_at)}</div>` : '<div class="big-emoji">–</div><div class="fine">No check-in yet</div>'}
     </button>
   </div>
   <div class="seg">${[['her', `${esc(n.mom)}'s side`], ['him', `${esc(n.dad)}'s side`], ['history', 'History'], ['feed', 'Notes']].map(([id, l]) => `<button data-us="${id}" class="${usView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
@@ -710,11 +752,11 @@ function hisSide() {
   return `
     <section class="card">
       <div class="ci-head"><h3>${me() === 'dad' ? 'Your latest check-in' : `${esc(n.dad)}'s latest check-in`} ${ci.local ? '🔒' : ''}</h3><span class="fine">${fmtWhen(ci.created_at)}</span></div>
-      <div class="ci-stats"><div><span>🌡️</span>Stress ${ci.data.stress}/5</div></div>
+      <div class="ci-stats"><div><span>🌡️</span>Stress ${num(ci.data.stress, 1, 5)}/5</div></div>
       ${feel.length ? `<div class="chips">${feel.map(f => `<span class="chip on">${f.emoji} ${esc(f.label)}</span>`).join('')}</div>` : ''}
       ${ci.data.note ? `<p class="quote-inline">“${esc(ci.data.note)}”</p>` : ''}
     </section>
-    <section class="card"><h3>Stress this week</h3>${bars(week, e => e.data.stress, 5, e => e ? String(e.data.stress) : '')}<p class="fine">Higher bar = more stressed.</p></section>
+    <section class="card"><h3>Stress this week</h3>${bars(week, e => e.data.stress, 5, e => e ? String(num(e.data.stress, 1, 5)) : '')}<p class="fine">Higher bar = more stressed.</p></section>
     ${common.length ? `<section class="card"><h3>${me() === 'dad' ? 'On your mind lately' : 'On his mind lately'}</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
     ${me() === 'mom'
       ? (support.length ? `<section class="card"><h3>💛 How you can support him</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : '')
@@ -729,7 +771,7 @@ function selfCareCard(ci, feel) {
   const basics = C.SELF_CARE_BASICS[dayIndex() % C.SELF_CARE_BASICS.length]
   return `<section class="card">
     <h3>🧘 Taking care of yourself</h3>
-    <p class="fine">Based on your last check-in: stress ${ci.data.stress}/5${feel.length ? ', ' + feel.map(f => f.label.toLowerCase()).join(', ') : ''}.</p>
+    <p class="fine">Based on your last check-in: stress ${num(ci.data.stress, 1, 5)}/5${feel.length ? ', ' + feel.map(f => f.label.toLowerCase()).join(', ') : ''}.</p>
     <ol class="plan">${list.map(t => `<li>${esc(t)}</li>`).join('')}</ol>
     <p class="fine">${esc(basics)}</p>
     <button class="ghost" data-tab="checkin">🫁 Do the 2-minute breathing reset</button>
@@ -758,7 +800,7 @@ function forHerCard() {
 
 // ── History & the OB visit summary ──────────────────────────────────────────
 const LVL = ['', 'mild', 'moderate', 'strong']
-const weekAt = iso => { const g = gest(); if (!g) return ''; const d = Math.floor((new Date(iso).setHours(0, 0, 0, 0) - g.lmp) / DAY); return d >= 0 ? `Week ${Math.floor(d / 7)}+${d % 7}` : '' }
+const weekAt = iso => { const g = gest(); if (!g) return ''; const d = dayDiff(new Date(iso).setHours(0, 0, 0, 0), g.lmp); return d >= 0 ? `Week ${Math.floor(d / 7)}+${d % 7}` : '' }
 const visibleDad = () => entries('dadcheck', 'dad').filter(e => !(e.local && me() !== 'dad'))
 
 function historyView() {
@@ -792,14 +834,14 @@ function historyRow(e) {
   const t = new Date(e.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
   if (e.kind === 'checkin') {
     const d = e.data, mood = C.MOOD.find(m => m.v === d.mood), en = C.ENERGY.find(m => m.v === d.energy)
-    const syms = Object.entries(d.symptoms || {}).map(([id, l]) => { const s = symptom(id); return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${LVL[l]}</span>` : '' }).join('')
+    const syms = Object.entries(d.symptoms || {}).map(([id, l]) => { const s = symptom(id); l = num(l, 1, 3) | 0; return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${LVL[l]}</span>` : '' }).join('')
     return `<div class="hrow"><div class="hwho">🤰 ${esc(names().mom)} · ${t}</div>
       <div>${mood ? `${mood.emoji} ${mood.label}` : ''}${en ? ` · energy ${en.label.toLowerCase()}` : ''}${d.temp ? ` · 🌡️ ${esc(d.temp)}°` : ''}</div>
       ${syms ? `<div class="chips">${syms}</div>` : ''}${d.note ? `<div class="quote-inline">“${esc(d.note)}”</div>` : ''}</div>`
   }
   const f = (e.data.feelings || []).map(id => C.DAD_FEELINGS.find(x => x.id === id)).filter(Boolean)
   return `<div class="hrow"><div class="hwho">🧔 ${esc(names().dad)} · ${t}${e.local ? ' · 🔒 private' : ''}</div>
-    <div>Stress ${e.data.stress}/5${f.length ? ' · ' + f.map(x => x.emoji + ' ' + esc(x.label)).join(', ') : ''}</div>
+    <div>Stress ${num(e.data.stress, 1, 5)}/5${f.length ? ' · ' + f.map(x => x.emoji + ' ' + esc(x.label)).join(', ') : ''}</div>
     ${e.data.note ? `<div class="quote-inline">“${esc(e.data.note)}”</div>` : ''}</div>`
 }
 
@@ -861,7 +903,7 @@ function feed() {
       if (e.kind === 'dadcheck') {
         if (e.local && me() !== 'dad') return ''
         const f = (e.data.feelings || []).map(id => C.DAD_FEELINGS.find(x => x.id === id)).filter(Boolean)
-        return `<section class="card soft"><div class="from">${who} · ${fmtWhen(e.created_at)} ${e.local ? '🔒 private' : ''} ${del}</div><p>Stress ${e.data.stress}/5 ${f.map(x => x.emoji + ' ' + esc(x.label)).join(', ')}</p>${e.data.note ? `<p class="quote-inline">“${esc(e.data.note)}”</p>` : ''}</section>`
+        return `<section class="card soft"><div class="from">${who} · ${fmtWhen(e.created_at)} ${e.local ? '🔒 private' : ''} ${del}</div><p>Stress ${num(e.data.stress, 1, 5)}/5 ${f.map(x => x.emoji + ' ' + esc(x.label)).join(', ')}</p>${e.data.note ? `<p class="quote-inline">“${esc(e.data.note)}”</p>` : ''}</section>`
       }
       return ''
     }).join('') : '<section class="card soft center"><p>Nothing yet. Check-ins and notes from both of you will show up here.</p></section>'}`
@@ -940,7 +982,7 @@ const amazonSearch = (q, fourUp = true) => `https://www.amazon.com/s?k=${encodeU
 function reviewsUrl(it) {
   const asin = asinOf(it.url)
   if (asin) return `https://www.amazon.com/product-reviews/${asin}?filterByStar=critical`
-  return it.url || amazonSearch(it.name, false)
+  return safeUrl(it.url) || amazonSearch(it.name, false)
 }
 // Car seats are recalled by NHTSA; other baby gear by the CPSC.
 function recallKind(name, cat) {
@@ -955,7 +997,7 @@ function recallUrl(kind, name) {
 const recallLink = (kind, name) => kind ? `<a class="chip" href="${esc(recallUrl(kind, name))}" target="_blank" rel="noopener">🛡️ Recall check${kind === 'nhtsa' ? ' (NHTSA)' : ''}</a>` : ''
 const parseStars = v => { const n = parseFloat(String(v).replace(',', '.')); return n >= 0 && n <= 5 ? Math.round(n * 10) / 10 : '' }
 async function lowRating(it) {
-  const r = await ask({ title: `${it.stars}★ is rated low`, text: `Want to know why? The 1 to 3 star reviews usually show the problem: it breaks, a safety worry, or it runs small. If the same complaint keeps coming up, it's worth picking something else. Run a recall check too.`, ok: 'Show me why', cancel: 'Keep it' })
+  const r = await ask({ title: `${num(it.stars, 0, 5)}★ is rated low`, text: `Want to know why? The 1 to 3 star reviews usually show the problem: it breaks, a safety worry, or it runs small. If the same complaint keeps coming up, it's worth picking something else. Run a recall check too.`, ok: 'Show me why', cancel: 'Keep it' })
   if (r && !window.open(reviewsUrl(it), '_blank', 'noopener')) toast('Tap "why?" on the item to see its reviews')
 }
 function suggestCard(items) {
@@ -1005,9 +1047,9 @@ function registry() {
         return `<div class="reg ${it.got ? 'got' : ''}">
           <button class="tick" data-reg-got="${i.id}" aria-label="Got it">${it.got ? '✅' : '⬜'}</button>
           <div class="reg-main">
-            <div class="reg-name">${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
+            <div class="reg-name">${safeUrl(it.url) ? `<a href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
             <div class="fine">${[it.url ? storeOf(it.url) : '', money(it.price), 'added by ' + by, it.got && it.gotBy ? 'got by ' + esc(nameOf(it.gotBy)) : ''].filter(Boolean).join(' · ')}</div>
-            ${it.stars !== '' && it.stars != null ? `<div class="fine rating ${it.stars < 4 ? 'low' : ''}">${it.stars < 4 ? '⚠️ ' : '⭐ '}${it.stars}★${it.reviews ? ` · ${Number(it.reviews).toLocaleString()} reviews` : ''}${it.reviews && it.reviews < 50 ? ' (few reviews, take with salt)' : ''}${it.stars < 4 ? ` · rated low <a href="${esc(reviewsUrl(it))}" target="_blank" rel="noopener">why?</a>` : ''}${it.ratedAt ? ` <span class="faint">as of ${esc(fmtDate(parseDate(it.ratedAt)))}</span>` : ''}</div>` : ''}
+            ${it.stars !== '' && it.stars != null ? `<div class="fine rating ${it.stars < 4 ? 'low' : ''}">${it.stars < 4 ? '⚠️ ' : '⭐ '}${num(it.stars, 0, 5)}★${it.reviews ? ` · ${Number(it.reviews).toLocaleString()} reviews` : ''}${it.reviews && it.reviews < 50 ? ' (few reviews, take with salt)' : ''}${it.stars < 4 ? ` · rated low <a href="${esc(reviewsUrl(it))}" target="_blank" rel="noopener">why?</a>` : ''}${it.ratedAt ? ` <span class="faint">as of ${esc(fmtDate(parseDate(it.ratedAt)))}</span>` : ''}</div>` : ''}
             ${!it.got && recallKind(it.name, it.cat) ? `<div class="reg-links">${recallLink(recallKind(it.name, it.cat), it.name)}</div>` : ''}
             ${it.claimed ? `<div class="claimed">🎁 <b>${esc(it.claimed.name)}</b> is getting this <button class="mini" data-reg-release="${i.id}">Release</button></div>` : ''}
             ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
@@ -1016,7 +1058,7 @@ function registry() {
         </div>`
       }).join('')}</section>`
     }).join('')}
-    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? '<button class="big" data-act="reg-starter">Add all ${C.REG_GUIDE.length} suggested basics</button>' : ''}</section>` : ''}
+    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? `<button class="big" data-act="reg-starter">Add all ${C.REG_GUIDE.length} suggested basics</button>` : ''}</section>` : ''}
     ${suggestCard(items)}
     <section class="card" id="regForm">
       <h3>${e ? 'Edit item' : 'Add an item'}</h3>
@@ -1048,7 +1090,7 @@ function registry() {
     </section>
     <section class="card">
       <h3>🔗 Our store registries</h3>
-      ${links.length ? links.map((l, i) => `<div class="mile"><a href="${esc(l.url)}" target="_blank" rel="noopener"><b>${esc(l.name)}</b></a><span><button class="mini del" data-reg-link-del="${i}">✕</button></span></div>`).join('') : '<p class="fine">Keep your Amazon, Target or Babylist registry links here so both of you can open them in one tap.</p>'}
+      ${links.length ? links.map((l, i) => `<div class="mile"><a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener"><b>${esc(l.name)}</b></a><span><button class="mini del" data-reg-link-del="${i}">✕</button></span></div>`).join('') : '<p class="fine">Keep your Amazon, Target or Babylist registry links here so both of you can open them in one tap.</p>'}
       <div class="row2"><input id="linkName" placeholder="e.g. Amazon registry"><input id="linkUrl" type="url" placeholder="https://…"></div>
       <button class="ghost" data-act="reg-link-add">＋ Save registry link</button>
       <p class="fine">Tip: Amazon's Baby Registry lets you add your partner as a co-registrant, so you can both add straight from the Amazon app too.</p>
@@ -1124,18 +1166,18 @@ function plan() {
 function calendar() {
   const g = gest()
   const lmp = g ? g.lmp : null
-  const appts = entries('appointment').slice().sort((a, b) => a.data.date.localeCompare(b.data.date))
+  const appts = entries('appointment').filter(a => a.data.date).sort((a, b) => a.data.date.localeCompare(b.data.date))
   return `
     <section class="card">
       <h3>Appointments</h3>
-      ${appts.length ? appts.map(a => `<div class="mile ${a.data.date < isoDate(new Date()) ? 'past' : ''}"><b>📅 ${esc(a.data.title)}${a.data.notes ? `<span class="why">${esc(a.data.notes)}</span>` : ''}</b><span>${fmtDate(parseDate(a.data.date))}${a.data.time ? ' · ' + esc(fmtTime(a.data.time)) : ''} <button class="mini" data-edit-appt="${a.id}">✏️</button> ${a.author_role === me() ? `<button class="mini del" data-del="${a.id}">✕</button>` : ''}</span></div>`).join('') : '<p class="fine">Add the OB visits so you both see what\'s next.</p>'}
+      ${appts.length ? appts.map(a => `<div class="mile appt ${a.data.date < isoDate(new Date()) ? 'past' : ''}"><b>📅 ${esc(a.data.title)}${a.data.notes ? `<span class="why">${esc(a.data.notes)}</span>` : ''}</b><span>${fmtDate(parseDate(a.data.date))}${a.data.time ? ' · ' + esc(fmtTime(a.data.time)) : ''} <button class="mini" data-edit-appt="${a.id}">✏️</button> ${a.author_role === me() ? `<button class="mini del" data-del="${a.id}">✕</button>` : ''}</span></div>`).join('') : '<p class="fine">Add the OB visits so you both see what\'s next.</p>'}
       ${apptForm()}
     </section>
     <section class="card">
       <h3>Milestones</h3>
       <div class="timeline">${C.MILESTONES.map(m => {
         const st = !g ? '' : g.week > m.week + 1 ? 'past' : g.week >= m.week ? 'now' : ''
-        const when = lmp ? fmtDate(new Date(lmp.getTime() + m.week * 7 * DAY)) : ''
+        const when = lmp ? fmtDate(addDays(lmp, m.week * 7)) : ''
         return `<details class="tl ${st}"><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${when}</span></summary><p>${esc(m.detail)}</p></details>`
       }).join('')}</div>
     </section>
@@ -1169,6 +1211,7 @@ function settings() {
     </section>
     <section class="card soft">
       <h3>Sync</h3>
+      ${S.status === 'removed' ? '<p><b>This phone was removed from your couple.</b> Everything here is still saved on it. To reconnect, tap Unpair above, then join again with your couple code.</p>' : ''}
       <p class="fine">${!S.syncAvailable() ? 'This copy runs on this phone only.' : !S.isPaired() ? 'Not paired yet.' : `Status: <b>${esc(S.status)}</b>${ago != null ? ` · last synced ${ago < 1 ? 'just now' : ago + ' min ago'}` : ''}${waiting ? ` · ${waiting} change${waiting === 1 ? '' : 's'} waiting to send` : ''}`}</p>
     </section>
     ${disclaimerCard()}`
@@ -1251,18 +1294,28 @@ app.addEventListener('click', async ev => {
   if (d.editAppt) { editAppt = d.editAppt; clearForm('appt'); render(); document.getElementById('apptTitle')?.scrollIntoView({ block: 'center' }); return }
   if (d.editCi) {
     const e = entries('checkin').find(x => x.id === d.editCi); if (!e) return
-    draft = { kind: 'checkin', editing: e.id, mood: e.data.mood || 0, energy: e.data.energy || 0, symptoms: { ...(e.data.symptoms || {}) }, temp: e.data.temp || '', note: e.data.note || '' }
+    draft = editDraft(e)
     tab = 'checkin'; render(); scrollTo(0, 0); return
   }
   if (d.del) { const gone = S.removeEntry(d.del); if (gone) undoToast('Deleted', () => S.restoreEntry(gone)); return }
+  if (d.rmDev) {
+    if (!await ask({ title: 'Remove this device?', text: 'It stops syncing right away. If it\'s one of yours, you can reconnect it later with your couple code.', ok: 'Remove', danger: true })) return
+    try { await S.push('remove-device', { user_id: d.rmDev }); devices = null; toast('Device removed') } catch (e) { toast('Couldn\'t remove it. Check your signal.') }
+    render(); return
+  }
 
   switch (d.act) {
     case 'save-dates': {
       const due = $('#due').value, lmp = due ? '' : $('#lmp').value
       if (!due && !lmp) return toast('Add the due date (or the first day of the last period)')
-      const data = { due, lmp, momName: $('#momName').value.trim(), dadName: $('#dadName').value.trim(), obPhone: $('#obPhone').value.trim() }
+      const typed = { due, lmp, momName: $('#momName').value.trim(), dadName: $('#dadName').value.trim(), obPhone: $('#obPhone').value.trim() }
+      // share only what changed, so this phone never overwrites the other's
+      // details with blanks or with values it never touched
+      const cur = profile()
+      const data = Object.fromEntries(Object.entries(typed).filter(([k, v]) => v && v !== cur[k]))
+      // switching from a period date to the doctor's due date: the due date wins anyway
       S.state.prefs = { ...S.state.prefs, ...data }
-      await S.addEntry('profile', data)
+      if (Object.keys(data).length) await S.addEntry('profile', data)
       onboardStep = firstRun ? 3 : 0
       firstRun = false
       render(); return
@@ -1277,7 +1330,14 @@ app.addEventListener('click', async ev => {
       onboardStep = p.due || p.lmp ? 3 : 1; render(); scrollTo(0, 0); return
     }
     case 'edit-dates': onboardStep = 1; render(); scrollTo(0, 0); return
-    case 'switch-role': S.state.role = other(); S.save(); draft = null; render(); toast('This phone is now ' + nameOf(me())); return
+    case 'switch-role': {
+      const to = other()
+      if (!await ask({ title: `Make this ${nameOf(to)}'s phone?`, text: `New check-ins and notes from this phone will be saved as ${nameOf(to)}'s, and partner alerts will go to ${nameOf(me())} instead. Only do this if you handed this phone to the other person.`, ok: 'Switch' })) return
+      try { await S.switchRole(to) } catch (e) { S.state.role = other(); S.save(); return toast('Couldn\'t switch. Check your signal and try again.') }
+      draft = null; stamped = ''; render(); toast('This phone is now ' + nameOf(me()))
+      if (pushPrefs().on) savePushSubscription().catch(() => {})
+      return
+    }
     case 'save-checkin': {
       if (!draft.mood) return
       const ciData = { mood: draft.mood, energy: draft.energy || null, symptoms: draft.symptoms, temp: draft.temp.trim(), note: draft.note.trim() }
@@ -1310,6 +1370,7 @@ app.addEventListener('click', async ev => {
     }
     case 'cancel-appt': editAppt = null; clearForm('appt'); render(); return
     case 'cancel-edit': draft = null; render(); return
+    case 'new-checkin': draft = { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }; render(); scrollTo(0, 0); return
     case 'add-symptom': {
       const label = ((await ask({ title: 'Add your own symptom', ok: 'Add', input: true, placeholder: 'e.g. Metallic taste' })) || '').slice(0, 40)
       if (!label) return
@@ -1436,6 +1497,11 @@ app.addEventListener('click', async ev => {
       S.state.prefs = { ...S.state.prefs, push: { ...pushPrefs(), on: false } }; S.save()
       render(); toast('Reminders off'); return
     }
+    case 'rotate-code': {
+      if (!await ask({ title: 'Change your couple code?', text: 'Phones already connected stay connected. Old invite links, personal links and home-screen icons stop working for any phone that isn\'t connected yet. After this, re-add Together to your home screen from this page.', ok: 'Change code' })) return
+      try { const code = await S.rotateCode(); stamped = ''; render(); toast('New code: ' + code.replace(/(.{4})(.{4})/, '$1-$2')) } catch (e) { toast('Couldn\'t change it. Check your signal.') }
+      return
+    }
     case 'copy-link':
       navigator.clipboard?.writeText(personalLink()).then(() => toast('Link copied. Keep it somewhere safe.'), () => toast(personalLink()))
       return
@@ -1446,7 +1512,8 @@ app.addEventListener('click', async ev => {
       return
     }
     case 'reset':
-      if (await ask({ title: 'Erase everything on this phone?', text: 'Shared entries stay in your couple\'s space and come back if you rejoin. Private check-ins on this phone are gone for good.', ok: 'Erase', danger: true })) { S.resetAll(); location.reload() }
+      // drop ?c= from the address too, or the reload would pair it right back
+      if (await ask({ title: 'Erase everything on this phone?', text: 'Shared entries stay in your couple\'s space and come back if you rejoin. Private check-ins on this phone are gone for good.', ok: 'Erase', danger: true })) { S.resetAll(); location.replace(location.pathname) }
       return
   }
 })
@@ -1496,6 +1563,8 @@ app.addEventListener('focusout', () => setTimeout(() => {
 }, 50))
 const claimSeen = new Set()
 S.onChange(evt => {
+  if (evt.type === 'storage-full') toast('This phone is out of storage space, so new changes may not be saved. Free up some space.')
+  if (evt.type === 'delete-refused') toast('That one can only be removed by the person who added it.')
   const u = evt.updated
   if (u && u.kind === 'registry' && u.data?.claimed && !claimSeen.has(u.id + u.data.claimed.at)) {
     claimSeen.add(u.id + u.data.claimed.at)
@@ -1518,8 +1587,17 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) rend
 
 async function boot() {
   const code = params.get('c'), role = params.get('r')
-  if (!S.state.coupleId && code && (role === 'mom' || role === 'dad') && S.syncAvailable()) {
+  const clean = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  // A phone that unpaired or erased itself stays that way, even when it's
+  // opened from an old home-screen icon that still carries the code.
+  const left = clean && S.leftCode() === clean
+  if (!S.state.coupleId && code && !left && (role === 'mom' || role === 'dad') && S.syncAvailable()) {
     const brandNew = !S.state.role && !S.state.entries.length
+    // a phone that already holds its own entries asks before sharing them into a couple
+    if (S.state.entries.some(e => !e.local && !e.synced) && !await ask({ title: 'Connect this phone?', text: `This link connects to couple code ${clean.replace(/(.{4})(.{4})/, '$1-$2')} and shares what's on this phone with it. Only continue if your partner sent you this link.`, ok: 'Connect' })) {
+      try { window.history.replaceState(null, '', location.pathname) } catch {}
+      render(); S.start(); return
+    }
     S.state.role = S.state.role || role
     S.save()
     autoJoining = true

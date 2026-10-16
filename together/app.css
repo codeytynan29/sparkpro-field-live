@@ -107,8 +107,8 @@ main { padding: 12px 16px; }
 
 .field { display: block; font-size: .85rem; color: var(--muted); margin: 10px 0; }
 .field input, .field textarea, .row2 input, .search, .compose textarea { display: block; width: 100%; margin-top: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-size: 1rem; color: var(--ink); }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.row2 input { margin: 4px 0; }
+.row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.row2 input { margin: 4px 0; min-width: 0; }
 .toggle { display: flex; gap: 8px; align-items: center; font-size: .9rem; margin: 6px 0 4px; }
 .toggle input { width: 20px; height: 20px; accent-color: var(--accent); }
 .or { text-align: center; color: var(--muted); font-size: .85rem; margin: 6px 0; }
@@ -127,6 +127,11 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 500; margi
 .mile { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .92rem; align-items: center; }
 .mile:last-of-type { border-bottom: 0; }
 .mile span { color: var(--muted); font-size: .82rem; text-align: right; white-space: nowrap; }
+.mile > b { min-width: 0; overflow-wrap: anywhere; }
+.mile > b .why { white-space: normal; text-align: left; }
+/* appointment rows: date and buttons drop under the title instead of off-screen */
+.mile.appt { flex-wrap: wrap; }
+.mile.appt > span { white-space: normal; margin-left: auto; display: flex; align-items: center; gap: 6px; }
 .mile.past { opacity: .5; }
 
 .timeline .tl { border-left: 3px solid var(--line); padding: 2px 0 8px 14px; margin-left: 6px; position: relative; }
@@ -140,7 +145,8 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 500; margi
 .timeline .fine { flex-basis: 100%; padding-left: 48px; }
 .timeline details p { font-size: .9rem; padding-left: 48px; }
 
-.seg { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; scrollbar-width: none; }
+/* wraps to a second row rather than hiding options off the edge */
+.seg { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .seg button { flex: none; background: var(--card); border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: .88rem; }
 .seg button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .search { margin: 0 0 10px; }

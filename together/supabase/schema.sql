@@ -174,3 +174,87 @@ alter table public.tg_notified enable row level security;
 create table if not exists public.tg_claims (id bigint generated always as identity primary key, ip text not null, token text not null, at timestamptz not null default now());
 create index if not exists tg_claims_ip_at on public.tg_claims (ip, at);
 alter table public.tg_claims enable row level security;
+
+-- ── Security audit (October 2026) ───────────────────────────────────────────
+-- Direct UPDATE / DELETE on entries are closed: a member could otherwise move
+-- rows to another couple or change author/kind. All edits go through
+-- tg_patch (data column only, your own couple) and tg_delete (your own role's
+-- entries from any of your devices, or registry items).
+alter table public.tg_members add column if not exists last_seen timestamptz not null default now();
+create table if not exists public.tg_push_log (id bigint generated always as identity primary key, user_id uuid not null, at timestamptz not null default now());
+create index if not exists tg_push_log_user_at on public.tg_push_log (user_id, at);
+alter table public.tg_push_log enable row level security; -- partner-alert rate limit (tg-push)
+
+create function public.tg_my_role(c uuid)
+returns text language sql stable security definer set search_path = '' as $$
+  select m.role from public.tg_members m where m.couple_id = c and m.user_id = auth.uid()
+$$;
+create function public.tg_patch(p_id uuid, p_patch jsonb)
+returns boolean language plpgsql security definer set search_path = '' as $$
+begin
+  if jsonb_typeof(p_patch) <> 'object' then raise exception 'bad patch'; end if;
+  update public.tg_entries set data = data || p_patch where id = p_id and public.tg_is_member(couple_id);
+  return found;
+end $$;
+create function public.tg_delete(p_id uuid)
+returns boolean language plpgsql security definer set search_path = '' as $$
+begin
+  delete from public.tg_entries e
+   where e.id = p_id and public.tg_is_member(e.couple_id)
+     and (e.kind = 'registry' or e.author_role = public.tg_my_role(e.couple_id));
+  return found;
+end $$;
+-- guest claims (tg-registry, service role only): first claim wins
+create function public.tg_claim(p_id uuid, p_couple uuid, p_name text)
+returns boolean language plpgsql security definer set search_path = '' as $$
+begin
+  update public.tg_entries
+     set data = data || jsonb_build_object('claimed', jsonb_build_object('name', left(p_name, 40), 'at', now()))
+   where id = p_id and couple_id = p_couple and kind = 'registry'
+     and coalesce(data->>'got', 'false') <> 'true'
+     and (data->'claimed' is null or data->'claimed' = 'null'::jsonb);
+  return found;
+end $$;
+create function public.tg_touch(c uuid)
+returns void language sql security definer set search_path = '' as $$
+  update public.tg_members set last_seen = now() where couple_id = c and user_id = auth.uid()
+$$;
+create function public.tg_rotate_code()
+returns text language plpgsql security definer set search_path = '' as $$
+declare
+  alphabet constant text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  c uuid; new_code text; b bytea;
+begin
+  select m.couple_id into c from public.tg_members m where m.user_id = auth.uid() order by m.joined_at desc limit 1;
+  if c is null then raise exception 'not paired'; end if;
+  loop
+    b := extensions.gen_random_bytes(8); new_code := '';
+    for i in 0..7 loop new_code := new_code || substr(alphabet, 1 + (get_byte(b, i) % 31), 1); end loop;
+    exit when not exists (select 1 from public.tg_couples where code = new_code);
+  end loop;
+  update public.tg_couples set code = new_code where id = c;
+  return new_code;
+end $$;
+revoke all on function public.tg_my_role(uuid) from public, anon;
+revoke all on function public.tg_patch(uuid, jsonb) from public, anon;
+revoke all on function public.tg_delete(uuid) from public, anon;
+revoke all on function public.tg_claim(uuid, uuid, text) from public, anon, authenticated;
+revoke all on function public.tg_touch(uuid) from public, anon;
+revoke all on function public.tg_rotate_code() from public, anon;
+grant execute on function public.tg_my_role(uuid) to authenticated;
+grant execute on function public.tg_patch(uuid, jsonb) to authenticated;
+grant execute on function public.tg_delete(uuid) to authenticated;
+grant execute on function public.tg_claim(uuid, uuid, text) to service_role;
+grant execute on function public.tg_touch(uuid) to authenticated;
+grant execute on function public.tg_rotate_code() to authenticated;
+
+alter policy tg_entries_update on public.tg_entries using (false) with check (false);
+alter policy tg_entries_delete on public.tg_entries using (false);
+alter policy tg_entries_delete_registry on public.tg_entries using (false);
+alter policy tg_entries_write on public.tg_entries with check (
+  public.tg_is_member(couple_id) and author_id = (select auth.uid())
+  and (author_role = public.tg_my_role(couple_id) or kind = 'registry'));
+revoke execute on function public.tg_is_member(uuid) from public, anon;
+revoke execute on function public.tg_patch_entry(uuid, jsonb) from public, anon, authenticated;
+-- Removing a device and pruning stale ones (45 days unused, never the newest
+-- per person) happen in the tg-push function with the service role.

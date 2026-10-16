@@ -15,9 +15,14 @@ import { SUPABASE_URL, SUPABASE_KEY } from './config.js?v=6'
 
 const LS = 'together.v1'
 const UNDO_MS = 6000
+const LEFT = 'together.left' // couple code this phone chose to leave (survives "Erase")
 const listeners = new Set()
 let sb = null
 let channel = null
+// When this phone last uploaded or patched an entry. A pull that started
+// before that moment may hold a stale copy, so it must not overwrite or drop it.
+const touched = new Map()
+const touch = id => touched.set(id, Date.now())
 
 export const state = load()
 
@@ -37,8 +42,12 @@ function load() {
   return s
 }
 
+let warnedFull = false
 export function save() {
-  try { localStorage.setItem(LS, JSON.stringify(state)) } catch {}
+  try { localStorage.setItem(LS, JSON.stringify(state)) } catch (e) {
+    console.error('could not save', e)
+    if (!warnedFull) { warnedFull = true; emit({ type: 'storage-full' }) }
+  }
 }
 
 export const syncAvailable = () => !!(SUPABASE_URL && SUPABASE_KEY)
@@ -96,7 +105,8 @@ export function removeEntry(id) {
   const e = state.entries.find(x => x.id === id)
   if (!e) return null
   state.entries = state.entries.filter(x => x.id !== id)
-  state.outbox = state.outbox.filter(x => x !== id)
+  // in place: flush() may be walking this same queue right now
+  const i = state.outbox.indexOf(id); if (i >= 0) state.outbox.splice(i, 1)
   delete state.patches[id]
   if (!e.local && e.synced) state.deletes.push({ id, at: Date.now() })
   save()
@@ -118,42 +128,74 @@ export function restoreEntry(e) {
   flush()
 }
 
-let flushing = false
-export async function flush() {
-  if (!sb || !state.coupleId || flushing || !pendingCount()) return
-  flushing = true
+// Errors the server will keep giving no matter how often we retry (not
+// allowed, bad data). Those items are dropped so they can't block the queue.
+const permanent = err => !!err && /^(42|22|23|PGRST)/.test(String(err.code || ''))
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+
+// One flush at a time. Asking again while one runs queues one more pass, and
+// callers can await whichever pass is running (so a pull never overtakes it).
+let running = null, again = false
+export function flush() {
+  if (!sb || !state.coupleId || !pendingCount()) return running || Promise.resolve()
+  if (running) { again = true; return running }
+  again = false
+  running = flushOnce().finally(() => {
+    running = null
+    if (again) flush()
+    else if (state.deletes.length) setTimeout(flush, UNDO_MS)
+  })
+  return running
+}
+async function flushOnce() {
   try {
     while (state.outbox.length) {
       const id = state.outbox[0]
       const e = state.entries.find(x => x.id === id)
       if (e) {
+        const sent = JSON.parse(JSON.stringify(e.data))
         const { error } = await sb.from('tg_entries').upsert({
-          id: e.id, couple_id: state.coupleId, author_role: e.author_role, kind: e.kind, data: e.data, created_at: e.created_at,
+          id: e.id, couple_id: state.coupleId, author_role: e.author_role, kind: e.kind, data: sent, created_at: e.created_at,
         }, { onConflict: 'id', ignoreDuplicates: true })
-        if (error) throw error
-        e.synced = true
+        if (error && !permanent(error)) throw error
+        e.synced = !error
+        if (error) { e.rejected = true; console.warn('server refused entry', id, error) }
+        touch(id)
+        const cur = state.entries.find(x => x.id === id)
+        if (!error && !cur) state.deletes.push({ id, at: Date.now() }) // deleted while it was uploading
+        if (!error && cur) {
+          cur.synced = true
+          // edited while it was uploading: send just the fields that changed
+          const diff = Object.fromEntries(Object.entries(cur.data).filter(([k, v]) => !same(v, sent[k])))
+          if (Object.keys(diff).length) state.patches[id] = { ...diff, ...(state.patches[id] || {}) }
+        }
       }
-      state.outbox.shift(); save()
+      const i = state.outbox.indexOf(id); if (i >= 0) state.outbox.splice(i, 1)
+      save()
     }
     for (const id of Object.keys(state.patches)) {
-      const { error } = await sb.rpc('tg_patch_entry', { p_id: id, p_patch: state.patches[id] })
-      if (error) throw error
-      delete state.patches[id]; save()
+      const patch = state.patches[id]
+      const { data: ok, error } = await sb.rpc('tg_patch', { p_id: id, p_patch: patch })
+      if (error && !permanent(error)) throw error
+      touch(id)
+      // only clear it if nothing new was merged in while it was on the way
+      if (state.patches[id] === patch) delete state.patches[id]
+      if (error || ok === false) console.warn('edit not applied', id, error)
+      save()
     }
     const due = state.deletes.filter(d => Date.now() - d.at >= UNDO_MS)
     for (const d of due) {
-      const { error } = await sb.from('tg_entries').delete().eq('id', d.id)
-      if (error) throw error
+      const { data: ok, error } = await sb.rpc('tg_delete', { p_id: d.id })
+      if (error && !permanent(error)) throw error
+      touch(d.id)
       state.deletes = state.deletes.filter(x => x.id !== d.id); save()
+      if (error || ok === false) emit({ type: 'delete-refused', id: d.id })
     }
     state.lastSync = Date.now(); save()
     setStatus('live')
   } catch (err) {
     console.warn('sync push failed, will retry', err)
     setStatus('offline')
-  } finally {
-    flushing = false
-    if (state.deletes.length) setTimeout(flush, UNDO_MS)
   }
 }
 
@@ -186,42 +228,61 @@ export async function start() {
   }
   if (started) return
   started = true
-  const catchUp = () => { if (!state.coupleId) return; if (!sb) { start(); return } flush(); pull() }
+  const catchUp = () => { if (!state.coupleId) return; if (!sb) { start(); return } flush().then(() => pull()) }
   window.addEventListener('online', catchUp)
   document.addEventListener('visibilitychange', () => { if (!document.hidden) catchUp() })
   // live updates can drop silently (sleep, network switch); re-check every minute
   setInterval(() => { if (!document.hidden) catchUp() }, 60000)
 }
 
-async function pull() {
+async function pull(quiet = false) {
   if (!sb || !state.coupleId) return
-  const { data, error } = await sb.from('tg_entries').select('id,author_role,kind,data,created_at')
-    .eq('couple_id', state.coupleId).order('created_at', { ascending: true }).limit(5000)
-  if (error) { setStatus('offline'); return }
+  const started = Date.now()
+  // page through: the server returns at most 1000 rows per request
+  const data = []
+  for (let from = 0; ; from += 1000) {
+    const { data: page, error } = await sb.from('tg_entries').select('id,author_role,kind,data,created_at')
+      .eq('couple_id', state.coupleId).order('created_at', { ascending: true }).order('id').range(from, from + 999)
+    if (error) { setStatus('offline'); return }
+    data.push(...page)
+    if (page.length < 1000) break
+  }
+  // Nothing came back but this phone has synced entries: it may have been
+  // removed from the couple. Keep everything on screen instead of wiping it.
+  if (!data.length && state.entries.some(e => e.synced)) {
+    const { data: role } = await sb.rpc('tg_my_role', { c: state.coupleId })
+    if (!role) { setStatus('removed'); return }
+  }
+  const fresh = id => (touched.get(id) || 0) >= started // changed here after this pull began
   const remoteIds = new Set(data.map(e => e.id))
   const deleting = new Set(state.deletes.map(d => d.id))
   // Drop only rows that were synced before and have since been deleted remotely.
   // Anything never uploaded (logged before pairing, or offline) must survive.
-  state.entries = state.entries.filter(e => e.local || !e.synced || remoteIds.has(e.id))
-  const added = merge(data.filter(e => !deleting.has(e.id)).map(e => ({ ...e, synced: true })))
+  state.entries = state.entries.filter(e => e.local || !e.synced || remoteIds.has(e.id) || fresh(e.id))
+  const added = merge(data.filter(e => !deleting.has(e.id) && !fresh(e.id)).map(e => ({ ...e, synced: true })))
   state.lastSync = Date.now()
   save()
   setStatus('live')
-  emit({ type: 'remote', added: added.filter(e => e.author_role !== state.role) })
+  emit({ type: 'remote', added: quiet ? [] : added.filter(e => e.author_role !== state.role) })
 }
 
 async function connect() {
   // Queue everything this device logged before pairing *before* the first pull,
   // so nothing local is ever mistaken for a remote deletion.
   if (!state.entries.some(e => e.kind === 'profile') && state.prefs && (state.prefs.lmp || state.prefs.due)) {
-    const { due, lmp, momName, dadName, obPhone } = state.prefs
-    merge([{ id: uuid(), kind: 'profile', data: { due, lmp, momName, dadName, obPhone }, author_role: state.role, created_at: new Date().toISOString() }])
+    // only the fields actually filled in, so blanks never overwrite the partner's
+    const data = Object.fromEntries(['due', 'lmp', 'momName', 'dadName', 'obPhone'].map(k => [k, state.prefs[k]]).filter(([, v]) => v))
+    merge([{ id: uuid(), kind: 'profile', data, author_role: state.role, created_at: new Date().toISOString() }])
   }
   const queued = new Set(state.outbox)
-  for (const e of state.entries) if (!e.local && !e.synced && !queued.has(e.id)) state.outbox.push(e.id)
+  for (const e of state.entries) if (!e.local && !e.synced && !e.rejected && !queued.has(e.id)) state.outbox.push(e.id)
   save()
+  sb.rpc('tg_touch', { c: state.coupleId }).then(() => {}, () => {})
+  // the code may have been changed from the other phone
+  sb.from('tg_couples').select('code').eq('id', state.coupleId).maybeSingle()
+    .then(({ data }) => { if (data?.code && data.code !== state.code) { state.code = data.code; save(); emit({ type: 'local' }) } }, () => {})
   await flush()
-  await pull()
+  await pull(true)
   if (channel) sb.removeChannel(channel)
   const row = r => ({ id: r.id, author_role: r.author_role, kind: r.kind, data: r.data, created_at: r.created_at, synced: true })
   channel = sb.channel('couple:' + state.coupleId)
@@ -259,6 +320,7 @@ export async function createCouple() {
 
 export async function joinCouple(code) {
   const c = await client()
+  try { localStorage.removeItem(LEFT) } catch {}
   const { data, error } = await c.rpc('tg_join_couple', { p_code: code, p_role: state.role })
   if (error) throw error
   state.coupleId = data.couple_id; state.code = data.code; save()
@@ -266,6 +328,7 @@ export async function joinCouple(code) {
 }
 
 export function unpair() {
+  try { if (state.code) localStorage.setItem(LEFT, state.code) } catch {}
   if (channel && sb) sb.removeChannel(channel)
   channel = null
   state.coupleId = null; state.code = null; state.outbox = []; state.patches = {}; state.deletes = []
@@ -276,6 +339,27 @@ export function unpair() {
 export function resetAll() {
   unpair()
   try { localStorage.removeItem(LS); localStorage.removeItem('together.auth') } catch {}
+}
+// The couple code this phone deliberately left; a link with it won't auto-rejoin.
+export const leftCode = () => { try { return localStorage.getItem(LEFT) } catch { return null } }
+
+// This phone becomes the other person: re-join under the new role so the
+// server tags new entries (and partner alerts) correctly.
+export async function switchRole(role) {
+  state.role = role; save()
+  if (!state.coupleId || !state.code) return
+  const c = await client()
+  const { error } = await c.rpc('tg_join_couple', { p_code: state.code, p_role: role })
+  if (error) throw error
+}
+
+// A new couple code. Paired phones stay paired; old invite links stop working.
+export async function rotateCode() {
+  const c = await client()
+  const { data, error } = await c.rpc('tg_rotate_code')
+  if (error) throw error
+  state.code = data; save()
+  return data
 }
 
 // Calls the tg-push function as this phone's anonymous user.
