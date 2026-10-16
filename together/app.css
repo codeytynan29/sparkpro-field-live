@@ -217,3 +217,4 @@ input.inp, select.inp { display: block; margin: 6px 0; }
 /* six tabs fit on a phone */
 .tabs button { font-size: .66rem; }
 .tabs button span { font-size: 1.2rem; }
+.store-search { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 4px; }

@@ -1537,6 +1537,8 @@ function registry() {
       <label class="field">What is it?
         <input id="regName" placeholder="e.g. Infant car seat" value="${esc(d.name || '')}">
       </label>
+      <div class="store-search"><span class="fine">Find it:</span>${[['amazon', 'Amazon'], ['target', 'Target'], ['walmart', 'Walmart']].map(([id, l]) => `<button class="chip" data-act="reg-search" data-store="${id}">🔎 ${l}</button>`).join('')}</div>
+      <p class="fine">Opens the store's search. Copy the product link there, paste it above, and the name fills in.</p>
       <div class="row2">
         <label class="field">Price <input id="regPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
         <label class="field">How many <input id="regQty" inputmode="numeric" value="${esc(d.qty || '1')}"></label>
@@ -1750,6 +1752,13 @@ app.addEventListener('click', async ev => {
       await S.addEntry('registry', { ...item, got: false })
       notifyPartner('registry', '', { title: `🎁 ${nameOf(me())} added to the registry`, body: name })
       toast('Added 🎁'); return
+    }
+    case 'reg-search': {
+      // Store search pages need no API key. On iPhone these usually open in the store's app.
+      const q = encodeURIComponent(($('#regName').value.trim() || 'baby registry essentials'))
+      const url = { amazon: `https://www.amazon.com/s?k=${q}`, target: `https://www.target.com/s?searchTerm=${q}`, walmart: `https://www.walmart.com/search?q=${q}` }[d.store]
+      if (url) window.open(url, '_blank', 'noopener')
+      return
     }
     case 'reg-cancel': editReg = null; render(); return
     case 'reg-starter': {
