@@ -702,19 +702,35 @@ function topCounts(list, n) {
 function timeline() {
   usView = usView || (me() === 'dad' ? 'her' : 'him')
   const n = names()
-  const herCI = latest('checkin', 'mom'), hisCI = entries('dadcheck', 'dad').filter(e => !(e.local && me() !== 'dad')).at(-1)
+  // Today's check-ins up top, fresh every morning. History lives further down.
+  const herAll = entries('checkin', 'mom'), hisAll = entries('dadcheck', 'dad').filter(e => !(e.local && me() !== 'dad'))
+  const herToday = herAll.filter(e => sameDay(e.created_at)), hisToday = hisAll.filter(e => sameDay(e.created_at))
+  const herCI = herToday.at(-1), hisCI = hisToday.at(-1)
   const moodOf = e => C.MOOD.find(m => m.v === e?.data?.mood)
   const hisFeel = e => (e?.data?.feelings || []).map(id => C.DAD_FEELINGS.find(f => f.id === id)).filter(Boolean)
-  const strip = `<div class="duo">
+  const topSyms = e => Object.entries(e.data.symptoms || {}).sort((a, b) => b[1] - a[1]).map(([id]) => symptom(id)).filter(Boolean)
+  const time = e => new Date(e.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  const count = list => list.length > 1 ? ` · ${list.length} today` : ''
+  const lastSeen = list => list.length ? `Last: ${esc(fmtWhen(list.at(-1).created_at))}` : 'No check-ins yet'
+  const mineMissing = me() === 'mom' ? !herCI : !hisToday.some(e => e.author_role === 'dad')
+  const strip = `<div class="today-head"><h3>Today</h3><span class="fine">${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</span></div>
+  <div class="duo">
     <button class="duo-card ${usView === 'her' ? 'on' : ''}" data-us="her">
       <div class="fine">🤰 ${esc(n.mom)}</div>
-      ${herCI ? `<div class="big-emoji">${moodOf(herCI)?.emoji || '•'}</div><div>${esc(moodOf(herCI)?.label || '')}${Object.keys(herCI.data.symptoms || {}).length ? ` · ${Object.keys(herCI.data.symptoms).length} symptom${Object.keys(herCI.data.symptoms).length > 1 ? 's' : ''}` : ''}</div><div class="fine">${fmtWhen(herCI.created_at)}</div>` : '<div class="big-emoji">–</div><div class="fine">No check-in yet</div>'}
+      ${herCI ? `<div class="big-emoji">${moodOf(herCI)?.emoji || '•'}</div><div>${esc(moodOf(herCI)?.label || 'Checked in')}</div>
+        ${topSyms(herCI).length ? `<div class="fine">${topSyms(herCI).slice(0, 2).map(s => esc(s.label)).join(', ')}${topSyms(herCI).length > 2 ? ` +${topSyms(herCI).length - 2}` : ''}</div>` : ''}
+        <div class="fine">${time(herCI)}${count(herToday)}</div>`
+      : `<div class="big-emoji">–</div><div>Not yet today</div><div class="fine">${lastSeen(herAll)}</div>`}
     </button>
     <button class="duo-card ${usView === 'him' ? 'on' : ''}" data-us="him">
       <div class="fine">🧔 ${esc(n.dad)}</div>
-      ${hisCI ? `<div class="big-emoji">${hisFeel(hisCI)[0]?.emoji || '🙂'}</div><div>Stress ${num(hisCI.data.stress, 1, 5)}/5</div><div class="fine">${fmtWhen(hisCI.created_at)}</div>` : '<div class="big-emoji">–</div><div class="fine">No check-in yet</div>'}
+      ${hisCI ? `<div class="big-emoji">${hisFeel(hisCI)[0]?.emoji || '🙂'}</div><div>Stress ${num(hisCI.data.stress, 1, 5)}/5</div>
+        ${hisFeel(hisCI).length ? `<div class="fine">${hisFeel(hisCI).slice(0, 2).map(f => esc(f.label)).join(', ')}</div>` : ''}
+        <div class="fine">${time(hisCI)}${count(hisToday)}</div>`
+      : `<div class="big-emoji">–</div><div>Not yet today</div><div class="fine">${lastSeen(hisAll)}</div>`}
     </button>
   </div>
+  ${mineMissing ? `<button class="ghost today-cta" data-tab="checkin">✍️ Add your check-in for today</button>` : ''}
   <div class="seg">${[['her', `${esc(n.mom)}'s side`], ['him', `${esc(n.dad)}'s side`], ['history', 'History'], ['feed', 'Notes']].map(([id, l]) => `<button data-us="${id}" class="${usView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
   return strip + (usView === 'her' ? herSide() : usView === 'him' ? hisSide() : usView === 'history' ? historyView() : feed())
 }
