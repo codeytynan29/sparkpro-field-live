@@ -313,7 +313,7 @@ function renderScreen() {
     <nav class="tabs">
       ${NAV.map(([id, i, l]) => id === 'checkin'
         ? `<button data-tab="checkin" class="plus ${sheet === 'log' ? 'on' : ''}" aria-label="Check in"><span>＋${!checkedInToday() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>Check in</button>`
-        : `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
+        : `<button data-tab="${id}" class="${tab === id || (tab === 'weeks' && id === 'today') ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
     </nav>
     ${sheet ? sheetHtml() : ''}`
   document.body.classList.toggle('noscroll', !!sheet)
@@ -321,8 +321,8 @@ function renderScreen() {
   if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
 }
 const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
-const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Is it safe?', plan: 'Plan', settings: 'Settings' }
-const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings() }
+const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Is it safe?', plan: 'Plan', settings: 'Settings', weeks: 'Week by week' }
+const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView() }
 
 // ── Sheets: forms slide up over the current screen ──────────────────────────
 // Drawn as part of the screen (so a live update redraws them too, and typed
@@ -665,6 +665,8 @@ const checkedInToday = () => myCheckinsToday().length > 0
 
 function babyCard(g, wk) {
   const [fruit, fe, len] = C.BABY_SIZE[wk] || C.BABY_SIZE[4]
+  const [body, help] = C.WEEKS[wk] || []
+  const mom = me() === 'mom'
   return `<section class="card baby">
       <div class="baby-top">
         <div class="fruit">${fe}</div>
@@ -673,10 +675,44 @@ function babyCard(g, wk) {
           <div>About the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
         </div>
       </div>
-      <p class="fine">${esc(C.WEEK_NOTES[wk] || '')}</p>
+      <p class="wk-line">👶 ${esc(C.WEEK_NOTES[wk] || '')}</p>
+      ${body ? `<p class="wk-line">${face('mom')} <b>${mom ? 'Your body' : esc(names().mom) + '\'s body'} this week:</b> ${esc(body)}</p>` : ''}
+      ${help && !mom ? `<p class="wk-line">🫶 <b>Your move this week:</b> ${esc(help)}</p>` : ''}
       <div class="bar"><i style="width:${g.pct}%"></i></div>
       <div class="due"><span>${['', '1st', '2nd', '3rd'][g.tri]} trimester</span><span>Due ${fmtDate(g.due)}${g.fromDoctor ? '' : ' (est.)'} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</span></div>
+      <button class="linkish" data-week="${wk}">📖 Week by week ›</button>
     </section>`
+}
+
+// ── Week by week: flip through every week, like the book ────────────────────
+let weekShown = null
+function weeksView() {
+  const g = gest(), now = g ? Math.max(4, Math.min(42, g.week)) : 4
+  const w = Math.max(4, Math.min(42, weekShown || now))
+  const [fruit, fe, len] = C.BABY_SIZE[w] || C.BABY_SIZE[4]
+  const [body, help] = C.WEEKS[w] || []
+  const start = g ? addDays(g.lmp, w * 7) : null, end = start ? addDays(start, 6) : null
+  const short = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  const tri = w < 14 ? 1 : w < 28 ? 2 : 3
+  const miles = C.MILESTONES.filter(m => m.week === w)
+  const st = C.STAGES.find(x => w >= x.from && w <= x.to)
+  return `<div class="week-nav">
+      <button class="more" data-week="${w - 1}" ${w <= 4 ? 'disabled' : ''} aria-label="Previous week">‹</button>
+      <div class="center"><b>Week ${w}</b><div class="fine">${start ? `${short(start)} – ${short(end)} · ` : ''}${['', '1st', '2nd', '3rd'][tri]} trimester${w === now ? ' · <b>this week</b>' : w < now ? ' · past' : ''}</div></div>
+      <button class="more" data-week="${w + 1}" ${w >= 42 ? 'disabled' : ''} aria-label="Next week">›</button>
+    </div>
+    <div class="week-dots">${Array.from({ length: 39 }, (_, i) => i + 4).map(x => `<button data-week="${x}" class="${x === w ? 'on' : ''} ${x === now ? 'now' : ''}" aria-label="Week ${x}"></button>`).join('')}</div>
+    <section class="card week-hero">
+      <div class="big-fruit">${fe}</div>
+      <p class="center">About the size of a <b>${esc(fruit)}</b><br><span class="fine">${esc(len)}</span></p>
+    </section>
+    <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
+    ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}
+    ${help ? `<section class="card"><h3>🫶 For ${me() === 'dad' ? 'you' : esc(names().dad)} this week</h3><p>${esc(help)}</p></section>` : ''}
+    ${miles.length ? `<section class="card"><h3>📅 This week's milestones</h3>${miles.map(m => `<p><b>${esc(m.title)}</b><br><span class="fine">${esc(m.detail)}</span></p>`).join('')}</section>` : ''}
+    ${st ? `<p class="fine center">Part of: ${st.emoji} ${esc(st.title)} (weeks ${st.from || 4}–${Math.min(st.to, 42)})</p>` : ''}
+    ${w !== now ? `<button class="big" data-week="${now}">Back to this week</button>` : ''}
+    <button class="big" data-tab="today">Done</button>`
 }
 
 function datesCard() {
@@ -1539,6 +1575,7 @@ app.addEventListener('click', async ev => {
   if (d.role) { S.state.role = d.role; S.save(); firstRun = true; onboardStep = 1; render(); return }
   if (d.lt) { lookupTab = d.lt; lookupQuery = ''; render(); scrollTo(0, 0); return }
   if (d.q) { lookupQuery = d.q; render(); return }
+  if (d.week) { weekShown = +d.week; const fresh = tab !== 'weeks'; tab = 'weeks'; sheet = null; render(); if (fresh) scrollTo(0, 0); return }
   if (d.us) { usView = d.us; scrollFeed = d.us === 'feed'; render(); return }
   if (d.hw) { histWho = d.hw; render(); return }
   if (d.hd) { histDays = d.hd === 'all' ? 'all' : +d.hd; render(); return }

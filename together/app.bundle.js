@@ -87,6 +87,51 @@ const WEEK_NOTES = {
   41: '"Late term." Your provider will talk about monitoring and induction options.',
 }
 
+// ── Week by week: the body side (baby side is WEEK_NOTES) ───────────────────
+// [what's common in the body this week, one thing for the partner this week]
+// General patterns for a typical pregnancy; everyone's timing differs.
+const WEEKS = {
+  4: ['A missed period, maybe light spotting from implantation, mild cramps and tiredness. Many feel nothing yet.', 'Start a shared note of questions for the first OB visit.'],
+  5: ['Tiredness, sore or fuller breasts, needing to pee more, and mood swings. Nausea can start any day now.', 'Take over cooking smells and the trash, before nausea makes them unbearable.'],
+  6: ['Nausea often starts around now (any time of day, not just mornings), along with bloating and exhaustion.', 'Keep plain crackers and water by the bed for the mornings.'],
+  7: ['Nausea and food aversions can ramp up. Smells get stronger. Extra saliva is common too.', 'Ask what sounds OK to eat today, and go get it.'],
+  8: ['Peak tiredness for many. The uterus is about the size of an orange; mild cramps and bloating are common.', 'Go to the first prenatal visit together if you can, and bring the question list.'],
+  9: ['Nausea often peaks this week. Headaches, constipation and moodiness are common.', 'Handle dinner and dishes completely this week.'],
+  10: ['Visible veins, round ligament twinges, and clothes getting snug around the waist.', 'Help {m:them} find comfortable, stretchy clothes. Small wins count.'],
+  11: ['Nausea may start easing for some. Hair and nails can grow faster; heartburn may appear.', 'Plan a low-key evening: {m:their} pick of food and show.'],
+  12: ['The uterus starts rising above the pelvic bone. Peeing often may ease a little.', 'Talk about when and how you want to share the news.'],
+  13: ['End of the first trimester. Energy often begins to come back; nausea fades for many.', 'Celebrate making it through the first trimester together.'],
+  14: ['More energy and appetite. A small bump may show. A stuffy nose and bleeding gums are common.', 'Use the extra energy: take a walk together a few times this week.'],
+  15: ['Round ligament pain (sharp twinges low on the sides), nosebleeds, and a growing appetite.', 'Remind {m:them} to stand up and turn over slowly. Offer a hand.'],
+  16: ['Some feel the first flutters (more often by 18–22 weeks in a first pregnancy). Skin may glow, or break out.', 'Ask about movement each evening; it will be your turn to feel kicks soon.'],
+  17: ['The center of gravity shifts. Backaches, heartburn and vivid dreams are common.', 'Get a body pillow for better side sleeping.'],
+  18: ['Flutters more likely now. Dizziness can happen when standing up fast. Feet may swell a little.', 'Talk or read to the bump: baby can start hearing sounds.'],
+  19: ['Hip and lower back aches; skin changes like a dark line on the belly (linea nigra) are common.', 'Book the anatomy scan together if it isn\'t already on the calendar.'],
+  20: ['Halfway. The top of the uterus is around the belly button. Movements are getting stronger.', 'Mark the halfway point with something small, like a photo or a letter to the baby.'],
+  21: ['Stronger kicks, possible leg cramps, and Braxton Hicks (practice contractions) may begin.', 'Learn how to help with a leg cramp: flex the foot, toes toward the shin.'],
+  22: ['Stretch marks may appear. Swollen feet late in the day and an "outie" belly button are common.', 'Feet up at night, and a foot rub if {m:they}{m:\'s|\'re} up for it.'],
+  23: ['Kicks may now be felt from the outside. Backaches and heartburn continue.', 'Put your hand on the bump in the evenings, when babies are often active.'],
+  24: ['Glucose screening window opens (24–28 weeks). Itchy stretching skin and dry eyes are common.', 'Learn the preterm labor signs together.'],
+  25: ['More heartburn, hemorrhoids or constipation, and trouble getting comfortable at night.', 'Keep Tums and water on {m:their} nightstand.'],
+  26: ['Sleep gets harder. Braxton Hicks may be more frequent; they should ease with rest and water.', 'Start a childbirth class or put one on the calendar.'],
+  27: ['Last week of the second trimester. Leg cramps, backaches and shortness of breath may increase.', 'Get the Tdap shot too if you\'re not up to date (it protects the baby).'],
+  28: ['Third trimester. Visits get more frequent. Pay attention to the baby\'s daily movement pattern.', 'Learn what "fewer movements" means and when to call labor & delivery.'],
+  29: ['Heartburn, constipation and needing to pee more as the baby grows. Tiredness returns.', 'Take over anything involving bending, lifting or long standing.'],
+  30: ['Shortness of breath as the uterus pushes up; trouble sleeping and mood swings are common.', 'Prop pillows behind {m:their} back at night and keep the room cool.'],
+  31: ['Leaky breasts (colostrum) may start. Braxton Hicks get more noticeable.', 'Pre-register at the hospital this week.'],
+  32: ['Most babies are settling head-down. Swelling, backaches and frequent peeing continue.', 'Pick a pediatrician together.'],
+  33: ['Pelvic pressure, clumsiness from the shifting center of gravity, and broken sleep.', 'Start packing the hospital bag, including your own.'],
+  34: ['Tired again, blurry vision can happen (mention it), and swelling in the feet and ankles.', 'Install the car seat and get it checked for free.'],
+  35: ['More pressure low in the pelvis and needing to pee constantly. Visits are often weekly soon.', 'Stock the freezer with easy meals.'],
+  36: ['Group B strep swab (36–37 weeks). Baby may "drop," making breathing easier but peeing harder.', 'Save the labor & delivery number in your phone and know the route.'],
+  37: ['Early term. Nesting urges, more discharge, and possibly losing the mucus plug.', 'Keep your phone charged and on loud from now on.'],
+  38: ['Pelvic pressure and practice contractions. Real labor contractions get longer, stronger and closer.', 'Learn to time contractions: start of one to the start of the next.'],
+  39: ['Full term. Waiting, discomfort and impatience are all normal. Rest while you can.', 'Plan easy, comforting things to do together while you wait.'],
+  40: ['Due date week. Only about 1 in 20 babies arrive on the date. Keep tracking movements.', 'Be patient and steady: no "any news?" check-ins from family on your watch.'],
+  41: ['Late term. Your provider will talk about monitoring and induction options.', 'Help {m:them} rest and keep the plans flexible.'],
+  42: ['Most providers recommend delivery by now if labor hasn\'t started.', 'Stay close and keep everything ready to go.'],
+}
+
 // ── Stages: what changes as the pregnancy goes on ───────────────────────────
 // Today shows the current stage to both of you: what's common right now and
 // how to handle it, what to watch for, and what's coming next. `common` lists
@@ -851,7 +896,7 @@ const INFO_UPDATED = 'October 2026'
 const REVIEWED = false
 const DISCLAIMER_SHORT = 'Not medical advice. Compiled by an AI assistant from public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT } }
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get WEEKS() { return WEEKS }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT } }
 })()
 
 const S = (() => {
@@ -1551,7 +1596,7 @@ function renderScreen() {
     <nav class="tabs">
       ${NAV.map(([id, i, l]) => id === 'checkin'
         ? `<button data-tab="checkin" class="plus ${sheet === 'log' ? 'on' : ''}" aria-label="Check in"><span>＋${!checkedInToday() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>Check in</button>`
-        : `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
+        : `<button data-tab="${id}" class="${tab === id || (tab === 'weeks' && id === 'today') ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
     </nav>
     ${sheet ? sheetHtml() : ''}`
   document.body.classList.toggle('noscroll', !!sheet)
@@ -1559,8 +1604,8 @@ function renderScreen() {
   if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
 }
 const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
-const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Is it safe?', plan: 'Plan', settings: 'Settings' }
-const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings() }
+const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Is it safe?', plan: 'Plan', settings: 'Settings', weeks: 'Week by week' }
+const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView() }
 
 // ── Sheets: forms slide up over the current screen ──────────────────────────
 // Drawn as part of the screen (so a live update redraws them too, and typed
@@ -1903,6 +1948,8 @@ const checkedInToday = () => myCheckinsToday().length > 0
 
 function babyCard(g, wk) {
   const [fruit, fe, len] = C.BABY_SIZE[wk] || C.BABY_SIZE[4]
+  const [body, help] = C.WEEKS[wk] || []
+  const mom = me() === 'mom'
   return `<section class="card baby">
       <div class="baby-top">
         <div class="fruit">${fe}</div>
@@ -1911,10 +1958,44 @@ function babyCard(g, wk) {
           <div>About the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
         </div>
       </div>
-      <p class="fine">${esc(C.WEEK_NOTES[wk] || '')}</p>
+      <p class="wk-line">👶 ${esc(C.WEEK_NOTES[wk] || '')}</p>
+      ${body ? `<p class="wk-line">${face('mom')} <b>${mom ? 'Your body' : esc(names().mom) + '\'s body'} this week:</b> ${esc(body)}</p>` : ''}
+      ${help && !mom ? `<p class="wk-line">🫶 <b>Your move this week:</b> ${esc(help)}</p>` : ''}
       <div class="bar"><i style="width:${g.pct}%"></i></div>
       <div class="due"><span>${['', '1st', '2nd', '3rd'][g.tri]} trimester</span><span>Due ${fmtDate(g.due)}${g.fromDoctor ? '' : ' (est.)'} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</span></div>
+      <button class="linkish" data-week="${wk}">📖 Week by week ›</button>
     </section>`
+}
+
+// ── Week by week: flip through every week, like the book ────────────────────
+let weekShown = null
+function weeksView() {
+  const g = gest(), now = g ? Math.max(4, Math.min(42, g.week)) : 4
+  const w = Math.max(4, Math.min(42, weekShown || now))
+  const [fruit, fe, len] = C.BABY_SIZE[w] || C.BABY_SIZE[4]
+  const [body, help] = C.WEEKS[w] || []
+  const start = g ? addDays(g.lmp, w * 7) : null, end = start ? addDays(start, 6) : null
+  const short = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  const tri = w < 14 ? 1 : w < 28 ? 2 : 3
+  const miles = C.MILESTONES.filter(m => m.week === w)
+  const st = C.STAGES.find(x => w >= x.from && w <= x.to)
+  return `<div class="week-nav">
+      <button class="more" data-week="${w - 1}" ${w <= 4 ? 'disabled' : ''} aria-label="Previous week">‹</button>
+      <div class="center"><b>Week ${w}</b><div class="fine">${start ? `${short(start)} – ${short(end)} · ` : ''}${['', '1st', '2nd', '3rd'][tri]} trimester${w === now ? ' · <b>this week</b>' : w < now ? ' · past' : ''}</div></div>
+      <button class="more" data-week="${w + 1}" ${w >= 42 ? 'disabled' : ''} aria-label="Next week">›</button>
+    </div>
+    <div class="week-dots">${Array.from({ length: 39 }, (_, i) => i + 4).map(x => `<button data-week="${x}" class="${x === w ? 'on' : ''} ${x === now ? 'now' : ''}" aria-label="Week ${x}"></button>`).join('')}</div>
+    <section class="card week-hero">
+      <div class="big-fruit">${fe}</div>
+      <p class="center">About the size of a <b>${esc(fruit)}</b><br><span class="fine">${esc(len)}</span></p>
+    </section>
+    <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
+    ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}
+    ${help ? `<section class="card"><h3>🫶 For ${me() === 'dad' ? 'you' : esc(names().dad)} this week</h3><p>${esc(help)}</p></section>` : ''}
+    ${miles.length ? `<section class="card"><h3>📅 This week's milestones</h3>${miles.map(m => `<p><b>${esc(m.title)}</b><br><span class="fine">${esc(m.detail)}</span></p>`).join('')}</section>` : ''}
+    ${st ? `<p class="fine center">Part of: ${st.emoji} ${esc(st.title)} (weeks ${st.from || 4}–${Math.min(st.to, 42)})</p>` : ''}
+    ${w !== now ? `<button class="big" data-week="${now}">Back to this week</button>` : ''}
+    <button class="big" data-tab="today">Done</button>`
 }
 
 function datesCard() {
@@ -2777,6 +2858,7 @@ app.addEventListener('click', async ev => {
   if (d.role) { S.state.role = d.role; S.save(); firstRun = true; onboardStep = 1; render(); return }
   if (d.lt) { lookupTab = d.lt; lookupQuery = ''; render(); scrollTo(0, 0); return }
   if (d.q) { lookupQuery = d.q; render(); return }
+  if (d.week) { weekShown = +d.week; const fresh = tab !== 'weeks'; tab = 'weeks'; sheet = null; render(); if (fresh) scrollTo(0, 0); return }
   if (d.us) { usView = d.us; scrollFeed = d.us === 'feed'; render(); return }
   if (d.hw) { histWho = d.hw; render(); return }
   if (d.hd) { histDays = d.hd === 'all' ? 'all' : +d.hd; render(); return }

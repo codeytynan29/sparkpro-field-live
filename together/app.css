@@ -437,3 +437,16 @@ details summary { padding: 10px 0; margin-top: 0; }
 .linkish.tiny { padding: 0 4px; min-height: 0; font-size: .75rem; font-weight: 600; }
 .bubble .fine { display: block; margin-top: 2px; }
 .call-banner.fix { margin: 4px 16px 0; width: calc(100% - 32px); }
+
+/* week by week */
+.wk-line { font-size: .9375rem; margin: 8px 0; }
+.week-nav { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; margin-bottom: 8px; }
+.week-nav b { font-size: 1.25rem; }
+.week-nav .more { font-size: 2rem; background: var(--soft); }
+.week-nav .more:disabled { opacity: .3; }
+.week-dots { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: 0 0 12px; }
+.week-dots button { width: 14px; height: 14px; padding: 0; border: 0; border-radius: 50%; background: var(--line); }
+.week-dots button.now { box-shadow: 0 0 0 2px var(--accent); }
+.week-dots button.on { background: var(--accent); transform: scale(1.25); }
+.week-hero { text-align: center; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--card)), color-mix(in srgb, var(--accent-2) 10%, var(--card))); }
+.big-fruit { font-size: 5rem; line-height: 1.2; }
