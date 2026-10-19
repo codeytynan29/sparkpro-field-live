@@ -393,6 +393,32 @@ export const DAD_TRIMESTER = {
   3: ['Pack the hospital bag, install the car seat, practice the drive.', 'Learn labor basics so you can advocate: how to time contractions, when to go in.', 'Prep freezer meals and line up help for the first two weeks home.'],
 }
 
+// ── Good-morning tips (first open of the day) ───────────────────────────────
+export const MORNING_MOM = [
+  'Eat a few plain crackers before you even sit up. An empty stomach makes morning nausea worse.',
+  'Prenatal vitamin with breakfast today. If it upsets your stomach, try it at night instead.',
+  'Fill a big water bottle now and keep it with you. Dehydration makes nausea, headaches and dizziness worse.',
+  'Stand up slowly this morning. Blood pressure dips are normal right now.',
+  'Plan small snacks every 2–3 hours today rather than three big meals.',
+  'Pick one thing to let go of today. Rest is part of the work.',
+  'Get 10 minutes of daylight or a short walk. It helps energy and sleep tonight.',
+  'Anything worrying you? Write it down for the next OB visit, or call the nurse line. That\'s what it\'s for.',
+  'Keep caffeine under 200 mg today: about one 12 oz home-brewed coffee.',
+  'Check in when you get a minute. It tells your partner exactly how to help today.',
+]
+export const MORNING_DAD = [
+  'Ask her one question before you leave: "What would make today easier?" Then do it.',
+  'Put water and a snack where she\'ll be today. Small and steady beats big gestures.',
+  'Take one chore completely off her plate today. Own it, start to finish.',
+  'Text her midday. "Thinking of you, need anything?" lands bigger than you\'d think.',
+  'Plan tonight\'s dinner now so she doesn\'t have to think about it (and no strong smells).',
+  'Check in with yourself today too. Stress shows up as a short fuse later.',
+  'Is the next appointment in your calendar? Put it there now.',
+  'Trash, litter box, anything smelly: still your department.',
+  'Notice one thing she\'s handling well and tell her tonight.',
+  'Get your own sleep, food and a workout in. A steady you is the best support.',
+]
+
 export const ENCOURAGE_MOM = [
   'Growing a whole person is exhausting work, and you\'re doing it.',
   'Whatever you got done today is enough.',

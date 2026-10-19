@@ -85,6 +85,16 @@ await test('his Today shows "she logged X, try Y" and a game plan', async page =
   ok(t.includes('Your game plan today'), 'game plan missing')
 })
 
+await test('a good-morning tip shows once a day and goes away when tapped', async page => {
+  await seed(page, 'dad', [momCI(0, { symptoms: { nausea: 2 } })])
+  const card = page.locator('.card.morning')
+  ok(await card.isVisible() && (await card.innerText()).includes('last check-in'), 'tip missing or not built from her check-in')
+  await page.click('[data-act=morning-ok]')
+  ok(!(await card.count()), 'tip did not go away')
+  await page.reload(); await page.waitForTimeout(300)
+  ok(!(await card.count()), 'tip came back the same day')
+})
+
 await test('Us → his side: self-care on his phone, "support him" only on hers', async page => {
   const dc = { id: 'dc', kind: 'dadcheck', author_role: 'dad', created_at: at(0), synced: true, data: { stress: 4, feelings: ['worried'] } }
   await seed(page, 'dad', [momCI(0, { symptoms: { nausea: 1 } }), dc])

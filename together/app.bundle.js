@@ -410,6 +410,32 @@ const DAD_TRIMESTER = {
   3: ['Pack the hospital bag, install the car seat, practice the drive.', 'Learn labor basics so you can advocate: how to time contractions, when to go in.', 'Prep freezer meals and line up help for the first two weeks home.'],
 }
 
+// ── Good-morning tips (first open of the day) ───────────────────────────────
+const MORNING_MOM = [
+  'Eat a few plain crackers before you even sit up. An empty stomach makes morning nausea worse.',
+  'Prenatal vitamin with breakfast today. If it upsets your stomach, try it at night instead.',
+  'Fill a big water bottle now and keep it with you. Dehydration makes nausea, headaches and dizziness worse.',
+  'Stand up slowly this morning. Blood pressure dips are normal right now.',
+  'Plan small snacks every 2–3 hours today rather than three big meals.',
+  'Pick one thing to let go of today. Rest is part of the work.',
+  'Get 10 minutes of daylight or a short walk. It helps energy and sleep tonight.',
+  'Anything worrying you? Write it down for the next OB visit, or call the nurse line. That\'s what it\'s for.',
+  'Keep caffeine under 200 mg today: about one 12 oz home-brewed coffee.',
+  'Check in when you get a minute. It tells your partner exactly how to help today.',
+]
+const MORNING_DAD = [
+  'Ask her one question before you leave: "What would make today easier?" Then do it.',
+  'Put water and a snack where she\'ll be today. Small and steady beats big gestures.',
+  'Take one chore completely off her plate today. Own it, start to finish.',
+  'Text her midday. "Thinking of you, need anything?" lands bigger than you\'d think.',
+  'Plan tonight\'s dinner now so she doesn\'t have to think about it (and no strong smells).',
+  'Check in with yourself today too. Stress shows up as a short fuse later.',
+  'Is the next appointment in your calendar? Put it there now.',
+  'Trash, litter box, anything smelly: still your department.',
+  'Notice one thing she\'s handling well and tell her tonight.',
+  'Get your own sleep, food and a workout in. A steady you is the best support.',
+]
+
 const ENCOURAGE_MOM = [
   'Growing a whole person is exhausting work, and you\'re doing it.',
   'Whatever you got done today is enough.',
@@ -623,7 +649,7 @@ const INFO_UPDATED = 'October 2026'
 const REVIEWED = false
 const DISCLAIMER_SHORT = 'Not medical advice. Compiled by an AI assistant from public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT } }
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT } }
 })()
 
 const S = (() => {
@@ -1160,7 +1186,7 @@ function reminders() {
   if (Array.isArray(pr.reminders)) return pr.reminders
   if (pr.hour != null) return [{ time: String(pr.hour).padStart(2, '0') + ':00', kind: 'tip' }]
   return me() === 'mom'
-    ? [{ time: '09:00', kind: 'checkin' }, { time: '14:00', kind: 'checkin' }, { time: '19:30', kind: 'tip' }]
+    ? [{ time: '08:00', kind: 'tip' }, { time: '09:30', kind: 'checkin' }, { time: '14:00', kind: 'checkin' }, { time: '19:30', kind: 'tip' }]
     : [{ time: '08:30', kind: 'tip' }, { time: '20:00', kind: 'checkin' }]
 }
 function setReminders(list) {
@@ -1506,6 +1532,7 @@ function today() {
   }
 
   return `
+    ${morningCard()}
     ${flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''}
     ${g ? babyCard(g, wk, fe, fruit, len) : datesCard()}
     ${main}
@@ -1521,6 +1548,26 @@ function today() {
       ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
       ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
     </section>` : ''}`
+}
+
+// First open of the day: a short tip at the top of Today, until tapped away.
+// His is built from her latest check-in when there's a recent one.
+function morningCard() {
+  const day = isoDate(new Date())
+  if ((S.state.prefs || {}).morningSeen === day) return ''
+  const h = new Date().getHours()
+  const hello = h < 12 ? '☀️ Good morning' : h < 17 ? '👋 Good afternoon' : '🌙 Good evening'
+  let tip = pick(me() === 'mom' ? C.MORNING_MOM : C.MORNING_DAD, dayIndex()), why = ''
+  if (me() === 'dad') {
+    const ci = latest('checkin', 'mom')
+    const step = ci && Date.now() - new Date(ci.created_at) < 30 * 3600e3 ? gamePlan(ci)[0] : null
+    if (step) { tip = step.t; why = `From ${esc(names().mom)}'s last check-in (${esc(step.why)})` }
+  }
+  return `<section class="card morning">
+    <h3>${hello}, ${esc(nameOf(me()))}</h3>
+    <p>${esc(tip)}</p>${why ? `<p class="fine">${why}</p>` : ''}
+    <button class="ghost" data-act="morning-ok">Got it 👍</button>
+  </section>`
 }
 
 function babyCard(g, wk, fe, fruit, len) {
@@ -2395,6 +2442,7 @@ app.addEventListener('click', async ev => {
     }
     case 'cancel-appt': editAppt = null; clearForm('appt'); render(); return
     case 'cancel-edit': draft = null; render(); return
+    case 'morning-ok': S.state.prefs = { ...S.state.prefs, morningSeen: isoDate(new Date()) }; S.save(); render(); return
     case 'add-symptom': {
       const label = ((await ask({ title: 'Add your own symptom', ok: 'Add', input: true, placeholder: 'e.g. Metallic taste' })) || '').slice(0, 40)
       if (!label) return

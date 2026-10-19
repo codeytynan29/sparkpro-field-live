@@ -59,6 +59,8 @@ main { padding: 12px 16px; }
 .card.quote { background: transparent; border: 0; box-shadow: none; text-align: center; font-style: italic; color: var(--muted); padding: 6px 20px; }
 .card.prompt { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--card)), color-mix(in srgb, var(--accent-2) 16%, var(--card))); }
 .card.note { border-left: 4px solid var(--accent); }
+.card.morning { background: linear-gradient(135deg, color-mix(in srgb, #f6c453 22%, var(--card)), color-mix(in srgb, var(--accent-2) 14%, var(--card))); }
+.card.morning h3 { margin-top: 0; }
 .card.note.mine { border-left-color: var(--line); }
 .card.note p { font-size: 1.05rem; }
 .from { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

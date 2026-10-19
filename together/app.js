@@ -150,7 +150,7 @@ function reminders() {
   if (Array.isArray(pr.reminders)) return pr.reminders
   if (pr.hour != null) return [{ time: String(pr.hour).padStart(2, '0') + ':00', kind: 'tip' }]
   return me() === 'mom'
-    ? [{ time: '09:00', kind: 'checkin' }, { time: '14:00', kind: 'checkin' }, { time: '19:30', kind: 'tip' }]
+    ? [{ time: '08:00', kind: 'tip' }, { time: '09:30', kind: 'checkin' }, { time: '14:00', kind: 'checkin' }, { time: '19:30', kind: 'tip' }]
     : [{ time: '08:30', kind: 'tip' }, { time: '20:00', kind: 'checkin' }]
 }
 function setReminders(list) {
@@ -496,6 +496,7 @@ function today() {
   }
 
   return `
+    ${morningCard()}
     ${flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''}
     ${g ? babyCard(g, wk, fe, fruit, len) : datesCard()}
     ${main}
@@ -511,6 +512,26 @@ function today() {
       ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
       ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
     </section>` : ''}`
+}
+
+// First open of the day: a short tip at the top of Today, until tapped away.
+// His is built from her latest check-in when there's a recent one.
+function morningCard() {
+  const day = isoDate(new Date())
+  if ((S.state.prefs || {}).morningSeen === day) return ''
+  const h = new Date().getHours()
+  const hello = h < 12 ? '☀️ Good morning' : h < 17 ? '👋 Good afternoon' : '🌙 Good evening'
+  let tip = pick(me() === 'mom' ? C.MORNING_MOM : C.MORNING_DAD, dayIndex()), why = ''
+  if (me() === 'dad') {
+    const ci = latest('checkin', 'mom')
+    const step = ci && Date.now() - new Date(ci.created_at) < 30 * 3600e3 ? gamePlan(ci)[0] : null
+    if (step) { tip = step.t; why = `From ${esc(names().mom)}'s last check-in (${esc(step.why)})` }
+  }
+  return `<section class="card morning">
+    <h3>${hello}, ${esc(nameOf(me()))}</h3>
+    <p>${esc(tip)}</p>${why ? `<p class="fine">${why}</p>` : ''}
+    <button class="ghost" data-act="morning-ok">Got it 👍</button>
+  </section>`
 }
 
 function babyCard(g, wk, fe, fruit, len) {
@@ -1385,6 +1406,7 @@ app.addEventListener('click', async ev => {
     }
     case 'cancel-appt': editAppt = null; clearForm('appt'); render(); return
     case 'cancel-edit': draft = null; render(); return
+    case 'morning-ok': S.state.prefs = { ...S.state.prefs, morningSeen: isoDate(new Date()) }; S.save(); render(); return
     case 'add-symptom': {
       const label = ((await ask({ title: 'Add your own symptom', ok: 'Add', input: true, placeholder: 'e.g. Metallic taste' })) || '').slice(0, 40)
       if (!label) return
