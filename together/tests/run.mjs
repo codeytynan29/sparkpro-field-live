@@ -129,6 +129,33 @@ await test('food search answers anything: list hits, warnings, and rules for unk
   ok((await page.innerText('.list')).includes('pasteurized, washed, and cooked'), 'no general guidance for an unknown food')
 })
 
+await test('push present wishlist: she adds, he sees and secretly marks, she never sees the mark', async page => {
+  await seed(page, 'mom')
+  await page.click('[data-tab=plan]'); await page.click('[data-pv=wish]')
+  await page.fill('#wishName', 'Birthstone necklace'); await page.check('#wishTop'); await page.click('[data-act=wish-save]')
+  const wishes = await page.evaluate(() => JSON.parse(localStorage.getItem('together.v1')).entries.filter(e => e.kind === 'wish'))
+  ok(wishes.length === 1 && wishes[0].data.top, 'wish not saved')
+  await seed(page, 'dad', [{ ...wishes[0], synced: true }])
+  await page.click('[data-tab=plan]'); await page.click('[data-pv=wish]')
+  ok((await page.innerText('main')).includes('Birthstone necklace'), 'partner can\'t see the wish')
+  await page.click(`[data-wish-got="${wishes[0].id}"]`)
+  const marked = await page.evaluate(() => JSON.parse(localStorage.getItem('together.v1')).entries.find(e => e.kind === 'wish'))
+  ok(marked.data.gotByPartner, 'secret mark not saved')
+  await seed(page, 'mom', [{ ...marked, synced: true }])
+  await page.click('[data-tab=plan]'); await page.click('[data-pv=wish]')
+  const t = await page.innerText('main')
+  ok(t.includes('Birthstone necklace') && !t.includes('got this') && !t.includes('✅'), 'the surprise leaked on her phone')
+})
+
+await test('pronouns and parent terms picked at setup flow through the app', async page => {
+  await seed(page, 'dad', [momCI(0, { symptoms: { nausea: 2 } }), { id: 'p9', kind: 'profile', author_role: 'mom', created_at: new Date().toISOString(), synced: true, data: { momName: 'Sam', momPron: 'they', momTerm: 'Parent', dadName: 'Alex', dadPron: 'she', dadTerm: 'Mama' } }])
+  const t = await page.innerText('main')
+  ok(t.includes('Sam logged nausea'), 'name not used')
+  ok(!/\bshe\b|\bher\b/i.test(t.replace(/Mama/g, '')), 'she/her still shown for a they/them person: ' + (t.match(/.{30}\b(she|her)\b.{30}/i) || [''])[0])
+  await page.click('[data-tab=plan]'); await page.click('[data-pv=settings]'); await page.click('[data-act=edit-dates]')
+  ok(await page.inputValue('#momPron') === 'they' && await page.inputValue('#dadTerm') === 'Mama', 'setup fields not filled')
+})
+
 await test('Is it safe? search finds brand names and shows the disclaimer', async page => {
   await seed(page, 'dad')
   await page.click('[data-tab=lookup]')

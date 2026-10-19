@@ -14,7 +14,7 @@ const SUPABASE_KEY = 'sb_publishable_SMRAokTTDo7kl1e6AvgW4A_UHVOMZKE'
 // the database's tg_config table, readable by the tg-push function alone.
 const VAPID_PUBLIC = 'BN6qk1Tg7De-qOkPRs0EGpk23Akg25b7u93tnmYDXqp-bw0_IjXrGMebLwSxgIIU7WvN4SwTLo6iMsugBBghxdc'
 
-const C = (() => {
+const RAW = (() => {
 // ── Together: the content library ────────────────────────────────────────────
 // Everything the app *says* lives here, separate from how it says it, so the
 // medical wording can be reviewed (and corrected) in one place.
@@ -60,7 +60,7 @@ const WEEK_NOTES = {
   14: 'Second trimester. Many people feel noticeably better this stretch.',
   15: 'Baby can sense light through the skin. Legs are getting longer than the arms.',
   16: 'Facial muscles are working. Some feel first flutters (more often in a second pregnancy).',
-  17: 'Fat stores begin forming. Her center of gravity is shifting.',
+  17: 'Fat stores begin forming. {M:their} center of gravity is shifting.',
   18: 'Baby may hear sounds now — talking to the bump counts. Anatomy scan window opens (18–22).',
   19: 'Vernix (a protective coating) forms on the skin.',
   20: 'Halfway. The anatomy scan checks organs, growth and placenta position.',
@@ -73,7 +73,7 @@ const WEEK_NOTES = {
   27: 'Last week of the second trimester. Tdap vaccine window (27–36) begins.',
   28: 'Third trimester. Start paying attention to daily movement patterns.',
   29: 'Muscles and lungs keep maturing. Baby is gaining weight fast.',
-  30: 'Brain is growing quickly. She may feel short of breath as the uterus rises.',
+  30: 'Brain is growing quickly. {M:they} may feel short of breath as the uterus rises.',
   31: 'All five senses are working.',
   32: 'Practicing breathing movements. Most babies are head-down by 32–36 weeks.',
   33: 'Bones are hardening, except the skull, which stays flexible for birth.',
@@ -89,9 +89,9 @@ const WEEK_NOTES = {
 
 // key: week to start showing it. role: who it matters to (both if omitted).
 const MILESTONES = [
-  { week: 4, title: 'Positive test', detail: 'Start a prenatal vitamin with at least 400 mcg folic acid (and 150 mcg iodine) if she hasn\'t already. Call the OB/midwife to book the first visit. Skip hot tubs and saunas from now on.' },
-  { week: 5, title: 'Tell the OB early about…', detail: 'A past ectopic pregnancy, tubal surgery, or an IUD in place when she got pregnant: these mean an early ultrasound to check where the pregnancy is. Also mention any bleeding if she knows she\'s Rh-negative (she may need an Rh shot), and every medicine or supplement she takes.' },
-  { week: 8, title: 'Flu & COVID shots', detail: 'A flu shot is recommended in any trimester during flu season. ACOG also recommends the COVID vaccine in pregnancy; the CDC currently leaves it to her and her provider to decide. Ask at the first visit.' },
+  { week: 4, title: 'Positive test', detail: 'Start a prenatal vitamin with at least 400 mcg folic acid (and 150 mcg iodine) if {m:they} {m:has|have}n\'t already. Call the OB/midwife to book the first visit. Skip hot tubs and saunas from now on.' },
+  { week: 5, title: 'Tell the OB early about…', detail: 'A past ectopic pregnancy, tubal surgery, or an IUD in place when {m:they} got pregnant: these mean an early ultrasound to check where the pregnancy is. Also mention any bleeding if {m:they} {m:knows|know} {m:they} {m:is|are} Rh-negative ({m:they} may need an Rh shot), and every medicine or supplement {m:they} {m:takes|take}.' },
+  { week: 8, title: 'Flu & COVID shots', detail: 'A flu shot is recommended in any trimester during flu season. ACOG also recommends the COVID vaccine in pregnancy; the CDC currently leaves it to {m:them} and {m:their} provider to decide. Ask at the first visit.' },
   { week: 6, title: 'Heartbeat may be visible', detail: 'On a transvaginal ultrasound, cardiac activity is often seen 6–7 weeks. Not seeing it this early is common — dating can be off by days.' },
   { week: 8, title: 'First prenatal visit (typically 8–10 wks)', detail: 'Dating ultrasound, bloodwork (blood type, Rh factor, immunity, anemia), urine test. Bring your questions — you can go too.' },
   { week: 10, title: 'NIPT blood screen (from 10 wks)', detail: 'Cell-free DNA screening for common chromosomal conditions. Can also report fetal sex. It\'s a screen, not a diagnosis.' },
@@ -99,10 +99,10 @@ const MILESTONES = [
   { week: 14, title: 'Second trimester begins', detail: 'Nausea and fatigue often ease. A good time to plan a babymoon or tell more people, if you\'ve been waiting.' },
   { week: 15, title: 'Quad screen option (15–22 wks)', detail: 'Some providers offer an AFP / quad screen, including for neural tube defects.' },
   { week: 18, title: 'Anatomy scan (18–22 wks)', detail: 'The big detailed ultrasound — organs, spine, heart, growth, placenta. Sex is usually visible if you want to know.' },
-  { week: 24, title: 'Glucose test (24–28 wks)', detail: 'Screens for gestational diabetes. She drinks a sugary drink and has blood drawn about an hour later.' },
+  { week: 24, title: 'Glucose test (24–28 wks)', detail: 'Screens for gestational diabetes. {M:they} {m:drinks|drink} a sugary drink and {m:has|have} blood drawn about an hour later.' },
   { week: 27, title: 'Tdap vaccine (27–36 wks)', detail: 'Recommended each pregnancy to pass whooping-cough protection to baby. Partners and close family should be up to date too.' },
-  { week: 28, title: 'Third trimester + Rh shot if needed', detail: 'If she\'s Rh-negative, Rh immune globulin is usually given around 28 wks. Start learning baby\'s movement pattern.' },
-  { week: 32, title: 'RSV vaccine (32–36 wks, in RSV season)', detail: 'One dose (Abrysvo) protects baby from RSV for the first months. It\'s given during RSV season, roughly September to January. If her 32–36 weeks fall outside that, or she skips it, baby can get an RSV antibody shot after birth instead. Ask the OB which applies.' },
+  { week: 28, title: 'Third trimester + Rh shot if needed', detail: 'If {m:they} {m:is|are} Rh-negative, Rh immune globulin is usually given around 28 wks. Start learning baby\'s movement pattern.' },
+  { week: 32, title: 'RSV vaccine (32–36 wks, in RSV season)', detail: 'One dose (Abrysvo) protects baby from RSV for the first months. It\'s given during RSV season, roughly September to January. If {m:their} 32–36 weeks fall outside that, or {m:they} {m:skips|skip} it, baby can get an RSV antibody shot after birth instead. Ask the OB which applies.' },
   { week: 32, title: 'Visits get more frequent', detail: 'Typically every 2 weeks from ~28–36, then weekly. Pre-register at the hospital, take a birth class.' },
   { week: 36, title: 'GBS swab (36–37 wks)', detail: 'Group B strep check. Bag packed, car seat installed, route planned.' },
   { week: 39, title: 'Full term', detail: 'Anytime now. Know the call-in rules your provider gave you (e.g. contraction timing, water breaking).' },
@@ -116,15 +116,15 @@ const MILESTONES = [
 const SYMPTOMS = [
   { id: 'nausea', label: 'Nausea', emoji: '🤢',
     meaning: 'Rising hCG and estrogen. Usually starts around week 6, peaks around 9, and eases by 12–14 for most. An empty stomach makes it worse.',
-    help: ['Put plain crackers and water on her nightstand so she can eat before sitting up.', 'Take over cooking — food smells are a trigger. Cold foods smell less than hot.', 'Bring small snacks every 2–3 hours instead of big meals.', 'Ginger chews or ginger ale, and sour/lemon things help some people.', 'Ask her OB about vitamin B6 (with or without doxylamine) — it\'s the ACOG first-line option.'],
+    help: ['Put plain crackers and water on {m:their} nightstand so {m:they} can eat before sitting up.', 'Take over cooking — food smells are a trigger. Cold foods smell less than hot.', 'Bring small snacks every 2–3 hours instead of big meals.', 'Ginger chews or ginger ale, and sour/lemon things help some people.', 'Ask {m:their} OB about vitamin B6 (with or without doxylamine) — it\'s the ACOG first-line option.'],
     flag: 'Can\'t keep any fluids down for 24 hours, very little urine, dizziness when standing, or losing weight — call the OB (possible hyperemesis gravidarum / dehydration).', flagAt: 3 },
   { id: 'vomiting', label: 'Vomiting', emoji: '🤮',
     meaning: 'Same cause as nausea. Some vomiting is common in the first trimester.',
-    help: ['Small sips — electrolyte drinks, ice chips, popsicles — every 15 minutes.', 'Hold her hair, then quietly deal with the cleanup. No commentary.', 'Keep a bag and mints in the car.'],
+    help: ['Small sips — electrolyte drinks, ice chips, popsicles — every 15 minutes.', 'Hold {m:their} hair, then quietly deal with the cleanup. No commentary.', 'Keep a bag and mints in the car.'],
     flag: 'Vomiting several times a day, can\'t keep fluids down, dark urine, or blood in vomit — call the OB today.', flagAt: 3 },
   { id: 'fatigue', label: 'Exhausted', emoji: '😴',
-    meaning: 'Progesterone is a sedative, and her body is building a placenta. First-trimester exhaustion is real and normal.',
-    help: ['Take a chore off her list entirely — not "help with" it, own it.', 'Protect a nap or an early bedtime. Handle the evening.', 'Cancel or postpone plans for her if she\'s running on empty.'],
+    meaning: 'Progesterone is a sedative, and {m:their} body is building a placenta. First-trimester exhaustion is real and normal.',
+    help: ['Take a chore off {m:their} list entirely — not "help with" it, own it.', 'Protect a nap or an early bedtime. Handle the evening.', 'Cancel or postpone plans for {m:them} if {m:they} {m:is|are} running on empty.'],
     flag: 'Extreme fatigue with shortness of breath, racing heart or pale skin can point to anemia — mention it at the next visit, sooner if severe.', flagAt: 0 },
   { id: 'breasts', label: 'Sore breasts', emoji: '🫶',
     meaning: 'Hormones growing milk ducts. Very common early sign; often eases in the second trimester.',
@@ -132,27 +132,27 @@ const SYMPTOMS = [
     flag: '', flagAt: 0 },
   { id: 'cramping', label: 'Cramping', emoji: '🌀',
     meaning: 'Mild, period-like cramping is common early on as the uterus grows and stretches. Can also happen after sex or with gas/constipation.',
-    help: ['Heating pad on low (not hot) or a warm (not hot) bath.', 'Get her horizontal with water and a show. Let her rest.', 'Acetaminophen is the usual pain reliever in pregnancy — not ibuprofen. Check with the OB.'],
+    help: ['Heating pad on low (not hot) or a warm (not hot) bath.', 'Get {m:them} horizontal with water and a show. Let {m:them} rest.', 'Acetaminophen is the usual pain reliever in pregnancy — not ibuprofen. Check with the OB.'],
     flag: 'Severe pain on one side, shoulder-tip pain, dizziness or fainting — go to the ER or call 911 (possible ectopic pregnancy). Strong cramping or cramping with bleeding — call the OB now.', flagAt: 3 },
   { id: 'spotting', label: 'Spotting', emoji: '🩸',
     meaning: 'Light spotting (pink/brown, a few drops) is fairly common in early pregnancy — implantation, after sex, or after a pelvic exam.',
-    help: ['Stay calm out loud — your tone sets hers. Light spotting alone is often nothing.', 'Help her note color, amount and timing so she can tell the OB clearly.', 'Call the OB line together; they field this question constantly.'],
+    help: ['Stay calm out loud — your tone sets {m:theirs}. Light spotting alone is often nothing.', 'Help {m:them} note color, amount and timing so {m:they} can tell the OB clearly.', 'Call the OB line together; they field this question constantly.'],
     flag: 'Bleeding like a period or heavier, clots, or bleeding with cramps or pain — call the OB right away. Soaking a pad an hour, or dizziness — ER.', flagAt: 2 },
   { id: 'bloating', label: 'Bloated / constipated', emoji: '🎈',
     meaning: 'Progesterone slows digestion; prenatal vitamins with iron add to it.',
-    help: ['Keep her water bottle full — literally refill it.', 'Go for an easy walk together after dinner.', 'Stock fiber: oatmeal, berries, pears, prunes.'],
+    help: ['Keep {m:their} water bottle full — literally refill it.', 'Go for an easy walk together after dinner.', 'Stock fiber: oatmeal, berries, pears, prunes.'],
     flag: '', flagAt: 0 },
   { id: 'headache', label: 'Headache', emoji: '🤕',
     meaning: 'Hormone shifts, dehydration, low blood sugar, caffeine cut-back and poor sleep are the usual causes early on.',
-    help: ['Water and a snack first — it\'s often one of those.', 'Dark, quiet room and a cool cloth on her forehead/neck.', 'Acetaminophen is generally the go-to in pregnancy. Avoid ibuprofen/aspirin unless the OB says otherwise.'],
+    help: ['Water and a snack first — it\'s often one of those.', 'Dark, quiet room and a cool cloth on {m:their} forehead/neck.', 'Acetaminophen is generally the go-to in pregnancy. Avoid ibuprofen/aspirin unless the OB says otherwise.'],
     flag: 'A severe or "worst ever" headache, or headache with vision changes (spots, blurring), sudden swelling of face/hands, or upper-right belly pain — call the OB now. After 20 weeks this can be preeclampsia.', flagAt: 3 },
   { id: 'peeing', label: 'Peeing a lot', emoji: '🚽',
     meaning: 'Normal — blood volume rises and the uterus presses on the bladder.',
-    help: ['Aisle seat at the movies, plan bathroom stops on drives.', 'Don\'t let her cut water to pee less — dehydration makes everything worse.'],
+    help: ['Aisle seat at the movies, plan bathroom stops on drives.', 'Don\'t let {m:them} cut water to pee less — dehydration makes everything worse.'],
     flag: '', flagAt: 0 },
   { id: 'burning', label: 'Burning when peeing', emoji: '🔥',
     meaning: 'Burning, urgency, cloudy or bloody urine can mean a urinary tract infection. UTIs are more common in pregnancy and should always be treated.',
-    help: ['Help her call the OB today — they can test urine and prescribe a pregnancy-safe antibiotic.', 'Keep water coming.', 'Don\'t wait it out — untreated UTIs in pregnancy can reach the kidneys.'],
+    help: ['Help {m:them} call the OB today — they can test urine and prescribe a pregnancy-safe antibiotic.', 'Keep water coming.', 'Don\'t wait it out — untreated UTIs in pregnancy can reach the kidneys.'],
     flag: 'Any burning or pain when peeing → call the OB today. Fever, chills, back/side pain or vomiting with it → same-day care (possible kidney infection).', flagAt: 1 },
   { id: 'moody', label: 'Moody / weepy', emoji: '🌦️',
     meaning: 'Hormonal shifts plus fatigue plus a huge life change. Mood swings are expected.',
@@ -160,11 +160,11 @@ const SYMPTOMS = [
     flag: 'Sadness or hopelessness most days for 2+ weeks, losing interest in everything, or any thoughts of self-harm — tell the OB. The National Maternal Mental Health Hotline is free, 24/7, call or text: 1-833-TLC-MAMA (1-833-852-6262). In a crisis, call or text 988.', flagAt: 0 },
   { id: 'anxious', label: 'Anxious', emoji: '😟',
     meaning: 'Very common, especially in the first trimester before scans and milestones offer reassurance.',
-    help: ['Mark the next appointment on the shared calendar so she can see the next checkpoint.', 'Make "worry time" — 10 minutes to talk about it, then a planned distraction.', 'Do the breathing exercise together (in the You tab).'],
+    help: ['Mark the next appointment on the shared calendar so {m:they} can see the next checkpoint.', 'Make "worry time" — 10 minutes to talk about it, then a planned distraction.', 'Do the breathing exercise together (in the You tab).'],
     flag: 'Panic attacks, constant worry that stops sleep or eating, or intrusive thoughts — perinatal anxiety is common and treatable. Tell the OB, or call/text 1-833-TLC-MAMA (free, 24/7). Crisis: 988.', flagAt: 0 },
   { id: 'aversions', label: 'Food aversions', emoji: '🙅',
     meaning: 'Smell and taste sensitivity spikes with hormones. Former favorites can become intolerable overnight.',
-    help: ['Eat the trigger foods away from her, or not at all for now.', 'Take the trash out daily, clean the fridge.', 'Ask what sounds OK right now and just go get it.'],
+    help: ['Eat the trigger foods away from {m:them}, or not at all for now.', 'Take the trash out daily, clean the fridge.', 'Ask what sounds OK right now and just go get it.'],
     flag: '', flagAt: 0 },
   { id: 'cravings', label: 'Cravings', emoji: '🍦',
     meaning: 'Common and mostly harmless. Craving non-food items (ice, clay, starch) can signal iron deficiency.',
@@ -176,7 +176,7 @@ const SYMPTOMS = [
     flag: '', flagAt: 0 },
   { id: 'dizzy', label: 'Dizzy', emoji: '💫',
     meaning: 'Blood vessels relax and blood pressure dips; low blood sugar adds to it.',
-    help: ['Get her seated or lying on her left side.', 'Snack with protein + water.', 'Stand up slowly — remind her, gently.'],
+    help: ['Get {m:them} seated or lying on {m:their} left side.', 'Snack with protein + water.', 'Stand up slowly — remind {m:them}, gently.'],
     flag: 'Fainting, dizziness with bleeding or belly pain, or chest pain/shortness of breath — seek care now.', flagAt: 3 },
   { id: 'insomnia', label: 'Can\'t sleep', emoji: '🌙',
     meaning: 'Peeing at night, nausea, heartburn, anxiety and hormones all disrupt sleep.',
@@ -184,19 +184,19 @@ const SYMPTOMS = [
     flag: '', flagAt: 0 },
   { id: 'congestion', label: 'Stuffy nose', emoji: '🤧',
     meaning: '"Pregnancy rhinitis" — extra blood flow swells nasal tissue. Common and harmless.',
-    help: ['Saline spray and a humidifier in the bedroom.', 'Extra pillow to elevate her head.'],
+    help: ['Saline spray and a humidifier in the bedroom.', 'Extra pillow to elevate {m:their} head.'],
     flag: '', flagAt: 0 },
   { id: 'backpain', label: 'Back / hip pain', emoji: '🦴',
     meaning: 'Relaxin loosens ligaments and posture shifts as the bump grows.',
-    help: ['Lower back massage or a warm (not hot) compress.', 'Get her supportive shoes and do the lifting.'],
+    help: ['Lower back massage or a warm (not hot) compress.', 'Get {m:them} supportive shoes and do the lifting.'],
     flag: 'Rhythmic lower back pain that comes and goes, especially before 37 weeks — call (can be preterm labor).', flagAt: 3 },
   { id: 'swelling', label: 'Swelling', emoji: '🦶',
     meaning: 'Some ankle/foot swelling is normal, especially later and in heat.',
-    help: ['Feet up, cool water soak, and get her off her feet.', 'Help her stay hydrated — it actually reduces swelling.'],
+    help: ['Feet up, cool water soak, and get {m:them} off {m:their} feet.', 'Help {m:them} stay hydrated — it actually reduces swelling.'],
     flag: 'Sudden swelling of the face or hands, or swelling with headache/vision changes — call the OB now (preeclampsia). One leg swollen, red and painful — seek care (blood clot).', flagAt: 3 },
   { id: 'fever', label: 'Fever / chills', emoji: '🌡️',
     meaning: 'Fever in pregnancy should be treated and checked — it\'s not one to sit through.',
-    help: ['Take her temperature and log it below.', 'Acetaminophen is generally the fever reducer used in pregnancy — check dose with the OB. Bringing a fever down matters: high fever early in pregnancy is linked to neural tube problems.', 'Call the OB line.'],
+    help: ['Take {m:their} temperature and log it below.', 'Acetaminophen is generally the fever reducer used in pregnancy — check dose with the OB. Bringing a fever down matters: high fever early in pregnancy is linked to neural tube problems.', 'Call the OB line.'],
     flag: 'Temperature of 100.4°F (38°C) or higher — call the OB.', flagAt: 1 },
   { id: 'discharge', label: 'Discharge change', emoji: '💧',
     meaning: 'More thin, milky, mild-smelling discharge is normal in pregnancy.',
@@ -204,15 +204,15 @@ const SYMPTOMS = [
     flag: 'Itching, burning, strong odor, green/gray color — call (infection). A gush or constant trickle of watery fluid — call now (possible water breaking).', flagAt: 2 },
   { id: 'cramps_leg', label: 'Leg cramps', emoji: '🦵',
     meaning: 'Common, especially at night in the second and third trimesters.',
-    help: ['Flex her foot (toes toward shin) and massage the calf.', 'Stretches before bed, water during the day.'],
+    help: ['Flex {m:their} foot (toes toward shin) and massage the calf.', 'Stretches before bed, water during the day.'],
     flag: '', flagAt: 0 },
   { id: 'breath', label: 'Short of breath', emoji: '😮‍💨',
     meaning: 'Mild breathlessness is common as progesterone changes breathing and later as the uterus pushes up.',
-    help: ['Slow down the pace on walks. Let her set it.', 'Sit upright, open a window.'],
+    help: ['Slow down the pace on walks. Let {m:them} set it.', 'Sit upright, open a window.'],
     flag: 'Sudden or severe shortness of breath, chest pain, or coughing blood — call 911.', flagAt: 3 },
   { id: 'movement', label: 'Less baby movement', emoji: '👶',
-    meaning: 'Once she knows baby\'s pattern (from about 24 weeks), fewer movements or a change in the pattern needs checking the same day. Don\'t wait until tomorrow, and don\'t wait to count kicks first.',
-    help: ['Help her call labor & delivery right away. Checking takes a short visit, and they would much rather see her.', 'Skip the tricks people suggest to "wake the baby" (cold drinks, sugar, poking). They can delay getting checked.', 'Drive her in, or call 911 if she has no movement at all and can\'t get there quickly.'],
+    meaning: 'Once {m:they} {m:knows|know} baby\'s pattern (from about 24 weeks), fewer movements or a change in the pattern needs checking the same day. Don\'t wait until tomorrow, and don\'t wait to count kicks first.',
+    help: ['Help {m:them} call labor & delivery right away. Checking takes a short visit, and they would much rather see {m:them}.', 'Skip the tricks people suggest to "wake the baby" (cold drinks, sugar, poking). They can delay getting checked.', 'Drive {m:them} in, or call 911 if {m:they} {m:has|have} no movement at all and can\'t get there quickly.'],
     flag: 'Fewer movements than normal or a change in the pattern (from 24 weeks) — call labor & delivery now. No movement at all — go in now.', flagAt: 1 },
 ]
 
@@ -222,7 +222,7 @@ const RED_FLAGS = [
     'Severe pain on one side of the belly, especially with shoulder-tip pain, dizziness or fainting (early pregnancy: possible ectopic pregnancy)',
     'Severe chest pain, trouble breathing, or coughing up blood',
     'Fainting or seizure',
-    'Thoughts of harming herself or the baby (or call/text 988, or the maternal mental health hotline 1-833-TLC-MAMA)',
+    'Thoughts of harming {m:themselves} or the baby (or call/text 988, or the maternal mental health hotline 1-833-TLC-MAMA)',
   ]],
   ['Call the OB / labor & delivery now', [
     'Any vaginal bleeding beyond light spotting',
@@ -230,11 +230,11 @@ const RED_FLAGS = [
     'Fever of 100.4°F / 38°C or higher',
     'Severe headache, vision changes, or sudden swelling of face or hands',
     'Racing or pounding heartbeat',
-    'Overwhelming tiredness that isn\'t normal for her',
+    'Overwhelming tiredness that isn\'t normal for {m:them}',
     'Can\'t keep fluids down for 24 hours',
     'Burning or pain when peeing (possible UTI)',
     'Fluid leaking or gushing from the vagina',
-    'Any fall, car accident or blow to the belly, even if she feels fine',
+    'Any fall, car accident or blow to the belly, even if {m:they} {m:feels|feel} fine',
     'From 24 weeks: baby moving less than usual, or a change in the pattern',
     'Third trimester: severe itching, especially palms and soles (a liver condition that needs checking)',
     'Before 37 weeks: regular contractions or rhythmic back pain',
@@ -255,13 +255,13 @@ const RED_FLAGS = [
 // avoid = generally avoided unless her OB specifically prescribes it.
 const MEDS = [
   { name: 'Acetaminophen', aka: 'Tylenol', use: 'Pain, fever, headache', tier: 'ok',
-    note: 'The pain reliever and fever reducer ACOG recommends in pregnancy. Use the lowest dose that works for the shortest time. In 2025 the FDA started a label change about a possible link between long-term use and neurodevelopmental conditions. ACOG and other medical groups say the evidence doesn\'t show it causes harm, and that untreated fever and pain carry risks too. Talk with the OB about regular use. Watch for double-dosing: NyQuil, DayQuil, TheraFlu, Excedrin and many cold and flu products also contain acetaminophen, so don\'t take them with Tylenol, and stay under the daily maximum on the label (ask the OB for her limit).' },
+    note: 'The pain reliever and fever reducer ACOG recommends in pregnancy. Use the lowest dose that works for the shortest time. In 2025 the FDA started a label change about a possible link between long-term use and neurodevelopmental conditions. ACOG and other medical groups say the evidence doesn\'t show it causes harm, and that untreated fever and pain carry risks too. Talk with the OB about regular use. Watch for double-dosing: NyQuil, DayQuil, TheraFlu, Excedrin and many cold and flu products also contain acetaminophen, so don\'t take them with Tylenol, and stay under the daily maximum on the label (ask the OB for {m:their} limit).' },
   { name: 'Ibuprofen', aka: 'Advil, Motrin', use: 'Pain, inflammation', tier: 'avoid',
     note: 'An NSAID. Generally avoided in pregnancy unless the OB okays it. The FDA warns against NSAIDs from 20 weeks on (they can cause baby kidney problems and low amniotic fluid), and they\'re especially risky after 30 weeks. Use acetaminophen instead.' },
   { name: 'Naproxen', aka: 'Aleve', use: 'Pain, inflammation', tier: 'avoid',
     note: 'NSAID — same warnings as ibuprofen. Avoid unless prescribed.' },
   { name: 'Aspirin', aka: 'Bayer, Excedrin (aspirin + acetaminophen + about 65 mg caffeine a tablet)', use: 'Pain', tier: 'avoid',
-    note: 'Don\'t use for pain. Low-dose (81 mg) aspirin is sometimes prescribed from ~12 weeks to lower preeclampsia risk, but only when her OB recommends it.' },
+    note: 'Don\'t use for pain. Low-dose (81 mg) aspirin is sometimes prescribed from ~12 weeks to lower preeclampsia risk, but only when {m:their} OB recommends it.' },
   { name: 'Doxylamine + vitamin B6', aka: 'Unisom SleepTabs + B6, Diclegis, Bonjesta', use: 'Morning sickness', tier: 'ok',
     note: 'ACOG\'s first-line treatment for pregnancy nausea. B6 alone is the usual first step. Causes drowsiness. Get the dose from the OB.' },
   { name: 'Vitamin B6', aka: 'Pyridoxine', use: 'Nausea', tier: 'ok',
@@ -297,7 +297,7 @@ const MEDS = [
   { name: 'Calcium carbonate', aka: 'Tums, Rolaids', use: 'Heartburn', tier: 'ok',
     note: 'Generally considered OK. Don\'t go over the daily max on the label.' },
   { name: 'Famotidine', aka: 'Pepcid', use: 'Heartburn', tier: 'ok',
-    note: 'Generally considered OK when antacids aren\'t enough. Let the OB know she\'s taking it.' },
+    note: 'Generally considered OK when antacids aren\'t enough. Let the OB know {m:they} {m:is|are} taking it.' },
   { name: 'Omeprazole', aka: 'Prilosec', use: 'Heartburn', tier: 'ask',
     note: 'Often used in pregnancy, but ask first.' },
   { name: 'Bismuth subsalicylate', aka: 'Pepto-Bismol, Kaopectate', use: 'Upset stomach, diarrhea', tier: 'avoid',
@@ -336,8 +336,8 @@ const MEDS = [
     note: 'There is no known safe amount in pregnancy.' },
   { name: 'Nicotine / vaping', aka: 'Cigarettes, vapes, nicotine gum/patch', use: '', tier: 'avoid',
     note: 'Quitting is one of the best things for the baby. Ask the OB about support to quit. Nicotine replacement is sometimes used under their guidance.' },
-  { name: 'Prescription meds she already takes', aka: 'Antidepressants, thyroid, seizure, BP meds…', use: '', tier: 'ask',
-    note: 'Don\'t stop a prescription suddenly. Many need to continue for her health and the baby\'s. Call the prescriber or OB soon to review them.' },
+  { name: 'Prescription meds {m:they} already {m:takes|take}', aka: 'Antidepressants, thyroid, seizure, BP meds…', use: '', tier: 'ask',
+    note: 'Don\'t stop a prescription suddenly. Many need to continue for {m:their} health and the baby\'s. Call the prescriber or OB soon to review them.' },
 ]
 
 // ── Food safety ─────────────────────────────────────────────────────────────
@@ -369,9 +369,9 @@ const FOODS = [
   { name: 'Alcohol (incl. kombucha with alcohol)', tier: 'avoid', note: 'There is no known safe amount. Non-alcoholic versions are generally fine. Some N/A beers still contain up to 0.5% alcohol.' },
   { name: 'Herbal tea', tier: 'ask', note: 'Ginger and peppermint are commonly considered OK in normal amounts. Ask about others, and about large amounts.' },
   { name: 'Leftovers', tier: 'ok', note: 'Refrigerate within 2 hours, eat within 3–4 days, and reheat until steaming.' },
-  { name: 'Peanuts & common allergens', tier: 'ok', note: 'No need to avoid them unless she\'s allergic. Avoiding them doesn\'t prevent allergies in the baby.' },
+  { name: 'Peanuts & common allergens', tier: 'ok', note: 'No need to avoid them unless {m:they} {m:is|are} allergic. Avoiding them doesn\'t prevent allergies in the baby.' },
   { name: 'Hot tubs, saunas, very hot baths (not a food, but…)', tier: 'avoid', note: 'Getting very hot (a core temperature over about 101°F) early in pregnancy is linked to neural tube defects. Skip hot tubs and saunas. Warm baths and showers are fine.' },
-  { name: 'Cat litter (not a food, but…)', tier: 'avoid', note: 'Toxoplasmosis risk. You take over the litter box now. If she must do it, gloves and handwashing.' },
+  { name: 'Cat litter (not a food, but…)', tier: 'avoid', note: 'Toxoplasmosis risk. You take over the litter box now. If {m:they} must do it, gloves and handwashing.' },
 
   // ── Meat & poultry
   { name: 'Chicken & turkey (cooked through)', aka: 'grilled chicken, roast turkey, wings, nuggets, thanksgiving', tier: 'ok', note: 'Great protein. Cook to 165°F, with no pink and clear juices.' },
@@ -416,7 +416,7 @@ const FOODS = [
   { name: 'Tiramisu, mousse, homemade meringue', aka: 'chocolate mousse, raw egg dessert, zabaglione', tier: 'avoid', note: 'Often made with raw eggs, and tiramisu usually has alcohol and coffee too. Fine if made with pasteurized eggs and no alcohol.' },
 
   // ── Fruits & veggies
-  { name: 'Fresh fruit', aka: 'apples, bananas, oranges, berries, strawberries, blueberries, grapes, peaches, pears, mango, kiwi, cherries', tier: 'ok', note: 'Great for her. Rinse well under running water first, even if you\'re peeling it.' },
+  { name: 'Fresh fruit', aka: 'apples, bananas, oranges, berries, strawberries, blueberries, grapes, peaches, pears, mango, kiwi, cherries', tier: 'ok', note: 'Great for {m:them}. Rinse well under running water first, even if you\'re peeling it.' },
   { name: 'Pineapple', aka: 'pineapple juice', tier: 'ok', note: 'Fine in normal amounts. The myth that it causes miscarriage or labor isn\'t supported.' },
   { name: 'Papaya', aka: 'green papaya, papaya salad, som tam', tier: 'ask', note: 'Ripe papaya is fine. Unripe or green papaya (as in papaya salad) contains latex that may trigger contractions, so skip that one.' },
   { name: 'Melon', aka: 'watermelon, cantaloupe, honeydew', tier: 'ok', note: 'Scrub the rind before cutting, eat or refrigerate right away, and toss cut melon left out over 4 hours (listeria).' },
@@ -435,10 +435,10 @@ const FOODS = [
   // ── Grains, snacks & sweets
   { name: 'Bread, pasta, rice, cereal', aka: 'oatmeal, bagel, toast, noodles, tortillas, quinoa, crackers', tier: 'ok', note: 'Fine. Fortified cereals add folic acid and iron.' },
   { name: 'Leftover rice', aka: 'fried rice, takeout rice', tier: 'ok', note: 'Refrigerate within an hour or two and reheat until steaming. Rice left out can grow bacteria that heat doesn\'t destroy.' },
-  { name: 'Peanut butter & nuts', aka: 'almonds, cashews, walnuts, almond butter, trail mix, peanuts', tier: 'ok', note: 'Fine unless she\'s allergic. Good protein and healthy fats.' },
+  { name: 'Peanut butter & nuts', aka: 'almonds, cashews, walnuts, almond butter, trail mix, peanuts', tier: 'ok', note: 'Fine unless {m:they} {m:is|are} allergic. Good protein and healthy fats.' },
   { name: 'Chocolate', aka: 'dark chocolate, hot chocolate, candy, cocoa', tier: 'ok', note: 'Fine. It has a little caffeine (dark chocolate more), which counts toward 200 mg a day.' },
   { name: 'Chips, popcorn, pretzels', aka: 'crisps, fries, french fries', tier: 'ok', note: 'Fine as snacks. Salty snacks can make swelling worse later on.' },
-  { name: 'Honey', aka: 'raw honey, manuka', tier: 'ok', note: 'Fine for her, even raw. Honey is only off-limits for babies under 1 year old.' },
+  { name: 'Honey', aka: 'raw honey, manuka', tier: 'ok', note: 'Fine for {m:them}, even raw. Honey is only off-limits for babies under 1 year old.' },
   { name: 'Artificial sweeteners', aka: 'aspartame, sucralose, splenda, stevia, monk fruit, diet soda, equal', tier: 'ok', note: 'The FDA considers common sweeteners safe in moderation. Water is still the better default drink.' },
   { name: 'Baked goods & pastries', aka: 'cake, cookies, cupcakes, muffins, donuts, croissant, pie, cheesecake', tier: 'ok', note: 'Fine once baked. Cream-filled pastries should be kept refrigerated.' },
   { name: 'Hummus & dips', aka: 'tzatziki, salsa, queso dip, spinach dip', tier: 'ok', note: 'Store-bought, kept cold, is fine. Hot cheese dips should be steaming. Skip dips that sat out at a party for hours.' },
@@ -492,35 +492,35 @@ const FOOD_BASICS = [
 // ── Dad / partner space ─────────────────────────────────────────────────────
 const DAD_FEELINGS = [
   { id: 'anxious', label: 'Anxious', emoji: '😰', cope: ['Box breathing: in 4, hold 4, out 4, hold 4, for 2 minutes (tap "Breathe" below).', 'Write the worry down, then write the next concrete action. If there isn\'t one, it\'s not yours to carry tonight.', 'Name 3 things you can control today. Do one.'] },
-  { id: 'overwhelmed', label: 'Overwhelmed', emoji: '🌊', cope: ['Shrink the horizon. What\'s the one thing for this week? Ignore the rest.', 'Make a shared to-do list so it isn\'t all living in your head.', 'Telling her "I\'m a little overwhelmed too" is OK. It brings you closer.'] },
+  { id: 'overwhelmed', label: 'Overwhelmed', emoji: '🌊', cope: ['Shrink the horizon. What\'s the one thing for this week? Ignore the rest.', 'Make a shared to-do list so it isn\'t all living in your head.', 'Telling {m:them} "I\'m a little overwhelmed too" is OK. It brings you closer.'] },
   { id: 'money', label: 'Money stress', emoji: '💸', cope: ['Call your insurance and ask what prenatal care and delivery cost you out of pocket. Real numbers beat imagined ones.', 'Make a rough baby budget together. Lots of gear can be borrowed or bought used, except car seats.', 'Check your employer\'s parental leave and FMLA now, not in month 8.'] },
-  { id: 'worried', label: 'Worried about her / baby', emoji: '🫣', cope: ['First-trimester worry is nearly universal. Risk drops a lot once a heartbeat is seen, and again after week 12.', 'Learn the red-flag list (Safe? tab → When to call). Knowing exactly when to act takes the edge off vague worry.', 'Go to the appointments. Hearing it from the provider beats Googling at 2am.'] },
-  { id: 'leftout', label: 'Left out / disconnected', emoji: '🫥', cope: ['Read this week\'s baby update together tonight.', 'Ask her one curious question a day about how it feels. Not to fix anything, just to know.', 'Put the next appointment in your calendar and show up.'] },
+  { id: 'worried', label: 'Worried about {m:them} / baby', emoji: '🫣', cope: ['First-trimester worry is nearly universal. Risk drops a lot once a heartbeat is seen, and again after week 12.', 'Learn the red-flag list (Safe? tab → When to call). Knowing exactly when to act takes the edge off vague worry.', 'Go to the appointments. Hearing it from the provider beats Googling at 2am.'] },
+  { id: 'leftout', label: 'Left out / disconnected', emoji: '🫥', cope: ['Read this week\'s baby update together tonight.', 'Ask {m:them} one curious question a day about how it feels. Not to fix anything, just to know.', 'Put the next appointment in your calendar and show up.'] },
   { id: 'irritable', label: 'Short-fused', emoji: '😤', cope: ['HALT check: are you Hungry, Angry, Lonely, or Tired? Fix the physical one first.', 'Take a 20-minute walk alone before a hard conversation. Say "I need a minute," not nothing.', 'Workout, gym, a run: burn it off somewhere that isn\'t at home.'] },
   { id: 'tired', label: 'Running on empty', emoji: '🪫', cope: ['You can\'t pour from an empty cup. Protect your 7 hours.', 'Say yes when people offer help, now and especially later.', 'Trade off. A night where you\'re both off duty, with takeout and no chores.'] },
-  { id: 'scared', label: 'Scared to be a dad', emoji: '🫨', cope: ['Nobody knows how before they start. You learn it by doing, like every other skill you have.', 'Talk to a dad friend who\'s a year or two ahead of you. Ask what surprised him.', 'Write a letter to the baby. It turns fear into intention.'] },
-  { id: 'excited', label: 'Excited', emoji: '🤩', cope: ['Channel it: start a journal, pick a project (crib, nursery shelves), plan the reveal.', 'Tell her you\'re excited, specifically. It means more than you think.'] },
+  { id: 'scared', label: 'Scared to be a parent', emoji: '🫨', cope: ['Nobody knows how before they start. You learn it by doing, like every other skill you have.', 'Talk to a friend who became a parent a year or two before you. Ask what surprised them.', 'Write a letter to the baby. It turns fear into intention.'] },
+  { id: 'excited', label: 'Excited', emoji: '🤩', cope: ['Channel it: start a journal, pick a project (crib, nursery shelves), plan the reveal.', 'Tell {m:them} you\'re excited, specifically. It means more than you think.'] },
   { id: 'good', label: 'Steady / good', emoji: '🙂', cope: ['Bank it. Do one thing today that makes tomorrow easier for both of you.'] },
 ]
 
 const DAD_TRUTHS = [
-  'Ask "What would help most right now: X or Y?" Two options are easier for her than "What do you need?"',
+  'Ask "What would help most right now: X or Y?" Two options are easier for {m:them} than "What do you need?"',
   'Don\'t say "You look tired." Say "Go lie down, I\'ve got dinner."',
   'You\'re on trash, litter box, fridge cleanouts, and gas-station runs for the foreseeable future.',
   'Fixing isn\'t always the move. Sometimes the job is just to be in the room.',
-  'Her mood isn\'t a referendum on you. Don\'t keep score, don\'t take the bait.',
-  'Go to the appointments, especially the first scan. You\'ll understand more and she\'ll feel less alone.',
+  '{M:their} mood isn\'t a referendum on you. Don\'t keep score, don\'t take the bait.',
+  'Go to the appointments, especially the first scan. You\'ll understand more and {m:they}\'ll feel less alone.',
   'Learn the red-flag list once, so you can be the calm one when something comes up.',
-  'Don\'t compare her pregnancy to anyone else\'s, out loud or in your head.',
-  'Your feelings matter too. Process the heavy stuff with a friend or counselor, not only with her.',
+  'Don\'t compare {m:their} pregnancy to anyone else\'s, out loud or in your head.',
+  'Your feelings matter too. Process the heavy stuff with a friend or counselor, not only with {m:them}.',
   'Small, consistent beats grand. A refilled water bottle every day beats one big gesture.',
-  'Take a photo of her every month. She won\'t ask, but she\'ll be glad later.',
-  'Dads get perinatal depression too, around 1 in 10. If you\'re low for weeks, say something.',
+  'Take a photo of {m:them} every month. {M:they} won\'t ask, but {m:they}\'ll be glad later.',
+  'Expecting dads and partners get perinatal depression too, around 1 in 10. If you\'re low for weeks, say something.',
 ]
 
 const DAD_TRIMESTER = {
-  1: ['Your main jobs: food on demand, chores off her plate, appointments in your calendar.', 'She might not want to tell people yet. Follow her lead on who knows and when.', 'Read up on the first-trimester red flags once, then stop Googling.'],
-  2: ['She may get an energy rebound. Plan a trip or day dates now.', 'Start the big projects: nursery, car seat research, leave planning.', 'Feel for kicks from about 20–24 weeks. Hand on the belly, be patient.'],
+  1: ['Your main jobs: food on demand, chores off {m:their} plate, appointments in your calendar.', '{M:they} might not want to tell people yet. Follow {m:their} lead on who knows and when.', 'Read up on the first-trimester red flags once, then stop Googling.'],
+  2: ['{M:they} may get an energy rebound. Plan a trip or day dates now.', 'Start the big projects: nursery, car seat research, leave planning.', 'Feel for kicks from about 20–24 weeks. Hand on the belly, be patient.'],
   3: ['Pack the hospital bag, install the car seat, practice the drive.', 'Learn labor basics so you can advocate: how to time contractions, when to go in.', 'Prep freezer meals and line up help for the first two weeks home.'],
 }
 
@@ -538,15 +538,15 @@ const MORNING_MOM = [
   'Check in when you get a minute. It tells your partner exactly how to help today.',
 ]
 const MORNING_DAD = [
-  'Ask her one question before you leave: "What would make today easier?" Then do it.',
-  'Put water and a snack where she\'ll be today. Small and steady beats big gestures.',
-  'Take one chore completely off her plate today. Own it, start to finish.',
-  'Text her midday. "Thinking of you, need anything?" lands bigger than you\'d think.',
-  'Plan tonight\'s dinner now so she doesn\'t have to think about it (and no strong smells).',
+  'Ask {m:them} one question before you leave: "What would make today easier?" Then do it.',
+  'Put water and a snack where {m:they}\'ll be today. Small and steady beats big gestures.',
+  'Take one chore completely off {m:their} plate today. Own it, start to finish.',
+  'Text {m:them} midday. "Thinking of you, need anything?" lands bigger than you\'d think.',
+  'Plan tonight\'s dinner now so {m:they} {m:does|do}n\'t have to think about it (and no strong smells).',
   'Check in with yourself today too. Stress shows up as a short fuse later.',
   'Is the next appointment in your calendar? Put it there now.',
   'Trash, litter box, anything smelly: still your department.',
-  'Notice one thing she\'s handling well and tell her tonight.',
+  'Notice one thing {m:they} {m:is|are} handling well and tell {m:them} tonight.',
   'Get your own sleep, food and a workout in. A steady you is the best support.',
 ]
 
@@ -567,12 +567,12 @@ const ENCOURAGE_MOM = [
 
 const ENCOURAGE_DAD = [
   'Showing up consistently matters more than knowing everything.',
-  'Being steady is the biggest thing you can give her right now.',
+  'Being steady is the biggest thing you can give {m:them} right now.',
   'You\'re allowed to feel scared and excited in the same breath.',
   'Every refilled water bottle counts. Seriously.',
   'Taking care of yourself is part of taking care of them.',
   'You don\'t have to have it all figured out. You have to keep showing up.',
-  'The fact that you\'re reading this means you\'re already the kind of dad who tries.',
+  'The fact that you\'re reading this means you\'re already the kind of parent who tries.',
   'Ask, listen, act. That\'s the whole playbook today.',
   'Your worry is a sign of how much you care. Now point it at one useful thing.',
   'Breathe. You\'ve got more time to learn than it feels like.',
@@ -596,15 +596,15 @@ const ENERGY = [
 
 // When she logs a mood or energy level, these are added to his game plan.
 const MOOD_PLAN = {
-  1: ['She\'s having a rough day. Clear tonight\'s plans and make the evening low-key.', 'Ask: "Do you want to talk about it, or do you want distraction?"'],
-  2: ['A meh day. A small surprise (her favorite snack, a note) goes a long way.'],
+  1: ['{M:they} {m:is|are} having a rough day. Clear tonight\'s plans and make the evening low-key.', 'Ask: "Do you want to talk about it, or do you want distraction?"'],
+  2: ['A meh day. A small surprise ({m:their} favorite snack, a note) goes a long way.'],
   3: [],
-  4: ['She\'s feeling good. Ride the wave with a walk or a small outing together.'],
-  5: ['Great day! Tell her what you love about how she\'s handling all this.'],
+  4: ['{M:they} {m:is|are} feeling good. Ride the wave with a walk or a small outing together.'],
+  5: ['Great day! Tell {m:them} what you love about how {m:they} {m:is|are} handling all this.'],
 }
 const ENERGY_PLAN = {
-  1: ['Her battery is empty. Take dinner and the dishes off the table entirely.'],
-  2: ['Low energy: handle one errand she\'d planned to do.'],
+  1: ['{M:their} battery is empty. Take dinner and the dishes off the table entirely.'],
+  2: ['Low energy: handle one errand {m:they}\'d planned to do.'],
 }
 
 const BREATH_STEPS = [['Breathe in', 4], ['Hold', 4], ['Breathe out', 4], ['Hold', 4]]
@@ -613,60 +613,60 @@ const BREATH_STEPS = [['Breathe in', 4], ['Hold', 4], ['Breathe out', 4], ['Hold
 // When he logs how he's doing (and doesn't keep it private), her "Him" view
 // turns it into a few concrete ways to support him back.
 const SUPPORT_HIM = {
-  anxious: ['Ask him what\'s on his mind. He may not bring it up on his own.', 'Share how you\'re actually doing. Hearing it from you calms him more than Google does.'],
-  overwhelmed: ['Split the to-do list together so it isn\'t all living in his head.', 'Pick one thing for this week and let the rest wait.'],
-  money: ['Sit down together for 20 minutes with real numbers: insurance, leave, a rough baby budget.', 'Remind him a lot of gear can be borrowed or bought used.'],
-  worried: ['Tell him how you\'re feeling today, specifically. Uncertainty is what feeds his worry.', 'Bring him to the next appointment so he hears it from the provider.'],
-  leftout: ['Invite him to the next appointment, or tell him one thing you felt today.', 'Read this week\'s baby update together tonight.'],
-  irritable: ['Give him 20 minutes to decompress before any big conversations.', 'Check whether he\'s eaten. Seriously.'],
-  tired: ['Trade off a night: both off duty, takeout, no chores.', 'Let him sleep in once this week if you can.'],
-  scared: ['Tell him one thing he\'s already doing well as a dad-to-be.', 'Remind him nobody knows how before they start. You\'re learning together.'],
-  excited: ['Share it with him: a baby-names night, or plan how you\'ll tell people.', 'Tell him what you\'re looking forward to.'],
-  good: ['Thank him for something specific he did this week.'],
+  anxious: ['Ask {p:them} what\'s on {p:their} mind. {P:they} may not bring it up on {p:their} own.', 'Share how you\'re actually doing. Hearing it from you calms {p:them} more than Google does.'],
+  overwhelmed: ['Split the to-do list together so it isn\'t all living in {p:their} head.', 'Pick one thing for this week and let the rest wait.'],
+  money: ['Sit down together for 20 minutes with real numbers: insurance, leave, a rough baby budget.', 'Remind {p:them} a lot of gear can be borrowed or bought used.'],
+  worried: ['Tell {p:them} how you\'re feeling today, specifically. Uncertainty is what feeds {p:their} worry.', 'Bring {p:them} to the next appointment so {p:they} {p:hears|hear} it from the provider.'],
+  leftout: ['Invite {p:them} to the next appointment, or tell {p:them} one thing you felt today.', 'Read this week\'s baby update together tonight.'],
+  irritable: ['Give {p:them} 20 minutes to decompress before any big conversations.', 'Check whether {p:they} {p:has|have} eaten. Seriously.'],
+  tired: ['Trade off a night: both off duty, takeout, no chores.', 'Let {p:them} sleep in once this week if you can.'],
+  scared: ['Tell {p:them} one thing {p:they} {p:is|are} already doing well as a parent-to-be.', 'Remind {p:them} nobody knows how before they start. You\'re learning together.'],
+  excited: ['Share it with {p:them}: a baby-names night, or plan how you\'ll tell people.', 'Tell {p:them} what you\'re looking forward to.'],
+  good: ['Thank {p:them} for something specific {p:they} did this week.'],
 }
 const SUPPORT_HIM_STRESS = {
-  4: ['He\'s carrying a lot right now. A hug and "How are you, really?" go a long way.'],
-  5: ['He\'s maxed out. Ask what one thing you could take off his plate, and keep tonight low-key.'],
+  4: ['{P:they} {p:is|are} carrying a lot right now. A hug and "How are you, really?" go a long way.'],
+  5: ['{P:they} {p:is|are} maxed out. Ask what one thing you could take off {p:their} plate, and keep tonight low-key.'],
 }
 
 // ── "She logged X today. Try Y, or maybe Z." ────────────────────────────────
 // Two short, specific ideas per symptom for his alert. `call` is added when the
 // symptom is at or past its flag level so the alert never buries a red flag.
 const NUDGE = {
-  nausea: { try: ['putting crackers and water by the bed', 'taking over cooking tonight so she avoids the smells'] },
-  vomiting: { try: ['bringing small sips of an electrolyte drink every 15 minutes', 'handling dinner and cleanup tonight'], call: 'If she can\'t keep fluids down for 24 hours, call the OB.' },
-  fatigue: { try: ['taking dinner and dishes completely off her plate', 'handling the evening so she can go to bed early'] },
-  breasts: { try: ['gentle hugs from the side or behind', 'picking up a soft wireless bra for her'] },
-  cramping: { try: ['a heating pad on low and a show on the couch', 'bringing her water and letting her rest'], call: 'Strong or one-sided pain, or pain with bleeding: call the OB now.' },
-  spotting: { try: ['staying calm and helping her note the color and amount', 'calling the OB line together'], call: 'More than light spotting: call the OB now.' },
-  bloating: { try: ['an easy walk together after dinner', 'stocking up on fiber and keeping her water bottle full'] },
+  nausea: { try: ['putting crackers and water by the bed', 'taking over cooking tonight so {m:they} {m:avoids|avoid} the smells'] },
+  vomiting: { try: ['bringing small sips of an electrolyte drink every 15 minutes', 'handling dinner and cleanup tonight'], call: 'If {m:they} can\'t keep fluids down for 24 hours, call the OB.' },
+  fatigue: { try: ['taking dinner and dishes completely off {m:their} plate', 'handling the evening so {m:they} can go to bed early'] },
+  breasts: { try: ['gentle hugs from the side or behind', 'picking up a soft wireless bra for {m:them}'] },
+  cramping: { try: ['a heating pad on low and a show on the couch', 'bringing {m:them} water and letting {m:them} rest'], call: 'Strong or one-sided pain, or pain with bleeding: call the OB now.' },
+  spotting: { try: ['staying calm and helping {m:them} note the color and amount', 'calling the OB line together'], call: 'More than light spotting: call the OB now.' },
+  bloating: { try: ['an easy walk together after dinner', 'stocking up on fiber and keeping {m:their} water bottle full'] },
   headache: { try: ['bringing water and a snack first', 'a dark, quiet room and a cool cloth'], call: 'A severe headache or one with vision changes: call the OB now.' },
-  peeing: { try: ['planning bathroom stops when you go out', 'keeping her water bottle full anyway'] },
-  burning: { try: ['helping her call the OB today, since UTIs need treatment', 'keeping water coming'], call: 'Burning when peeing needs a call to the OB today.' },
-  moody: { try: ['listening without trying to fix anything', 'asking her: comfort, distraction, or space?'] },
-  anxious: { try: ['asking what\'s on her mind and just listening', 'doing the 2-minute breathing reset together'] },
+  peeing: { try: ['planning bathroom stops when you go out', 'keeping {m:their} water bottle full anyway'] },
+  burning: { try: ['helping {m:them} call the OB today, since UTIs need treatment', 'keeping water coming'], call: 'Burning when peeing needs a call to the OB today.' },
+  moody: { try: ['listening without trying to fix anything', 'asking {m:them}: comfort, distraction, or space?'] },
+  anxious: { try: ['asking what\'s on {m:their} mind and just listening', 'doing the 2-minute breathing reset together'] },
   aversions: { try: ['asking what sounds OK and going to get it', 'taking out the trash and clearing smelly food'] },
   cravings: { try: ['going and getting the thing', 'stocking a healthier version too'] },
-  heartburn: { try: ['a smaller dinner and no lying down right after', 'propping up her side of the bed'] },
-  dizzy: { try: ['keeping a snack within reach', 'reminding her to stand up slowly'], call: 'Fainting, or dizziness with bleeding or pain: seek care now.' },
-  insomnia: { try: ['a screens-off wind-down together tonight', 'an extra pillow between her knees'] },
+  heartburn: { try: ['a smaller dinner and no lying down right after', 'propping up {m:their} side of the bed'] },
+  dizzy: { try: ['keeping a snack within reach', 'reminding {m:them} to stand up slowly'], call: 'Fainting, or dizziness with bleeding or pain: seek care now.' },
+  insomnia: { try: ['a screens-off wind-down together tonight', 'an extra pillow between {m:their} knees'] },
   congestion: { try: ['running a humidifier in the bedroom tonight', 'grabbing some saline spray'] },
   backpain: { try: ['a lower-back rub tonight', 'doing all the lifting'] },
-  swelling: { try: ['getting her feet up', 'keeping water coming'], call: 'Sudden swelling of the face or hands: call the OB now.' },
-  fever: { try: ['bringing water and rechecking her temperature in an hour', 'helping her call the OB'], call: 'A fever of 100.4°F or higher needs a call to the OB.' },
-  discharge: { try: ['picking up breathable cotton underwear', 'helping her call the OB if it itches or smells strong'], call: 'A gush or steady trickle of fluid: call the OB now.' },
-  cramps_leg: { try: ['a calf massage before bed', 'gently flexing her foot toes-up when a cramp hits'] },
-  breath: { try: ['slowing the pace on walks', 'opening a window and letting her sit upright'], call: 'Sudden or severe shortness of breath, or chest pain: call 911.' },
-  movement: { try: ['calling labor & delivery together right now', 'driving her in to get checked'], call: 'Less movement than usual: call labor & delivery now, without waiting to count kicks.' },
+  swelling: { try: ['getting {m:their} feet up', 'keeping water coming'], call: 'Sudden swelling of the face or hands: call the OB now.' },
+  fever: { try: ['bringing water and rechecking {m:their} temperature in an hour', 'helping {m:them} call the OB'], call: 'A fever of 100.4°F or higher needs a call to the OB.' },
+  discharge: { try: ['picking up breathable cotton underwear', 'helping {m:them} call the OB if it itches or smells strong'], call: 'A gush or steady trickle of fluid: call the OB now.' },
+  cramps_leg: { try: ['a calf massage before bed', 'gently flexing {m:their} foot toes-up when a cramp hits'] },
+  breath: { try: ['slowing the pace on walks', 'opening a window and letting {m:them} sit upright'], call: 'Sudden or severe shortness of breath, or chest pain: call 911.' },
+  movement: { try: ['calling labor & delivery together right now', 'driving {m:them} in to get checked'], call: 'Less movement than usual: call labor & delivery now, without waiting to count kicks.' },
 }
 const MOOD_NUDGE = {
-  1: { feel: 'having a rough day', try: ['clearing tonight\'s plans and keeping things low-key', 'asking her: comfort, distraction, or space?'] },
-  2: { feel: 'feeling meh today', try: ['a small surprise, like her favorite snack', 'a note telling her she\'s doing great'] },
-  3: { feel: 'feeling okay today', try: ['one thing off her list without being asked', 'a refill of her water bottle'] },
-  4: { feel: 'feeling good today', try: ['a short walk together', 'telling her what you love about how she\'s handling this'] },
-  5: { feel: 'feeling great today', try: ['riding the wave with a small outing together', 'telling her what you love about how she\'s handling this'] },
+  1: { feel: 'having a rough day', try: ['clearing tonight\'s plans and keeping things low-key', 'asking {m:them}: comfort, distraction, or space?'] },
+  2: { feel: 'feeling meh today', try: ['a small surprise, like {m:their} favorite snack', 'a note telling {m:them} {m:they} {m:is|are} doing great'] },
+  3: { feel: 'feeling okay today', try: ['one thing off {m:their} list without being asked', 'a refill of {m:their} water bottle'] },
+  4: { feel: 'feeling good today', try: ['a short walk together', 'telling {m:them} what you love about how {m:they} {m:is|are} handling this'] },
+  5: { feel: 'feeling great today', try: ['riding the wave with a small outing together', 'telling {m:them} what you love about how {m:they} {m:is|are} handling this'] },
 }
-// How a symptom reads inside a sentence: "she logged nausea & exhaustion today"
+// How a symptom reads inside a sentence: "{M:they} logged nausea & exhaustion today"
 const SYMPTOM_NOUN = {
   nausea: 'nausea', vomiting: 'vomiting', fatigue: 'exhaustion', breasts: 'sore breasts', cramping: 'cramping',
   spotting: 'spotting', bloating: 'bloating', headache: 'a headache', peeing: 'frequent peeing',
@@ -680,7 +680,7 @@ const SYMPTOM_NOUN = {
 const REG_CATS = [
   ['gear', '🚗 Gear & travel'], ['nursery', '🛏️ Nursery & sleep'], ['feeding', '🍼 Feeding'],
   ['diapering', '🧷 Diapering'], ['clothing', '👕 Clothing'], ['bath', '🛁 Bath & health'],
-  ['mom', '🤍 For mom'], ['other', '📦 Other'],
+  ['mom', '🤍 For {m:term}'], ['other', '📦 Other'],
 ]
 // Suggestions: kinds of items, not specific products (the app can't read live
 // store ratings, so it never names a "best" product). [id, cat, name, why,
@@ -698,10 +698,10 @@ const REG_GUIDE = [
   ['sacks', 'nursery', 'Swaddles & sleep sacks', 'Keep baby warm without loose blankets.', 'Stop swaddling at the first signs of rolling. Skip weighted sleep sacks (AAP advises against them).', 'swaddle|sleep sack', ''],
   ['monitor', 'nursery', 'Baby monitor', 'Peace of mind when baby naps in another room.', 'For Wi-Fi monitors, change the default password. "Smart sock" breathing monitors are not proven to prevent SIDS (AAP).', 'monitor', ''],
   ['noise', 'nursery', 'White noise machine', 'Helps many babies (and parents) sleep.', 'Keep it across the room, not in the crib, at a low volume.', 'white noise|sound machine', ''],
-  ['bottles', 'feeding', 'Bottles (a few kinds)', 'Even if breastfeeding, for pumped milk and dad feeds.', 'Buy one small pack of 2 or 3 brands first. Babies have strong opinions about nipples.', 'bottle(?! brush)', ''],
-  ['pump', 'feeding', 'Breast pump', 'For going back to work, or letting dad do a night feed.', 'Health insurance usually covers one for free (an ACA rule). Call the plan before buying.', 'pump', ''],
+  ['bottles', 'feeding', 'Bottles (a few kinds)', 'Even if breastfeeding, for pumped milk and partner feeds.', 'Buy one small pack of 2 or 3 brands first. Babies have strong opinions about nipples.', 'bottle(?! brush)', ''],
+  ['pump', 'feeding', 'Breast pump', 'For going back to work, or letting {p:name} do a night feed.', 'Health insurance usually covers one for free (an ACA rule). Call the plan before buying.', 'pump', ''],
   ['burp', 'feeding', 'Burp cloths', 'You\'ll use more than you think.', 'Cheap cloth diapers work great as burp cloths.', 'burp', ''],
-  ['nursingpillow', 'feeding', 'Nursing pillow', 'Saves her back and arms during feeds.', 'For awake feeding only. Never let baby sleep on it.', 'nursing pillow|boppy', 'cpsc'],
+  ['nursingpillow', 'feeding', 'Nursing pillow', 'Saves {m:their} back and arms during feeds.', 'For awake feeding only. Never let baby sleep on it.', 'nursing pillow|boppy', 'cpsc'],
   ['bottlebrush', 'feeding', 'Bottle brush & drying rack', 'Bottles need cleaning after every feed.', '', 'bottle brush|drying rack', ''],
   ['diapers', 'diapering', 'Diapers (mostly size 1)', 'Newborns go through 8 to 12 a day.', 'Don\'t overbuy newborn size. Many babies outgrow it in a few weeks. Size 1 lasts longer.', 'diaper(?! bag| cream| pail)', ''],
   ['wipes', 'diapering', 'Wipes', '', 'Fragrance-free for newborn skin.', 'wipes', ''],
@@ -743,7 +743,7 @@ const RATING_TIPS = [
 // Shown on his own phone (Us → his side), built from the stress level he
 // logged. His logged feelings add their own coping steps (DAD_FEELINGS.cope).
 const SELF_CARE_STRESS = {
-  5: ['Stop and do the 2-minute breathing reset now. It physically lowers your heart rate.', 'Tell one person today how much you\'re carrying: a friend, your brother, a counselor. Not just her.', 'Cut one non-essential thing from this week. Something has to give, and it shouldn\'t be your sleep.'],
+  5: ['Stop and do the 2-minute breathing reset now. It physically lowers your heart rate.', 'Tell one person today how much you\'re carrying: a friend, your brother, a counselor. Not just {m:them}.', 'Cut one non-essential thing from this week. Something has to give, and it shouldn\'t be your sleep.'],
   4: ['Get 20 minutes of movement today: a walk, the gym, a run. Burn the stress off outside the house.', 'Write down what\'s weighing on you, then one next step for each. Worry shrinks on paper.'],
   3: ['Protect your sleep tonight. 7 hours makes everything else easier.', 'Do one thing just for you today, even 15 minutes.'],
   2: ['You\'re in a good spot. Bank it: get one thing done today that makes tomorrow easier.'],
@@ -752,7 +752,7 @@ const SELF_CARE_STRESS = {
 const SELF_CARE_BASICS = [
   'Eat real meals. Running on coffee makes the short fuse shorter.',
   'Keep one thing that\'s yours: the gym, a game night, a hobby. You\'ll be a better partner for it.',
-  'Around 1 in 10 expecting dads struggle with depression or anxiety. If you\'re low for 2+ weeks, talk to your doctor or Postpartum Support International (1-800-944-4773, dads included). In a crisis, call or text 988.',
+  'Around 1 in 10 expecting dads and partners struggle with depression or anxiety. If you\'re low for 2+ weeks, talk to your doctor or Postpartum Support International (1-800-944-4773, dads and partners included). In a crisis, call or text 988.',
 ]
 
 // ── Where the health information comes from ─────────────────────────────────
@@ -1211,7 +1211,37 @@ function gest() {
   return { days, week, day, due, lmp, fromDoctor: !!p.due, tri, left: dayDiff(due, today0()), pct: Math.min(100, Math.max(0, days / 280 * 100)) }
 }
 
-const names = () => { const p = profile(); return { mom: p.momName || 'Mom', dad: p.dadName || 'Dad' } }
+// ── Pronouns & parent terms (picked at setup, shared through the profile) ──
+// Text says {m:they}/{p:their}/{m:is|are}… ("m" = the pregnant person, "p" =
+// the partner); T() fills them in. Defaults: she/Mom and he/Dad.
+const PRON = {
+  she: { they: 'she', them: 'her', their: 'her', theirs: 'hers', themselves: 'herself', plural: false, label: 'she/her' },
+  he: { they: 'he', them: 'him', their: 'his', theirs: 'his', themselves: 'himself', plural: false, label: 'he/him' },
+  they: { they: 'they', them: 'them', their: 'their', theirs: 'theirs', themselves: 'themselves', plural: true, label: 'they/them' },
+}
+const DEF = { mom: { pron: 'she', term: 'Mom' }, dad: { pron: 'he', term: 'Dad' } }
+const pronOf = r => PRON[profile()[r + 'Pron']] || PRON[DEF[r].pron]
+const termOf = r => profile()[r + 'Term'] || DEF[r].term
+function T(s) {
+  if (typeof s !== 'string' || !s.includes('{')) return s
+  return s.replace(/\{([mpMP]):([^{}]+)\}/g, (_, who, w) => {
+    const r = who.toLowerCase() === 'm' ? 'mom' : 'dad', pr = pronOf(r)
+    let out = w.includes('|') ? w.split('|')[pr.plural ? 1 : 0]
+      : w === 'term' ? termOf(r) : w === 'name' ? (profile()[r + 'Name'] || termOf(r)) : (pr[w] ?? w)
+    return who === who.toUpperCase() ? out.charAt(0).toUpperCase() + out.slice(1) : out
+  })
+}
+// The content library with this couple's pronouns filled in, rebuilt only when they change.
+const fill = v => typeof v === 'string' ? T(v) : Array.isArray(v) ? v.map(fill) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fill(x)])) : v
+let C = RAW, cKey = ''
+function refreshContent() {
+  const p = profile(), key = ['momPron', 'dadPron', 'momTerm', 'dadTerm', 'momName', 'dadName'].map(k => p[k] || '').join('|')
+  if (key !== cKey) { cKey = key; C = Object.fromEntries(Object.keys(RAW).map(k => [k, fill(RAW[k])])) }
+}
+// Emoji per person: pregnant person / partner, by pronoun
+const face = r => r === 'mom' ? ({ she: '🤰', he: '🫃', they: '🫄' })[profile().momPron || 'she'] || '🫄' : ({ he: '🧔', she: '👩', they: '🧑' })[profile().dadPron || 'he'] || '🧑'
+
+const names = () => { const p = profile(); return { mom: p.momName || termOf('mom'), dad: p.dadName || termOf('dad') } }
 const me = () => S.state.role
 const other = () => (me() === 'mom' ? 'dad' : 'mom')
 const nameOf = r => names()[r]
@@ -1219,7 +1249,7 @@ const nameOf = r => names()[r]
 const customSymptoms = () => (profile().customSymptoms || []).map(c => ({
   id: c.id, label: c.label, emoji: '📝', custom: true,
   meaning: 'A symptom you added yourself. If it\'s new, severe or worrying, mention it to the OB.',
-  help: ['Ask her how it\'s affecting her today and what would help most.'], flag: '', flagAt: 0,
+  help: [T('Ask {m:them} how it\'s affecting {m:them} today and what would help most.')], flag: '', flagAt: 0,
 }))
 const symptom = id => C.SYMPTOMS.find(s => s.id === id) || customSymptoms().find(s => s.id === id)
 const pick = (arr, seed) => arr[((seed % arr.length) + arr.length) % arr.length]
@@ -1279,7 +1309,7 @@ function nudgeFor(ci) {
     }
   }
   const m = C.MOOD_NUDGE[ci.data.mood]
-  if (!m) return { title: `${who} just checked in`, body: 'Tap to see how she\'s doing.' }
+  if (!m) return { title: `${who} just checked in`, body: T('Tap to see how {m:they} {m:is|are} doing.') }
   return { title: `${who} is ${m.feel}`, body: `${cap('try ' + m.try[0])}, or maybe ${m.try[1]}.` }
 }
 
@@ -1311,8 +1341,8 @@ function setReminders(list) {
 function remindersCard() {
   const pr = pushPrefs()
   const intro = `<p>${me() === 'dad'
-    ? 'Pick as many times as you like. <b>Tip & game plan</b> is built from her check-in ("She logged nausea today. Did you put crackers by the bed?"). <b>Check-in</b> reminds you to log how you\'re doing. You also get an alert the moment she checks in.'
-    : 'Pick as many times as you like. <b>Check-in reminders</b> ask how you\'re feeling (skipped if you checked in within the last 2 hours). <b>Tips</b> are gentle self-care nudges. You also get an alert when he sends a note.'}</p>`
+    ? T('Pick as many times as you like. <b>Tip & game plan</b> is built from {m:their} check-in ("{M:they} logged nausea today. Did you put crackers by the bed?"). <b>Check-in</b> reminds you to log how you\'re doing. You also get an alert the moment {m:they} {m:checks|check} in.')
+    : T('Pick as many times as you like. <b>Check-in reminders</b> ask how you\'re feeling (skipped if you checked in within the last 2 hours). <b>Tips</b> are gentle self-care nudges. You also get an alert when {p:they} {p:sends|send} a note.')}</p>`
   if (!S.syncAvailable() || !S.isPaired()) return intro + '<p class="fine">Pair your phones first (below), then turn this on.</p>'
   if (isIOS && !standalone()) return intro + '<p class="fine"><b>iPhone only allows notifications from the home-screen app.</b> In Safari tap Share → Add to Home Screen, open Together from that icon, and turn this on there.</p>'
   if (!pushSupported()) return intro + '<p class="fine">This browser doesn\'t support notifications. On iPhone, update iOS and use the home-screen app.</p>'
@@ -1385,7 +1415,7 @@ function stampLink() {
 
 // Typed-but-unsaved values, keyed by input id. Every render puts them back, so
 // a live update from the other phone never wipes a half-filled form.
-const FORM_IDS = ['regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'regStars', 'regReviews', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode']
+const FORM_IDS = ['wishName', 'wishUrl', 'wishPrice', 'wishNotes', 'regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'regStars', 'regReviews', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode']
 const formState = {}
 const clearForm = prefix => { for (const k of Object.keys(formState)) if (k.startsWith(prefix)) delete formState[k] }
 function restoreForms(focusId, sel) {
@@ -1399,7 +1429,7 @@ function restoreForms(focusId, sel) {
 function render() {
   const a = document.activeElement, focusId = a && a.id && app.contains(a) ? a.id : null
   let sel = null; try { sel = a && a.selectionStart } catch {}
-  try { renderScreen(); restoreForms(focusId, sel) } catch (e) {
+  try { refreshContent(); renderScreen(); restoreForms(focusId, sel) } catch (e) {
     console.error(e)
     app.innerHTML = `<div class="onb center"><div class="hero">🤍</div><h2>Something went wrong</h2>
       <p class="lead">Your check-ins are safe. Tap Repair, and if this keeps happening, send a screenshot of this screen.</p>
@@ -1480,16 +1510,17 @@ function onboarding() {
     return `<div class="onb">
       <div class="hero">🤍</div>
       <h1>Together</h1>
-      <p class="lead">A shared pregnancy space for the two of you. She checks in, you both see it, and you get a plan for how to help.</p>
+      <p class="lead">A shared pregnancy space for the two of you. The one who's pregnant checks in, you both see it, and the partner gets a plan for how to help.</p>
       <p class="q">Who's using this phone?</p>
-      <button class="big" data-role="mom">🤰 I'm pregnant</button>
-      <button class="big" data-role="dad">🧔 I'm the partner</button>
+      <button class="big" data-role="mom">🫄 I'm the one who's pregnant</button>
+      <button class="big" data-role="dad">🫶 I'm the partner</button>
+      <p class="fine">You'll pick your names, pronouns and what you'd each like to be called next.</p>
       <p class="fine">${esc(C.DISCLAIMER_SHORT)}</p>
     </div>`
   }
   if (onboardStep === 2) {
     const mom = me() === 'mom'
-    const partner = mom ? 'your partner' : 'her', subject = mom ? 'your partner' : 'she', their = mom ? 'their' : 'her'
+    const partner = mom ? 'your partner' : T('{m:them}'), subject = mom ? 'your partner' : T('{m:they}'), their = mom ? 'their' : T('{m:their}')
     if (S.isPaired()) return `<div class="onb">
       <div class="hero">🔗</div>
       <h2 class="center">Now invite ${partner}</h2>
@@ -1523,7 +1554,9 @@ function onboarding() {
   }
   {
     return `<div class="onb">
-      <h2>Your dates</h2>
+      <h2>About you two</h2>
+      ${['mom', 'dad'].sort((a, b) => (b === me()) - (a === me())).map(personFields).join('')}
+      <h3>Your dates</h3>
       <label class="field"><b>Due date from your doctor</b> (most accurate, and the app counts everything from it)
         <input type="date" id="due" value="${esc(p.due || '')}">
       </label>
@@ -1531,10 +1564,6 @@ function onboarding() {
       <label class="field">First day of last period (we'll estimate until the OB gives you a date)
         <input type="date" id="lmp" value="${esc(p.due ? '' : p.lmp || '')}" max="${isoDate(new Date())}">
       </label>
-      <div class="row2">
-        <label class="field">Her name <input id="momName" value="${esc(p.momName || '')}" placeholder="optional"></label>
-        <label class="field">His name <input id="dadName" value="${esc(p.dadName || '')}" placeholder="optional"></label>
-      </div>
       <label class="field">OB / midwife phone (for one-tap calling)
         <input id="obPhone" type="tel" value="${esc(p.obPhone || '')}" placeholder="optional">
       </label>
@@ -1543,6 +1572,26 @@ function onboarding() {
 
     </div>`
   }
+}
+
+// Name, pronouns and parent title for one person (set up once, editable later)
+const TERMS = { mom: ['Mom', 'Mama', 'Mommy', 'Dad', 'Papa', 'Parent', 'Baba', 'Mapa'], dad: ['Dad', 'Daddy', 'Papa', 'Mom', 'Mama', 'Parent', 'Baba', 'Partner'] }
+function personFields(r) {
+  const p = profile(), mine = r === me()
+  const title = r === 'mom' ? `🫄 The one who's pregnant${mine ? ' (you)' : ''}` : `🫶 The partner${mine ? ' (you)' : ''}`
+  const pron = p[r + 'Pron'] || DEF[r].pron
+  return `<fieldset class="person"><legend>${title}</legend>
+    <label class="field">Name <input id="${r}Name" value="${esc(p[r + 'Name'] || '')}" placeholder="${mine ? 'Your first name' : 'Their first name'}" autocomplete="off"></label>
+    <div class="row2">
+      <label class="field">Pronouns
+        <select id="${r}Pron" class="inp">${Object.entries(PRON).map(([k, v]) => `<option value="${k}" ${pron === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select>
+      </label>
+      <label class="field">Called as a parent
+        <input id="${r}Term" list="terms-${r}" value="${esc(p[r + 'Term'] || '')}" placeholder="${DEF[r].term}" maxlength="20" autocomplete="off">
+        <datalist id="terms-${r}">${TERMS[r].map(t => `<option value="${t}">`).join('')}</datalist>
+      </label>
+    </div>
+  </fieldset>`
 }
 
 function pairingCard(inOnboarding) {
@@ -1593,7 +1642,7 @@ function devicesCard() {
   return `<div class="card soft">
     <h4>📱 Connected devices</h4>
     ${devices === 'error' ? '<p class="fine">Couldn\'t load the list. Check your signal.</p>' : !devices ? '<p class="fine">Loading…</p>'
-      : list.map(d => `<div class="mile"><b>${d.role === 'mom' ? '🤰 ' + esc(n.mom) : '🧔 ' + esc(n.dad)}${d.me ? ' · this phone' : ''}<span class="why">Last opened ${ago(d.last_seen || d.joined_at)} · joined ${esc(fmtDate(new Date(d.joined_at)))}</span></b>${d.me ? '' : `<span><button class="mini del" data-rm-dev="${esc(d.user_id)}" aria-label="Remove device">Remove</button></span>`}</div>`).join('')}
+      : list.map(d => `<div class="mile"><b>${d.role === 'mom' ? face('mom') + ' ' + esc(n.mom) : face('dad') + ' ' + esc(n.dad)}${d.me ? ' · this phone' : ''}<span class="why">Last opened ${ago(d.last_seen || d.joined_at)} · joined ${esc(fmtDate(new Date(d.joined_at)))}</span></b>${d.me ? '' : `<span><button class="mini del" data-rm-dev="${esc(d.user_id)}" aria-label="Remove device">Remove</button></span>`}</div>`).join('')}
     <p class="fine">A few per person is normal: Safari and the home-screen icon count separately. Don't recognize one? Remove it, then tap <b>Change couple code</b> so old links stop working.</p>
     <button class="ghost" data-act="rotate-code">Change couple code</button>
   </div>`
@@ -1622,8 +1671,8 @@ function today() {
         <section class="card">
           <h3>🧭 Your game plan today</h3>
           ${plan.length ? `<ol class="plan">${plan.slice(0, 6).map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`).join('')}</ol>
-            ${plan.length > 6 ? `<details><summary>${plan.length - 6} more ideas</summary><ol class="plan" start="7">${plan.slice(6).map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`).join('')}</ol></details>` : ''}` : '<p>No symptoms logged. Ask her how she\'s doing, and do one thing off her list without being asked.</p>'}
-          ${Object.keys(herToday.data.symptoms || {}).length ? `<details><summary>What her symptoms mean</summary>${Object.keys(herToday.data.symptoms).map(id => symptom(id)).filter(Boolean).map(s => `<p><b>${s.emoji} ${esc(s.label)}:</b> ${esc(s.meaning)}</p>`).join('')}</details>` : ''}
+            ${plan.length > 6 ? `<details><summary>${plan.length - 6} more ideas</summary><ol class="plan" start="7">${plan.slice(6).map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`).join('')}</ol></details>` : ''}` : T('<p>No symptoms logged. Ask {m:them} how {m:they} {m:is|are} doing, and do one thing off {m:their} list without being asked.</p>')}
+          ${Object.keys(herToday.data.symptoms || {}).length ? `<details><summary>${T('What {m:their} symptoms mean')}</summary>${Object.keys(herToday.data.symptoms).map(id => symptom(id)).filter(Boolean).map(s => `<p><b>${s.emoji} ${esc(s.label)}:</b> ${esc(s.meaning)}</p>`).join('')}</details>` : ''}
         </section>`
     } else {
       main = `<section class="card soft">
@@ -1632,7 +1681,7 @@ function today() {
         ${herCI ? `<p class="fine">Last check-in: ${fmtWhen(herCI.created_at)}</p>` : ''}
       </section>`
     }
-    main += `<section class="card"><h3>💡 Guy's-eye view</h3><p>${esc(pick(C.DAD_TRUTHS, dayIndex()))}</p><p class="fine">${esc(pick(C.DAD_TRIMESTER[g ? g.tri : 1], dayIndex()))}</p></section>`
+    main += `<section class="card"><h3>💡 Partner's-eye view</h3><p>${esc(pick(C.DAD_TRUTHS, dayIndex()))}</p><p class="fine">${esc(pick(C.DAD_TRIMESTER[g ? g.tri : 1], dayIndex()))}</p></section>`
   } else {
     // (when she hasn't checked in, the mood prompt sits at the very top: see myCheckinStatus)
     main = herToday ? `${checkinCard(herToday, 'Your check-in today')}` : ''
@@ -1675,7 +1724,7 @@ function myCheckinStatus() {
       <button class="mini" data-tab="checkin">${me() === 'mom' ? 'Add more' : 'Again'}</button></section>`
   }
   if (me() === 'mom') return `<section class="card prompt cta">
-      <h3>How are you feeling today, ${esc(n.mom === 'Mom' ? 'mama' : n.mom)}?</h3>
+      <h3>How are you feeling today, ${esc(n.mom)}?</h3>
       <div class="moods">${C.MOOD.map(m => `<button data-quickmood="${m.v}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
       <p class="fine">You haven't checked in today. Tap one to start. ${S.isPaired() ? esc(n.dad) + ' sees it right away.' : ''}</p>
     </section>`
@@ -1722,7 +1771,7 @@ function babyCard(g, wk, fe, fruit, len) {
 function datesCard() {
   return `<section class="card prompt">
     <h3>📅 Add your dates</h3>
-    <p>Enter the due date your doctor gave you (or the first day of her last period) to see the week, baby size and upcoming milestones.</p>
+    <p>Enter the due date your doctor gave you (or the first day of the last period) to see the week, baby size and upcoming milestones.</p>
     <button class="big primary" data-act="edit-dates">Add dates</button>
     ${S.isPaired() ? '' : '<p class="fine">If your partner already added them, pair your phones (Plan tab) and they\'ll show up here.</p>'}
   </section>`
@@ -1834,7 +1883,7 @@ function dadCheckin() {
 function supportCard() {
   return `<section class="card soft">
     <h3>If it's more than a rough patch</h3>
-    <p>Around 1 in 10 new and expecting dads get perinatal depression or anxiety. It's common and treatable.</p>
+    <p>Around 1 in 10 new and expecting dads and partners get perinatal depression or anxiety. It's common and treatable.</p>
     <ul>
       <li><b>988</b>: call or text, Suicide & Crisis Lifeline (US), 24/7</li>
       <li><b>1-800-944-4773</b>: Postpartum Support International helpline (dads included). Text "Dad" to 1-800-944-4773 for dad-specific support.</li>
@@ -1909,14 +1958,14 @@ function timeline() {
   const strip = `<div class="today-head"><h3>Today</h3><span class="fine">${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</span></div>
   <div class="duo">
     <button class="duo-card ${usView === 'her' ? 'on' : ''}" data-us="her">
-      <div class="fine">🤰 ${esc(n.mom)}</div>
+      <div class="fine">${face('mom')} ${esc(n.mom)}</div>
       ${herCI ? `<div class="big-emoji">${moodOf(herCI)?.emoji || '•'}</div><div>${esc(moodOf(herCI)?.label || 'Checked in')}</div>
         ${topSyms(herCI).length ? `<div class="fine">${topSyms(herCI).slice(0, 2).map(s => esc(s.label)).join(', ')}${topSyms(herCI).length > 2 ? ` +${topSyms(herCI).length - 2}` : ''}</div>` : ''}
         <div class="fine">${time(herCI)}${count(herToday)}</div>`
       : `<div class="big-emoji">–</div><div>Not yet today</div><div class="fine">${lastSeen(herAll)}</div>`}
     </button>
     <button class="duo-card ${usView === 'him' ? 'on' : ''}" data-us="him">
-      <div class="fine">🧔 ${esc(n.dad)}</div>
+      <div class="fine">${face('dad')} ${esc(n.dad)}</div>
       ${hisCI ? `<div class="big-emoji">${hisFeel(hisCI)[0]?.emoji || '🙂'}</div><div>Stress ${num(hisCI.data.stress, 1, 5)}/5</div>
         ${hisFeel(hisCI).length ? `<div class="fine">${hisFeel(hisCI).slice(0, 2).map(f => esc(f.label)).join(', ')}</div>` : ''}
         <div class="fine">${time(hisCI)}${count(hisToday)}</div>`
@@ -1935,7 +1984,7 @@ function herSide() {
   const recent = entries('checkin', 'mom').filter(e => Date.now() - new Date(e.created_at) < 14 * DAY)
   const common = topCounts(recent.flatMap(e => Object.keys(e.data.symptoms || {})), 5)
   const plan = ci && sameDay(ci.created_at) ? gamePlan(ci) : []
-  if (!entries('checkin', 'mom').length) return `<section class="card soft center"><p>${me() === 'mom' ? 'Your check-ins' : `${esc(n.mom)}'s check-ins`} will show up here: mood, energy, symptoms and how she's trending.</p>${me() === 'mom' ? '<button class="big primary" data-tab="checkin">Check in now</button>' : ''}</section>`
+  if (!entries('checkin', 'mom').length) return `<section class="card soft center"><p>${me() === 'mom' ? 'Your check-ins' : `${esc(n.mom)}'s check-ins`} will show up here: ${T('mood, energy, symptoms and how {m:they}{m:\'s|\'re} trending.')}</p>${me() === 'mom' ? '<button class="big primary" data-tab="checkin">Check in now</button>' : ''}</section>`
   return `
     ${ci ? checkinCard(ci, me() === 'mom' ? 'Your latest check-in' : `${esc(n.mom)}'s latest check-in`) : ''}
     <section class="card"><h3>Mood this week</h3>${bars(week, e => e.data.mood, 5, e => moodOf2(e))}
@@ -1953,7 +2002,7 @@ function hisSide() {
   const week = perDay('dadcheck', 'dad', 7)
   const recent = visible.filter(e => Date.now() - new Date(e.created_at) < 14 * DAY)
   const common = topCounts(recent.flatMap(e => e.data.feelings || []), 4)
-  if (!ci) return `<section class="card soft center"><p>${me() === 'dad' ? 'Your check-ins (stress and what\'s on your mind) show up here for both of you, unless you mark one private.' : `When ${esc(n.dad)} checks in on how he's doing, it shows up here, with ways you can support him.`}</p>${me() === 'dad' ? '<button class="big primary" data-tab="checkin">Check in now</button>' : ''}</section>`
+  if (!ci) return `<section class="card soft center"><p>${me() === 'dad' ? 'Your check-ins (stress and what\'s on your mind) show up here for both of you, unless you mark one private.' : `When ${esc(n.dad)} checks in on how ${T('{p:they}{p:\'s|\'re} doing, it shows up here, with ways you can support {p:them}.')}`}</p>${me() === 'dad' ? '<button class="big primary" data-tab="checkin">Check in now</button>' : ''}</section>`
   const feel = (ci.data.feelings || []).map(id => C.DAD_FEELINGS.find(f => f.id === id)).filter(Boolean)
   const support = [...(C.SUPPORT_HIM_STRESS[ci.data.stress] || []), ...feel.flatMap(f => C.SUPPORT_HIM[f.id] || [])].slice(0, 5)
   return `
@@ -1964,11 +2013,11 @@ function hisSide() {
       ${ci.data.note ? `<p class="quote-inline">“${esc(ci.data.note)}”</p>` : ''}
     </section>
     <section class="card"><h3>Stress this week</h3>${bars(week, e => e.data.stress, 5, e => e ? String(num(e.data.stress, 1, 5)) : '')}<p class="fine">Higher bar = more stressed.</p></section>
-    ${common.length ? `<section class="card"><h3>${me() === 'dad' ? 'On your mind lately' : 'On his mind lately'}</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
+    ${common.length ? `<section class="card"><h3>${me() === 'dad' ? 'On your mind lately' : T('On {p:their} mind lately')}</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
     ${me() === 'mom'
-      ? (support.length ? `<section class="card"><h3>💛 How you can support him</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : '')
+      ? (support.length ? `<section class="card"><h3>💛 ${T('How you can support {p:them}')}</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : '')
       : selfCareCard(ci, feel) + forHerCard()}
-    ${me() === 'dad' ? '<p class="fine center">Check-ins marked private stay on your phone and never show here for her.</p>' : ''}`
+    ${me() === 'dad' ? T('<p class="fine center">Check-ins marked private stay on your phone and never show here for {m:them}.</p>') : ''}`
 }
 
 // His phone: looking after himself, from what he logged
@@ -2000,7 +2049,7 @@ function forHerCard() {
   })
   return `<section class="card">
     <h3>🧭 What you can do for ${esc(n.mom)}</h3>
-    ${ci ? `<p class="fine">${today ? 'From her check-in today' : `Her last check-in was ${fmtWhen(ci.created_at).toLowerCase()}. Ask how she's feeling today.`}</p>` : `<p class="fine">No check-in from her yet. A quick "How are you feeling?" is the best first step.</p>`}
+    ${ci ? `<p class="fine">${today ? T('From {m:their} check-in today') : `${T('{M:their}')} last check-in was ${fmtWhen(ci.created_at).toLowerCase()}. ${T('Ask how {m:they}{m:\'s|\'re} feeling today.')}`}</p>` : `<p class="fine">${T('No check-in from {m:them} yet.')} A quick "How are you feeling?" is the best first step.</p>`}
     <ol class="plan">${[...plan.map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`), ...extra.map(t => `<li>${esc(t)}</li>`)].join('')}</ol>
   </section>`
 }
@@ -2042,12 +2091,12 @@ function historyRow(e) {
   if (e.kind === 'checkin') {
     const d = e.data, mood = C.MOOD.find(m => m.v === d.mood), en = C.ENERGY.find(m => m.v === d.energy)
     const syms = Object.entries(d.symptoms || {}).map(([id, l]) => { const s = symptom(id); l = num(l, 1, 3) | 0; return s ? `<span class="chip on l${l}">${s.emoji} ${esc(s.label)} · ${LVL[l]}</span>` : '' }).join('')
-    return `<div class="hrow"><div class="hwho">🤰 ${esc(names().mom)} · ${t}</div>
+    return `<div class="hrow"><div class="hwho">${face('mom')} ${esc(names().mom)} · ${t}</div>
       <div>${mood ? `${mood.emoji} ${mood.label}` : ''}${en ? ` · energy ${en.label.toLowerCase()}` : ''}${d.temp ? ` · 🌡️ ${esc(d.temp)}°` : ''}</div>
       ${syms ? `<div class="chips">${syms}</div>` : ''}${d.note ? `<div class="quote-inline">“${esc(d.note)}”</div>` : ''}</div>`
   }
   const f = (e.data.feelings || []).map(id => C.DAD_FEELINGS.find(x => x.id === id)).filter(Boolean)
-  return `<div class="hrow"><div class="hwho">🧔 ${esc(names().dad)} · ${t}${e.local ? ' · 🔒 private' : ''}</div>
+  return `<div class="hrow"><div class="hwho">${face('dad')} ${esc(names().dad)} · ${t}${e.local ? ' · 🔒 private' : ''}</div>
     <div>Stress ${num(e.data.stress, 1, 5)}/5${f.length ? ' · ' + f.map(x => x.emoji + ' ' + esc(x.label)).join(', ') : ''}</div>
     ${e.data.note ? `<div class="quote-inline">“${esc(e.data.note)}”</div>` : ''}</div>`
 }
@@ -2078,7 +2127,7 @@ function obSummaryText(days) {
     syms.length ? 'Symptoms:\n' + syms.map(([id, c]) => `• ${symptom(id)?.label || id}: ${c} day${c > 1 ? 's' : ''}, strongest ${LVL[symMax[id]]}`).join('\n') : 'No symptoms logged.',
     temps.length ? 'Temperatures logged: ' + temps.join(', ') : '',
     flags.length ? 'Warning signs logged: ' + flags.join(', ') : '',
-    notes.length ? 'Her notes:\n' + notes.map(t => '• ' + t).join('\n') : '',
+    notes.length ? `${n.mom}'s notes:\n` + notes.map(t => '• ' + t).join('\n') : '',
     '(From the Together app. Self-reported, not a medical record.)',
   ].filter(Boolean).join('\n\n')
 }
@@ -2177,7 +2226,7 @@ function lookup() {
   else if (lookupTab === 'meds') body = C.MEDS.map(medItem).join('')
   else if (lookupTab === 'foods') body = C.FOODS.slice().sort((a, b) => a.name.localeCompare(b.name)).map(foodItem).join('')
   else if (lookupTab === 'symptoms') {
-    body = C.SYMPTOMS.map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b></summary><p>${esc(s.meaning)}</p><h4>How he can help</h4><ul>${s.help.map(h => `<li>${esc(h)}</li>`).join('')}</ul>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
+    body = C.SYMPTOMS.map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b></summary><p>${esc(s.meaning)}</p><h4>${T('How {p:they} can help')}</h4><ul>${s.help.map(h => `<li>${esc(h)}</li>`).join('')}</ul>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
   } else {
     body = C.RED_FLAGS.map(([h, list], i) => `<section class="card ${i === 0 ? 'alert' : i === 1 ? 'warnc' : 'soft'}"><h3>${esc(h)}</h3><ul>${list.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')
   }
@@ -2296,7 +2345,7 @@ function registry() {
       const list = shown.filter(i => (i.data.cat || 'other') === cat)
       if (!list.length) return ''
       return `<section class="card"><h3>${label}</h3>${list.map(i => {
-        const it = i.data, by = i.author_role === 'mom' ? '🤰 ' + esc(n.mom) : '🧔 ' + esc(n.dad)
+        const it = i.data, by = i.author_role === 'mom' ? face('mom') + ' ' + esc(n.mom) : face('dad') + ' ' + esc(n.dad)
         return `<div class="reg ${it.got ? 'got' : ''}">
           <button class="tick" data-reg-got="${i.id}" aria-label="Got it">${it.got ? '✅' : '⬜'}</button>
           <div class="reg-main">
@@ -2412,8 +2461,60 @@ function registryText() {
 
 // ── Plan ────────────────────────────────────────────────────────────────────
 function plan() {
-  const seg = `<div class="seg">${[['calendar', '🗓️ Calendar'], ['registry', '🎁 Registry'], ['settings', '⚙️ Settings']].map(([id, l]) => `<button data-pv="${id}" class="${planView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
-  return seg + (planView === 'registry' ? registry() : planView === 'settings' ? settings() : calendar())
+  const seg = `<div class="seg">${[['calendar', '🗓️ Calendar'], ['registry', '🎁 Registry'], ['wish', '🎀 Push present'], ['settings', '⚙️ Settings']].map(([id, l]) => `<button data-pv="${id}" class="${planView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+  return seg + (planView === 'registry' ? registry() : planView === 'wish' ? wishlist() : planView === 'settings' ? settings() : calendar())
+}
+
+// ── Push present wishlist ───────────────────────────────────────────────────
+// The pregnant partner keeps the list; the other partner sees it and can
+// quietly mark "I've got this". That mark never shows on the pregnant
+// partner's phone, so the gift stays a surprise. Never on the public registry.
+let editWish = null
+const WISH_IDEAS = ['A piece of jewelry with the baby\'s birthstone or initial', 'A really comfy robe and slippers for the hospital and after', 'A massage or spa day for after recovery', 'A newborn or family photo shoot', 'Meal delivery for the first few weeks', 'House cleaning for a month', 'A "you sleep, I\'ve got the night" coupon book', 'A nice water bottle and snack box for feeding sessions', 'Something just for them, unrelated to the baby']
+function wishlist() {
+  const n = names(), mine = me() === 'mom'
+  const items = entries('wish').slice().sort((a, b) => (b.data.top ? 1 : 0) - (a.data.top ? 1 : 0))
+  const e = editWish ? items.find(i => i.id === editWish) : null, d = e ? e.data : {}
+  const row = i => {
+    const it = i.data, url = safeUrl(it.url)
+    return `<div class="reg">
+      ${mine ? `<span class="tick">${it.top ? '⭐' : '🎀'}</span>` : `<button class="tick" data-wish-got="${i.id}" aria-label="I've got this">${it.gotByPartner ? '✅' : '⬜'}</button>`}
+      <div class="reg-main">
+        <div class="reg-name">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}</div>
+        <div class="fine">${[it.top ? '⭐ Top pick' : '', url ? storeOf(url) : '', money(it.price)].filter(Boolean).join(' · ')}</div>
+        ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
+        ${!mine && it.gotByPartner ? '<div class="claimed">🤫 You\'ve got this one. It stays hidden on their phone.</div>' : ''}
+      </div>
+      ${mine ? `<div class="reg-act"><button class="mini" data-edit-wish="${i.id}" aria-label="Edit">✏️</button><button class="mini del" data-del="${i.id}" aria-label="Remove">✕</button></div>` : ''}
+    </div>`
+  }
+  if (!mine) {
+    return `<section class="card">
+        <h3>🎀 ${esc(n.mom)}'s push present wishlist</h3>
+        <p class="fine">${T('Things {m:they} would love, for after the baby arrives. Tap ⬜ when you\'ve got one: it\'s only marked on your phone, so it stays a surprise.')}</p>
+        ${items.length ? items.map(row).join('') : `<p>${T('Nothing on {m:their} list yet.')}</p>`}
+      </section>
+      <section class="card soft"><h3>💡 Ideas</h3><ul>${WISH_IDEAS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+        <p class="fine">A push present is optional. A heartfelt note and a night of real rest can mean just as much.</p></section>`
+  }
+  return `<section class="card">
+      <h3>🎀 Your push present wishlist</h3>
+      <p class="fine">${esc(n.dad)} can see this list. If they get something from it, it stays a secret from you.</p>
+      ${items.length ? items.map(row).join('') : '<p>Add things you\'d love for after the baby arrives: big, small, practical or just for you.</p>'}
+    </section>
+    <section class="card" id="wishForm">
+      <h3>${e ? 'Edit wish' : 'Add a wish'}</h3>
+      <label class="field">What is it? <input id="wishName" maxlength="120" placeholder="e.g. Birthstone necklace" value="${esc(d.name || '')}"></label>
+      <label class="field">Link (optional) <input id="wishUrl" type="url" inputmode="url" placeholder="https://…" value="${esc(d.url || '')}"></label>
+      <div class="row2">
+        <label class="field">Price <input id="wishPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
+        <label class="field">Notes <input id="wishNotes" placeholder="size, color…" value="${esc(d.notes || '')}"></label>
+      </div>
+      <label class="toggle"><input type="checkbox" id="wishTop" ${d.top ? 'checked' : ''}> ⭐ Top pick</label>
+      <button class="big primary" data-act="wish-save">${e ? 'Save changes' : 'Add to my wishlist'}</button>
+      ${e ? '<button class="ghost" data-act="wish-cancel">Cancel</button>' : ''}
+    </section>
+    <section class="card soft"><h3>💡 Need ideas?</h3><ul>${WISH_IDEAS.map(t => `<li>${esc(t)}</li>`).join('')}</ul></section>`
 }
 
 function calendar() {
@@ -2455,7 +2556,7 @@ function settings() {
     </section>
     <section class="card">
       <h3>Settings</h3>
-      <p>${g ? `Due: <b>${fmtDate(g.due)}</b> ${g.fromDoctor ? '(from your doctor)' : '(estimated from last period)'}` : 'Dates: <b>not set</b>'} · This phone: <b>${me() === 'mom' ? '🤰 ' + esc(names().mom) : '🧔 ' + esc(names().dad)}</b></p>
+      <p>${g ? `Due: <b>${fmtDate(g.due)}</b> ${g.fromDoctor ? '(from your doctor)' : '(estimated from last period)'}` : 'Dates: <b>not set</b>'} · This phone: <b>${me() === 'mom' ? face('mom') + ' ' + esc(names().mom) : face('dad') + ' ' + esc(names().dad)}</b></p>
       <button class="ghost" data-act="edit-dates">Edit dates & names</button>
       <button class="ghost" data-act="switch-role">Switch role on this phone</button>
       <button class="ghost" data-act="export">Export backup</button>
@@ -2542,6 +2643,12 @@ app.addEventListener('click', async ev => {
     S.updateEntry(it.id, it.data.got ? { got: false, gotBy: null } : { got: true, gotBy: me() })
     if (!it.data.got) toast('Marked as got ✅'); return
   }
+  if (d.editWish) { editWish = d.editWish; clearForm('wish'); render(); document.getElementById('wishForm')?.scrollIntoView({ block: 'start' }); return }
+  if (d.wishGot) {
+    const it = entries('wish').find(x => x.id === d.wishGot); if (!it) return
+    S.updateEntry(it.id, { gotByPartner: !it.data.gotByPartner })
+    if (!it.data.gotByPartner) toast('Marked 🤫 Only you can see this'); return
+  }
   if (d.editReg) { editReg = d.editReg; clearForm('reg'); render(); document.getElementById('regForm')?.scrollIntoView({ block: 'start' }); return }
   if (d.regLinkDel != null) { const l = (profile().registryLinks || []).slice(); l.splice(+d.regLinkDel, 1); await S.addEntry('profile', { registryLinks: l }); return }
   if (d.remDel != null) { const list = reminders().slice(); list.splice(+d.remDel, 1); setReminders(list); remindersChanged(); return }
@@ -2561,11 +2668,15 @@ app.addEventListener('click', async ev => {
   switch (d.act) {
     case 'save-dates': {
       const due = $('#due').value, lmp = due ? '' : $('#lmp').value
-      if (!due && !lmp) return toast('Add the due date (or the first day of the last period)')
-      const typed = { due, lmp, momName: $('#momName').value.trim(), dadName: $('#dadName').value.trim(), obPhone: $('#obPhone').value.trim() }
+      const val = id => ($('#' + id)?.value || '').trim()
+      const typed = { due, lmp, obPhone: val('obPhone') }
+      for (const r of ['mom', 'dad']) Object.assign(typed, { [r + 'Name']: val(r + 'Name'), [r + 'Pron']: val(r + 'Pron'), [r + 'Term']: val(r + 'Term').slice(0, 20) })
       // share only what changed, so this phone never overwrites the other's
       // details with blanks or with values it never touched
-      const cur = profile()
+      // (pronouns count as unchanged when they match the default, so a phone that
+      // hasn't synced yet can't overwrite the other person's choice)
+      const cur = { ...profile() }
+      for (const r of ['mom', 'dad']) cur[r + 'Pron'] = cur[r + 'Pron'] || DEF[r].pron
       const data = Object.fromEntries(Object.entries(typed).filter(([k, v]) => v && v !== cur[k]))
       // switching from a period date to the doctor's due date: the due date wins anyway
       S.state.prefs = { ...S.state.prefs, ...data }
@@ -2718,6 +2829,17 @@ app.addEventListener('click', async ev => {
       return
     }
     case 'reg-cancel': editReg = null; clearForm('reg'); render(); return
+    case 'wish-save': {
+      const name = $('#wishName').value.trim().slice(0, 120), url = $('#wishUrl').value.trim()
+      if (!name) return toast('What would you like?')
+      if (url && !safeUrl(url)) return toast('Links need to start with https://')
+      const item = { name, url, price: $('#wishPrice').value.replace(/[^0-9.]/g, ''), notes: $('#wishNotes').value.trim(), top: $('#wishTop').checked }
+      if (editWish) { S.updateEntry(editWish, item); editWish = null; clearForm('wish'); toast('Saved'); return }
+      const added = await S.addEntry('wish', item)
+      notifyPartner('wish', '', { title: `🎀 ${nameOf(me())} added to ${T('{m:their}')} wishlist`, body: name }, added.id)
+      clearForm('wish'); toast('Added 🎀'); return
+    }
+    case 'wish-cancel': editWish = null; clearForm('wish'); render(); return
     case 'reg-starter': {
       if (entries('registry').length || startingList) return
       startingList = true; b.disabled = true
@@ -2827,7 +2949,7 @@ S.onChange(evt => {
   if (evt.type === 'remote' && evt.added?.length) {
     const e = evt.added.at(-1)
     const who = nameOf(e.author_role)
-    const msg = e.kind === 'checkin' ? (me() === 'dad' && e.author_role === 'mom' ? `${nudgeFor(e).title}. ${nudgeFor(e).body}` : `${who} just checked in`) : e.kind === 'note' ? `💌 ${who}: ${e.data.text}` : e.kind === 'reaction' ? `${who} sent ${e.data.emoji}` : e.kind === 'appointment' ? `${who} added ${e.data.title}` : e.kind === 'registry' ? `🎁 ${who} added ${e.data.name} to the registry` : ''
+    const msg = e.kind === 'checkin' ? (me() === 'dad' && e.author_role === 'mom' ? `${nudgeFor(e).title}. ${nudgeFor(e).body}` : `${who} just checked in`) : e.kind === 'note' ? `💌 ${who}: ${e.data.text}` : e.kind === 'reaction' ? `${who} sent ${e.data.emoji}` : e.kind === 'appointment' ? `${who} added ${e.data.title}` : e.kind === 'registry' ? `🎁 ${who} added ${e.data.name} to the registry` : e.kind === 'wish' && me() === 'dad' ? `🎀 ${who} added ${e.data.name} to the wishlist` : ''
     if (msg) { toast(msg); navigator.vibrate?.(60) }
   }
   // don't redraw under someone mid-typing; their form is restored on the next render anyway

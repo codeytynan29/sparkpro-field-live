@@ -115,6 +115,9 @@ main { padding: 12px 16px; }
 .ex .flag { margin-top: 4px; }
 
 .field { display: block; font-size: .85rem; color: var(--muted); margin: 10px 0; }
+.field select { display: block; width: 100%; margin-top: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-size: 1rem; color: var(--ink); }
+fieldset.person { border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 14px 2px; margin: 0 0 12px; background: var(--card); }
+fieldset.person legend { font-weight: 600; padding: 0 6px; color: var(--ink); }
 .field input, .field textarea, .row2 input, .search, .compose textarea { display: block; width: 100%; margin-top: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-size: 1rem; color: var(--ink); }
 .row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 .row2 input { margin: 4px 0; min-width: 0; }

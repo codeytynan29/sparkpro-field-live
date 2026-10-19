@@ -46,41 +46,64 @@ const MOM_TIPS = [
   'Whatever you got done today is enough.',
 ]
 const DAD_TIPS = [
-  'Did you do one thing off her list today without being asked?',
-  'Refill her water bottle. Small and consistent beats grand. 💧',
+  'Did you do one thing off {m:their} list today without being asked?',
+  'Refill {m:their} water bottle. Small and consistent beats grand. 💧',
   'Take a moment for yourself: try the 2-minute breathing reset in the You tab.',
-  'Ask her: "Do you want comfort, distraction, or space?"',
+  'Ask {m:them}: "Do you want comfort, distraction, or space?"',
   'Trash, litter box, fridge. Still your department.',
-  'Tell her one specific thing you appreciate about how she\'s handling this.',
+  'Tell {m:them} one specific thing you appreciate about how {m:they} {m:is|are} handling this.',
   'Is the next appointment in your calendar?',
   'Check in with yourself: how\'s your stress today? Log it in the You tab.',
-  'Plan a low-key evening: her pick of food and show.',
-  'Being steady is the biggest thing you can give her right now.',
+  'Plan a low-key evening: {m:their} pick of food and show.',
+  'Being steady is the biggest thing you can give {m:them} right now.',
 ]
-// When she logged a symptom today, his tip is about that
+// When the pregnant partner logged a symptom today, the other partner's tip is about that
 const SYMPTOM_NUDGE: Record<string, string> = {
-  nausea: 'She logged nausea today. Did you put crackers and water by the bed?',
-  vomiting: 'She\'s been vomiting. Keep small sips coming. If she can\'t keep fluids down for 24 hours, call the OB.',
-  fatigue: 'She\'s exhausted today. Can you take dinner and dishes completely off her plate?',
-  breasts: 'She\'s sore today. Gentle hugs, from the side or behind.',
-  cramping: 'She logged cramping. Heating pad on low and let her rest. Strong or one-sided pain means call the OB.',
-  spotting: 'She logged spotting. Stay calm, help her note color and amount, and call the OB line if it\'s more than light.',
-  bloating: 'She\'s bloated today. An easy walk together after dinner helps.',
-  headache: 'She has a headache. Water, a snack and a dark room first.',
-  burning: 'She logged burning when peeing. Did she call the OB today? UTIs need treatment.',
-  moody: 'She\'s feeling moody. Listen without fixing tonight.',
-  anxious: 'She\'s anxious today. Ask what\'s on her mind and just listen.',
+  nausea: '{M:they} logged nausea today. Did you put crackers and water by the bed?',
+  vomiting: '{M:they} {m:has|have} been vomiting. Keep small sips coming. If {m:they} can\'t keep fluids down for 24 hours, call the OB.',
+  fatigue: '{M:they} {m:is|are} exhausted today. Can you take dinner and dishes completely off {m:their} plate?',
+  breasts: '{M:they} {m:is|are} sore today. Gentle hugs, from the side or behind.',
+  cramping: '{M:they} logged cramping. Heating pad on low and let {m:them} rest. Strong or one-sided pain means call the OB.',
+  spotting: '{M:they} logged spotting. Stay calm, help {m:them} note color and amount, and call the OB line if it\'s more than light.',
+  bloating: '{M:they} {m:is|are} bloated today. An easy walk together after dinner helps.',
+  headache: '{M:they} {m:has|have} a headache. Water, a snack and a dark room first.',
+  burning: '{M:they} logged burning when peeing. Did {m:they} call the OB today? UTIs need treatment.',
+  moody: '{M:they} {m:is|are} feeling moody. Listen without fixing tonight.',
+  anxious: '{M:they} {m:is|are} anxious today. Ask what\'s on {m:their} mind and just listen.',
   aversions: 'Food aversions today. Ask what sounds OK and go get it.',
-  cravings: 'She has a craving. Go get the thing. ❤️',
+  cravings: '{M:they} {m:has|have} a craving. Go get the thing. ❤️',
   heartburn: 'Heartburn today. Smaller dinner, and no lying down right after.',
-  dizzy: 'She was dizzy today. Keep snacks handy and remind her to stand up slowly.',
-  insomnia: 'She\'s not sleeping well. Wind down together tonight, with screens off early.',
+  dizzy: '{M:they} {m:was|were} dizzy today. Keep snacks handy and remind {m:them} to stand up slowly.',
+  insomnia: '{M:they} {m:is|are} not sleeping well. Wind down together tonight, with screens off early.',
   congestion: 'Stuffy nose today. A humidifier in the bedroom tonight helps.',
-  backpain: 'Her back hurts. Offer a lower-back rub tonight.',
-  swelling: 'She has swelling. Feet up, and watch for sudden face or hand swelling.',
-  fever: 'She logged a fever. Did she call the OB? 100.4°F or higher needs a call.',
-  movement: 'She noticed less movement. If it\'s still reduced, call labor & delivery now.',
+  backpain: '{M:their} back hurts. Offer a lower-back rub tonight.',
+  swelling: '{M:they} {m:has|have} swelling. Feet up, and watch for sudden face or hand swelling.',
+  fever: '{M:they} logged a fever. Did {m:they} call the OB? 100.4°F or higher needs a call.',
+  movement: '{M:they} noticed less movement. If it\'s still reduced, call labor & delivery now.',
 }
+
+// ── Pronouns & parent terms ─────────────────────────────────────────────────
+// Text says {m:they}/{p:their}/{m:is|are}… ("m" = the pregnant person, "p" =
+// the partner); tpl() fills them in from the couple's profile, same as the app.
+type Prof = Record<string, string>
+const PRON: Record<string, { they: string; them: string; their: string; theirs: string; themselves: string; plural: boolean }> = {
+  she: { they: 'she', them: 'her', their: 'her', theirs: 'hers', themselves: 'herself', plural: false },
+  he: { they: 'he', them: 'him', their: 'his', theirs: 'his', themselves: 'himself', plural: false },
+  they: { they: 'they', them: 'them', their: 'their', theirs: 'theirs', themselves: 'themselves', plural: true },
+}
+function tpl(s: string, p: Prof) {
+  return s.replace(/\{([mpMP]):([^{}]+)\}/g, (_, who: string, w: string) => {
+    const k = who.toLowerCase() === 'm' ? 'mom' : 'dad'
+    const pr = PRON[p[k + 'Pron'] || (k === 'mom' ? 'she' : 'he')] || PRON.they
+    let out: string
+    if (w.includes('|')) { const [a, b] = w.split('|'); out = pr.plural ? b : a }
+    else if (w === 'term') out = p[k + 'Term'] || (k === 'mom' ? 'Mom' : 'Dad')
+    else if (w === 'name') out = p[k + 'Name'] || p[k + 'Term'] || (k === 'mom' ? 'Mom' : 'Dad')
+    else out = (pr as Record<string, string | boolean>)[w] as string ?? w
+    return who === who.toUpperCase() ? out.charAt(0).toUpperCase() + out.slice(1) : out
+  })
+}
+const fillMsg = <T extends { title: string; body: string }>(m: T, p: Prof): T => ({ ...m, title: tpl(m.title, p), body: tpl(m.body, p) })
 
 function localParts(tz: string, d = new Date()) {
   const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
@@ -100,6 +123,9 @@ async function herCheckinToday(coupleId: string, tz: string) {
 }
 
 async function tipFor(sub: { role: string; couple_id: string; tz: string }) {
+  return fillMsg(await rawTipFor(sub), await profileFor(sub.couple_id))
+}
+async function rawTipFor(sub: { role: string; couple_id: string; tz: string }) {
   const today = localParts(sub.tz).date
   const n = dayNum(today)
   const ci = await herCheckinToday(sub.couple_id, sub.tz)
@@ -108,9 +134,9 @@ async function tipFor(sub: { role: string; couple_id: string; tz: string }) {
       const syms = Object.entries(ci.symptoms || {}).sort((a, b) => (b[1] as number) - (a[1] as number))
       const top = syms.find(([id]) => SYMPTOM_NUDGE[id])
       if (top) return { title: 'Today\'s game plan', body: SYMPTOM_NUDGE[top[0]] }
-      if (ci.mood && ci.mood <= 2) return { title: 'Today\'s game plan', body: 'She\'s having a rough day. Clear tonight\'s plans and keep things low-key.' }
+      if (ci.mood && ci.mood <= 2) return { title: 'Today\'s game plan', body: '{M:they} {m:is|are} having a rough day. Clear tonight\'s plans and keep things low-key.' }
     } else if (n % 2 === 0) {
-      return { title: 'Together', body: 'No check-in from her yet today. Send a quick "How are you feeling?"' }
+      return { title: 'Together', body: 'No check-in from {m:them} yet today. Send a quick "How are you feeling?"' }
     }
     return { title: 'Daily tip', body: DAD_TIPS[n % DAD_TIPS.length] }
   }
@@ -121,7 +147,7 @@ async function tipFor(sub: { role: string; couple_id: string; tz: string }) {
 const MOM_CHECKIN = [
   { title: 'How are you feeling right now? 🤍', body: 'Tap to check in. It takes 20 seconds.' },
   { title: 'Quick check-in', body: 'How\'s your body doing? Log it so you both know what today needs.' },
-  { title: 'Checking in on you', body: 'Any symptoms, cravings or worries? A quick log helps him help you.' },
+  { title: 'Checking in on you', body: 'Any symptoms, cravings or worries? A quick log helps {p:them} help you.' },
 ]
 const DAD_CHECKIN = [
   { title: 'How are you doing?', body: 'Take 20 seconds to check in with yourself. Your stress matters too.' },
@@ -129,13 +155,13 @@ const DAD_CHECKIN = [
 ]
 async function checkinReminder(sub: Sub, slot: number) {
   if (sub.role === 'mom') {
-    // she logged in the last 2 hours: don't nag
+    // the pregnant partner logged in the last 2 hours: don't nag
     const { data } = await sb.from('tg_entries').select('created_at').eq('couple_id', sub.couple_id)
       .eq('kind', 'checkin').eq('author_role', 'mom').order('created_at', { ascending: false }).limit(1)
     if (data?.[0] && Date.now() - Date.parse(data[0].created_at) < 2 * 3600 * 1000) return null
-    return MOM_CHECKIN[slot % MOM_CHECKIN.length]
+    return fillMsg(MOM_CHECKIN[slot % MOM_CHECKIN.length], await profileFor(sub.couple_id))
   }
-  return DAD_CHECKIN[slot % DAD_CHECKIN.length]
+  return fillMsg(DAD_CHECKIN[slot % DAD_CHECKIN.length], await profileFor(sub.couple_id))
 }
 
 type Reminder = { time: string; kind: 'checkin' | 'tip' }
@@ -182,20 +208,24 @@ async function membership(userId: string) {
 async function markNotified(id: string) {
   await sb.from('tg_notified').upsert({ entry_id: id }, { onConflict: 'entry_id', ignoreDuplicates: true })
 }
-async function namesFor(coupleId: string) {
+// The couple's merged profile (names, pronouns, parent terms): every
+// kind='profile' entry in created_at order, later non-empty values winning.
+async function profileFor(coupleId: string): Promise<Prof> {
   const { data } = await sb.from('tg_entries').select('data').eq('couple_id', coupleId).eq('kind', 'profile').order('created_at', { ascending: true })
-  const p: Record<string, string> = {}
-  for (const r of data || []) Object.assign(p, r.data)
-  return { mom: p.momName || 'Mom', dad: p.dadName || 'Dad' }
+  const p: Prof = {}
+  for (const r of data || []) for (const [k, v] of Object.entries(r.data || {})) if (v !== '' && v != null) p[k] = String(v)
+  return p
 }
+const namesOf = (p: Prof) => ({ mom: p.momName || p.momTerm || 'Mom', dad: p.dadName || p.dadTerm || 'Dad' })
 // deno-lint-ignore no-explicit-any
-function alertFor(e: any, n: { mom: string; dad: string }) {
+function alertFor(e: any, p: Prof) {
+  const n = namesOf(p)
   const who = e.author_role === 'mom' ? n.mom : n.dad
   if (e.kind === 'note') return { title: `💌 ${who}`, body: String(e.data?.text || 'Sent you a note').slice(0, 140), tag: 'note' }
   if (e.kind === 'registry') return { title: `🎁 ${who} added to the registry`, body: String(e.data?.name || '').slice(0, 120), tag: 'registry' }
   const syms = Object.entries(e.data?.symptoms || {}).sort((a, b) => (b[1] as number) - (a[1] as number))
   const top = syms.find(([id]) => SYMPTOM_NUDGE[id])
-  return { title: `${who} just checked in`, body: top ? SYMPTOM_NUDGE[top[0]] : 'Tap to see how she\'s feeling and today\'s game plan.', tag: 'checkin' }
+  return { title: `${who} just checked in`, body: tpl(top ? SYMPTOM_NUDGE[top[0]] : 'Tap to see how {m:they} {m:is|are} feeling and today\'s game plan.', p), tag: 'checkin' }
 }
 async function sweepAlerts() {
   // 2-minute grace so the phone's own alert always wins the race
@@ -212,7 +242,7 @@ async function sweepAlerts() {
     const other = e.author_role === 'mom' ? 'dad' : 'mom'
     const { data: subs } = await sb.from('tg_push_subs').select('*').eq('couple_id', e.couple_id).eq('role', other)
     if (!subs?.length) continue
-    const msg = alertFor(e, await namesFor(e.couple_id))
+    const msg = alertFor(e, await profileFor(e.couple_id))
     for (const s of subs as Sub[]) if (await send(s, msg)) sent++
   }
   return sent
@@ -328,15 +358,17 @@ Deno.serve(async req => {
       if ((count || 0) >= 30) return json({ ok: true, sent: 0, limited: true })
       await sb.from('tg_push_log').insert({ user_id: user.id })
       const other = m.role === 'mom' ? 'dad' : 'mom'
-      const who = String(body.name || (m.role === 'mom' ? 'Mom' : 'Dad')).slice(0, 40)
+      const prof = await profileFor(m.couple_id)
+      const who = String(body.name || namesOf(prof)[m.role === 'mom' ? 'mom' : 'dad']).slice(0, 40)
       const kind = body.kind === 'note' ? 'note' : 'checkin'
       const text = String(body.text || '').slice(0, 140)
       const msg = kind === 'note'
         ? { title: `💌 ${who}`, body: text || 'Sent you a note', tag: 'note' }
         : body.title
-          // the app composes "She logged nausea today. Try X, or maybe Y."
-          ? { title: String(body.title).slice(0, 80), body: String(body.body || '').slice(0, 220), tag: 'checkin' }
-          : { title: `${who} just checked in`, body: 'Tap to see how she\'s feeling and today\'s game plan.', tag: 'checkin' }
+          // the app composes "She logged nausea today. Try X, or maybe Y." (already filled in;
+          // tpl() only touches any {m:…} tokens left in it)
+          ? { title: tpl(String(body.title), prof).slice(0, 80), body: tpl(String(body.body || ''), prof).slice(0, 220), tag: 'checkin' }
+          : { title: `${who} just checked in`, body: tpl('Tap to see how {m:they} {m:is|are} feeling and today\'s game plan.', prof), tag: 'checkin' }
       // remember this entry was handled so the server sweep doesn't repeat it
       // (the entry may still be uploading, so a missing row is fine; another couple's row is not)
       const eid = String(body.entry_id || '')
