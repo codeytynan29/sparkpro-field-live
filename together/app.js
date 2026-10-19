@@ -16,7 +16,7 @@ const num = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Ma
 const DAY = 86400000
 
 let tab = 'today'
-let lookupTab = 'meds'
+let lookupTab = 'foods'
 let lookupQuery = ''
 let planView = 'calendar' // 'calendar' | 'registry' | 'settings' inside the Plan tab
 let histWho = 'both', histDays = 14
@@ -278,7 +278,7 @@ function renderScreen() {
     <main>${({ today, checkin, timeline, lookup, plan })[tab]()}</main>
     <nav class="tabs">
       ${[['today', '🏡', 'Today'], ['checkin', '✍️', me() === 'mom' ? 'Check in' : 'You'], ['timeline', '💞', 'Us'], ['lookup', '🔎', 'Is it safe?'], ['plan', '🗓️', 'Plan']]
-        .map(([id, i, l]) => `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
+        .map(([id, i, l]) => `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}${id === 'checkin' && !checkedInToday() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>${l}</button>`).join('')}
     </nav>`
   if (tab === 'checkin' && me() === 'dad') bindBreath()
 }
@@ -484,18 +484,14 @@ function today() {
     }
     main += `<section class="card"><h3>💡 Guy's-eye view</h3><p>${esc(pick(C.DAD_TRUTHS, dayIndex()))}</p><p class="fine">${esc(pick(C.DAD_TRIMESTER[g ? g.tri : 1], dayIndex()))}</p></section>`
   } else {
-    main = herToday
-      ? `${checkinCard(herToday, 'Your check-in today')}`
-      : `<section class="card prompt">
-          <h3>How are you feeling today, ${esc(n.mom === 'Mom' ? 'mama' : n.mom)}?</h3>
-          <div class="moods">${C.MOOD.map(m => `<button data-quickmood="${m.v}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
-          <p class="fine">Tap one to start. Add symptoms and notes on the next screen.</p>
-        </section>`
+    // (when she hasn't checked in, the mood prompt sits at the very top: see myCheckinStatus)
+    main = herToday ? `${checkinCard(herToday, 'Your check-in today')}` : ''
     const dadCI = entries('dadcheck', 'dad').filter(e => !e.local).at(-1)
     if (dadCI && sameDay(dadCI.created_at)) main += `<section class="card soft"><p>${esc(n.dad)} checked in too: <b>${dadCI.data.feelings?.map(f => C.DAD_FEELINGS.find(x => x.id === f)?.label).filter(Boolean).join(', ') || 'stress ' + num(dadCI.data.stress, 1, 5) + '/5'}</b></p></section>`
   }
 
   return `
+    ${myCheckinStatus()}
     ${morningCard()}
     ${flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''}
     ${g ? babyCard(g, wk, fe, fruit, len) : datesCard()}
@@ -512,6 +508,32 @@ function today() {
       ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
       ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
     </section>` : ''}`
+}
+
+// This phone's own check-in today, always the first thing on Today: a big
+// "check in" prompt until it's done, then a clear "done" line with the time.
+const myCheckinsToday = () => entries(me() === 'mom' ? 'checkin' : 'dadcheck', me()).filter(e => sameDay(e.created_at))
+const checkedInToday = () => myCheckinsToday().length > 0
+function myCheckinStatus() {
+  const n = names(), mine = myCheckinsToday(), last = mine.at(-1)
+  if (last) {
+    const t = new Date(last.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+    const waiting = S.isPaired() && !last.local && !last.synced
+    const what = me() === 'mom' ? (C.MOOD.find(m => m.v === last.data.mood)?.label || '') : `stress ${num(last.data.stress, 1, 5)}/5`
+    return `<section class="card done-card"><span class="done-tick">✅</span><div><b>You checked in today</b> · ${t}${what ? ` · ${esc(what)}` : ''}${mine.length > 1 ? ` · ${mine.length} times` : ''}
+      <div class="fine">${last.local ? '🔒 Private, on this phone only' : waiting ? '⏳ Saved on this phone, sending when you have signal' : S.isPaired() ? `${esc(nameOf(other()))} can see it` : 'Saved'}</div></div>
+      <button class="mini" data-tab="checkin">${me() === 'mom' ? 'Add more' : 'Again'}</button></section>`
+  }
+  if (me() === 'mom') return `<section class="card prompt cta">
+      <h3>How are you feeling today, ${esc(n.mom === 'Mom' ? 'mama' : n.mom)}?</h3>
+      <div class="moods">${C.MOOD.map(m => `<button data-quickmood="${m.v}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
+      <p class="fine">You haven't checked in today. Tap one to start. ${S.isPaired() ? esc(n.dad) + ' sees it right away.' : ''}</p>
+    </section>`
+  return `<section class="card prompt cta">
+      <h3>✍️ You haven't checked in today</h3>
+      <p>20 seconds: your stress and what's on your mind.${S.isPaired() ? ` ${esc(n.mom)} sees it unless you mark it private.` : ''}</p>
+      <button class="big primary" data-tab="checkin">Check in now</button>
+    </section>`
 }
 
 // First open of the day: a short tip at the top of Today, until tapped away.
@@ -952,25 +974,71 @@ function disclaimerCard(compact) {
 }
 
 // ── Lookup ──────────────────────────────────────────────────────────────────
+// One search over foods and medicines. Words match by start ("egg" finds
+// "Eggs", "tylenol" finds Acetaminophen through its brand names).
+const TIER_L = { ok: '✅ Generally OK', ask: '🟡 Depends / ask', avoid: '⛔ Avoid' }
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
+const stem = w => w.length > 4 && w.endsWith('es') ? w.slice(0, -2) : w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w
+// "is sushi ok while pregnant" → just "sushi"
+const STOP = new Set('is it ok okay safe can i we she you eat eating drink drinking have having take taking to a an the for of and or with in on at my baby pregnant pregnancy during while when how much many good bad fine allowed some any too'.split(' '))
+const queryWords = q => norm(q).split(' ').filter(w => w.length > 1 && !STOP.has(w)).map(stem)
+// Score = how many of the typed words it matches (name hits count extra).
+function matches(q, fields) {
+  const words = queryWords(q)
+  if (!words.length) return 0
+  const hay = ' ' + norm(fields.join(' ')) + ' ', name = ' ' + norm(fields[0])
+  return words.reduce((s, w) => s + (hay.includes(' ' + w) ? 2 : 0) + (name.includes(' ' + w) ? 1 : 0), 0)
+}
+const medItem = m => `<details class="item t-${m.tier}"><summary><b>💊 ${esc(m.name)}</b>${m.aka ? `<span class="aka">${esc(m.aka)}</span>` : ''}<span class="tier">${TIER_L[m.tier]}</span></summary>${m.use ? `<p class="fine">For: ${esc(m.use)}</p>` : ''}<p>${esc(m.note)}</p></details>`
+const foodItem = f => `<details class="item t-${f.tier}"><summary><b>🍽️ ${esc(f.name)}</b>${f.aka ? `<span class="aka">${esc(f.aka)}</span>` : ''}<span class="tier">${TIER_L[f.tier]}</span></summary><p>${esc(f.note)}</p></details>`
+
+function searchResults(q) {
+  // keep the closest matches: those within one word of the best score
+  const rank = (arr, f) => {
+    const scored = arr.map(x => [x, matches(q, f(x))]).filter(([, s]) => s)
+    const best = Math.max(0, ...scored.map(([, s]) => s))
+    return scored.filter(([, s]) => s >= best - 1).sort((a, b) => b[1] - a[1]).map(([x]) => x)
+  }
+  const foods = rank(C.FOODS, f => [f.name, f.aka || '']), meds = rank(C.MEDS, m => [m.name, m.aka || '', m.use || ''])
+  const syms = rank(C.SYMPTOMS, s => [s.label])
+  // not on the list: the food-safety rules that apply to what was typed
+  const rules = C.FOOD_RULES.filter(r => new RegExp(r[0], 'i').test(norm(q)))
+  let html = ''
+  // "pink chicken", "rare steak", "raw milk": the warning wins over a list match
+  const warn = rules.filter(r => r[1] === 'avoid')
+  if (warn.length && (foods.length || meds.length)) html += `<section class="card warnc"><h3>⚠️ Heads up</h3>${warn.map(r => `<p>${esc(r[2])}</p>`).join('')}</section>`
+  if (foods.length || meds.length) html += [...foods.slice(0, 12).map(foodItem), ...meds.slice(0, 8).map(medItem)].join('')
+  if (syms.length) html += syms.slice(0, 3).map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b><span class="tier">Symptom</span></summary><p>${esc(s.meaning)}</p>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
+  if (!foods.length && !meds.length) {
+    html += rules.length
+      ? `<section class="card"><h3>"${esc(lookupQuery.trim())}" isn't on our list, but these rules apply:</h3>${rules.map(r => `<div class="item t-${r[1]}"><p><b>${TIER_L[r[1]]}:</b> ${esc(r[2])}</p></div>`).join('')}</section>`
+      : `<section class="card"><h3>"${esc(lookupQuery.trim())}" isn't on our list yet</h3>
+          <p>Most everyday foods are fine in pregnancy when they're <b>pasteurized, washed, and cooked until hot</b>. The ones to watch:</p>
+          <ul>${C.FOOD_BASICS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+          <p class="fine">For a medicine or supplement, ask the pharmacist or call MotherToBaby for free (1-866-626-6847, mothertobaby.org).</p></section>`
+  }
+  return html
+}
+
 function lookup() {
-  const q = lookupQuery.trim().toLowerCase()
-  const tierL = { ok: '✅ Generally OK', ask: '🟡 Ask first', avoid: '⛔ Avoid' }
-  const filt = (arr, keys) => !q ? arr : arr.filter(x => keys.some(k => String(x[k] || '').toLowerCase().includes(q)))
+  const q = lookupQuery.trim()
   let body = ''
-  if (lookupTab === 'meds') {
-    body = filt(C.MEDS, ['name', 'aka', 'use']).map(m => `<details class="item t-${m.tier}"><summary><b>${esc(m.name)}</b>${m.aka ? `<span class="aka">${esc(m.aka)}</span>` : ''}<span class="tier">${tierL[m.tier]}</span></summary>${m.use ? `<p class="fine">For: ${esc(m.use)}</p>` : ''}<p>${esc(m.note)}</p></details>`).join('')
-  } else if (lookupTab === 'foods') {
-    body = filt(C.FOODS, ['name', 'note']).map(f => `<details class="item t-${f.tier}"><summary><b>${esc(f.name)}</b><span class="tier">${tierL[f.tier]}</span></summary><p>${esc(f.note)}</p></details>`).join('')
-  } else if (lookupTab === 'symptoms') {
-    body = filt(C.SYMPTOMS, ['label', 'meaning', 'flag']).map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b></summary><p>${esc(s.meaning)}</p><h4>How he can help</h4><ul>${s.help.map(h => `<li>${esc(h)}</li>`).join('')}</ul>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
+  if (q) body = searchResults(q)
+  else if (lookupTab === 'meds') body = C.MEDS.map(medItem).join('')
+  else if (lookupTab === 'foods') body = C.FOODS.slice().sort((a, b) => a.name.localeCompare(b.name)).map(foodItem).join('')
+  else if (lookupTab === 'symptoms') {
+    body = C.SYMPTOMS.map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b></summary><p>${esc(s.meaning)}</p><h4>How he can help</h4><ul>${s.help.map(h => `<li>${esc(h)}</li>`).join('')}</ul>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
   } else {
-    body = C.RED_FLAGS.map(([h, list], i) => `<section class="card ${i === 0 ? 'alert' : i === 1 ? 'warnc' : 'soft'}"><h3>${esc(h)}</h3><ul>${list.filter(x => !q || x.toLowerCase().includes(q)).map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')
+    body = C.RED_FLAGS.map(([h, list], i) => `<section class="card ${i === 0 ? 'alert' : i === 1 ? 'warnc' : 'soft'}"><h3>${esc(h)}</h3><ul>${list.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')
   }
   return `
-    ${disclaimerCard(true)}
-    <div class="seg">${[['meds', '💊 Meds'], ['foods', '🍽️ Food'], ['symptoms', '🩺 Symptoms'], ['redflags', '🚨 When to call']].map(([id, l]) => `<button data-lt="${id}" class="${lookupTab === id ? 'on' : ''}">${l}</button>`).join('')}</div>
-    <input class="search" id="q" type="search" placeholder="Search ${lookupTab === 'meds' ? 'e.g. ibuprofen, Benadryl, sleep' : lookupTab === 'foods' ? 'e.g. sushi, brie, coffee' : '…'}" value="${esc(lookupQuery)}">
-    <div class="list">${body || '<p class="fine center">No match. Ask the OB, midwife, or a pharmacist. MotherToBaby (mothertobaby.org, 1-866-626-6847) answers medication questions for free.</p>'}</div>
+    <section class="card search-card">
+      <h3>🔎 Is it safe for baby?</h3>
+      <input class="search" id="q" type="search" enterkeyhint="search" placeholder="Type any food, drink or medicine: sushi, brie, Tylenol…" value="${esc(lookupQuery)}">
+      ${q ? `<p class="fine">${C.FOODS.length} foods and ${C.MEDS.length} medicines in the app. Not on the list? You still get the rules that apply.</p>` : ''}
+    </section>
+    ${q ? '' : `<div class="seg">${[['foods', '🍽️ Food'], ['meds', '💊 Meds'], ['symptoms', '🩺 Symptoms'], ['redflags', '🚨 When to call']].map(([id, l]) => `<button data-lt="${id}" class="${lookupTab === id ? 'on' : ''}">${l}</button>`).join('')}</div>`}
+    <div class="list">${body}</div>
     ${disclaimerCard()}`
 }
 
@@ -1390,7 +1458,7 @@ app.addEventListener('click', async ev => {
       if (!draft.stress) return
       await S.addEntry('dadcheck', { stress: draft.stress, feelings: draft.feelings, note: draft.note.trim() }, { local: draft.private })
       const priv = draft.private
-      draft = null; render(); toast(priv ? 'Saved privately 🔒' : 'Saved'); return
+      draft = null; tab = 'today'; render(); scrollTo(0, 0); toast(priv ? 'Checked in privately 🔒' : 'Checked in ✅'); return
     }
     case 'send-msg': {
       const t = $('#msg').value.trim(); if (!t) return

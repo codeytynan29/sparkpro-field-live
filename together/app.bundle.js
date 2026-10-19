@@ -342,8 +342,8 @@ const MEDS = [
 
 // ── Food safety ─────────────────────────────────────────────────────────────
 const FOODS = [
-  { name: 'Deli meat / cold cuts', tier: 'ask', note: 'Listeria risk. OK if heated until steaming hot (165°F), like in a toasted sandwich.' },
-  { name: 'Hot dogs', tier: 'ask', note: 'Heat until steaming all the way through. Never eat them cold from the package.' },
+  { name: 'Deli meat / cold cuts', aka: 'lunch meat, sliced turkey, ham, roast beef slices, bologna, boars head', tier: 'ask', note: 'Listeria risk. OK if heated until steaming hot (165°F), like in a toasted sandwich.' },
+  { name: 'Hot dogs', aka: 'franks, corn dog, ballpark', tier: 'ask', note: 'Heat until steaming all the way through. Never eat them cold from the package.' },
   { name: 'Sushi (raw fish)', tier: 'avoid', note: 'Skip raw fish for now. Cooked rolls (shrimp tempura, eel, California rolls with cooked crab) are fine.' },
   { name: 'Cooked salmon, shrimp, cod, tilapia', tier: 'ok', note: 'Low-mercury fish are recommended: 2–3 servings a week. Great source of omega-3s.' },
   { name: 'Canned light tuna', tier: 'ok', note: 'Low mercury. Counts toward the 2–3 servings a week.' },
@@ -352,10 +352,9 @@ const FOODS = [
   { name: 'Refrigerated smoked seafood (lox, nova)', tier: 'avoid', note: 'Listeria risk. OK if cooked into a hot dish, and canned or shelf-stable versions are fine.' },
   { name: 'Raw oysters, clams, mussels', tier: 'avoid', note: 'Only eat shellfish fully cooked.' },
   { name: 'Unpasteurized (raw) milk & cheese', tier: 'avoid', note: 'Listeria risk. Check the label for "pasteurized."' },
-  { name: 'Soft cheese (brie, feta, goat, blue)', tier: 'ask', note: 'Generally OK if made with pasteurized milk. Avoid if unpasteurized or if you can\'t tell.' },
   { name: 'Queso fresco, queso blanco, panela', tier: 'ask', note: 'Has been linked to listeria outbreaks even when labeled pasteurized. Safest cooked until hot.' },
   { name: 'Hard cheese (cheddar, parmesan, swiss)', tier: 'ok', note: 'Fine.' },
-  { name: 'Eggs — runny yolk, over-easy, poached', tier: 'avoid', note: 'Salmonella risk. Cook until the yolk is firm, unless the eggs are labeled pasteurized.' },
+  { name: 'Eggs — runny yolk, over-easy, poached', aka: 'soft boiled, sunny side up, eggs benedict, runny egg', tier: 'avoid', note: 'Salmonella risk. Cook until the yolk is firm, unless the eggs are labeled pasteurized.' },
   { name: 'Homemade Caesar, aioli, mayo, hollandaise', tier: 'avoid', note: 'Often made with raw egg. Store-bought mayo is pasteurized and fine.' },
   { name: 'Raw cookie dough / cake batter', tier: 'avoid', note: 'Raw egg and raw flour. Only eat it baked.' },
   { name: 'Rare or medium-rare meat', tier: 'avoid', note: 'Cook beef, pork, and lamb steaks to 145°F with a rest, ground meat to 160°F, and poultry to 165°F (toxoplasmosis, E. coli).' },
@@ -365,14 +364,129 @@ const FOODS = [
   { name: 'Unwashed fruits & veggies', tier: 'ask', note: 'Rinse all produce well under running water (toxoplasmosis, listeria).' },
   { name: 'Cut melon left out', tier: 'avoid', note: 'Listeria risk. Toss cut melon left out more than 4 hours. Refrigerated, it keeps up to a week.' },
   { name: 'Unpasteurized juice / cider', tier: 'avoid', note: 'Choose pasteurized versions.' },
-  { name: 'Coffee / tea / soda', tier: 'ok', note: 'Fine while total caffeine stays under 200 mg a day (about a 12 oz home-brewed coffee; a large coffee-shop cup can be over the limit on its own).' },
-  { name: 'Energy drinks', tier: 'avoid', note: 'High caffeine plus other stimulants. Skip them.' },
+  { name: 'Coffee / tea / soda', aka: 'espresso, latte, cappuccino, cold brew, iced coffee, starbucks, dunkin', tier: 'ok', note: 'Fine while total caffeine stays under 200 mg a day (about a 12 oz home-brewed coffee; a large coffee-shop cup can be over the limit on its own).' },
+  { name: 'Energy drinks', aka: 'red bull, monster, celsius, bang, prime energy, 5 hour energy', tier: 'avoid', note: 'High caffeine plus other stimulants. Skip them.' },
   { name: 'Alcohol (incl. kombucha with alcohol)', tier: 'avoid', note: 'There is no known safe amount. Non-alcoholic versions are generally fine. Some N/A beers still contain up to 0.5% alcohol.' },
   { name: 'Herbal tea', tier: 'ask', note: 'Ginger and peppermint are commonly considered OK in normal amounts. Ask about others, and about large amounts.' },
   { name: 'Leftovers', tier: 'ok', note: 'Refrigerate within 2 hours, eat within 3–4 days, and reheat until steaming.' },
   { name: 'Peanuts & common allergens', tier: 'ok', note: 'No need to avoid them unless she\'s allergic. Avoiding them doesn\'t prevent allergies in the baby.' },
   { name: 'Hot tubs, saunas, very hot baths (not a food, but…)', tier: 'avoid', note: 'Getting very hot (a core temperature over about 101°F) early in pregnancy is linked to neural tube defects. Skip hot tubs and saunas. Warm baths and showers are fine.' },
   { name: 'Cat litter (not a food, but…)', tier: 'avoid', note: 'Toxoplasmosis risk. You take over the litter box now. If she must do it, gloves and handwashing.' },
+
+  // ── Meat & poultry
+  { name: 'Chicken & turkey (cooked through)', aka: 'grilled chicken, roast turkey, wings, nuggets, thanksgiving', tier: 'ok', note: 'Great protein. Cook to 165°F, with no pink and clear juices.' },
+  { name: 'Burgers & ground beef', aka: 'hamburger, cheeseburger, meatloaf, taco meat, ground turkey', tier: 'ok', note: 'OK cooked to 160°F all the way through, with no pink in the middle. Order burgers well done.' },
+  { name: 'Steak, pork chops, lamb (cooked)', aka: 'ribeye, sirloin, pork tenderloin, roast beef, brisket', tier: 'ok', note: 'Cook to 145°F and let it rest 3 minutes. Use a meat thermometer; skip rare and pink-in-the-middle.' },
+  { name: 'Bacon', aka: 'turkey bacon', tier: 'ok', note: 'Fine cooked until crispy and hot.' },
+  { name: 'Sausage', aka: 'bratwurst, breakfast sausage, italian sausage, kielbasa', tier: 'ok', note: 'Cook fresh sausage to 160°F (165°F for poultry sausage) until no pink remains.' },
+  { name: 'Salami, pepperoni, prosciutto, chorizo (cured)', aka: 'charcuterie, soppressata, cured meat, coppa, pastrami', tier: 'ask', note: 'Cured meats aren\'t cooked, so they carry listeria and toxoplasmosis risk. Eat them heated until steaming, like pepperoni on a hot pizza.' },
+  { name: 'Pepperoni or sausage pizza', aka: 'pizza', tier: 'ok', note: 'Fine hot out of the oven. Reheat leftovers until steaming.' },
+  { name: 'Rotisserie chicken', aka: 'costco chicken', tier: 'ok', note: 'Fine hot. Refrigerate within 2 hours and reheat leftovers until steaming.' },
+  { name: 'Deli salads (chicken, tuna, egg, ham salad)', aka: 'store made salad, deli counter, potato salad', tier: 'ask', note: 'Store-made deli salads have been linked to listeria. Homemade, eaten fresh and kept cold, is fine.' },
+  { name: 'Beef jerky', aka: 'jerky, meat sticks', tier: 'ask', note: 'Sealed, shelf-stable packaged jerky is generally considered lower risk. Skip homemade or deli-counter jerky.' },
+  { name: 'Meatballs', aka: 'meatball sub', tier: 'ok', note: 'Fine cooked through (160°F, or 165°F if made with poultry).' },
+  { name: 'Duck', aka: 'peking duck', tier: 'ok', note: 'Cook to 165°F. Skip the pink, rare-sliced style.' },
+  { name: 'Venison & wild game', aka: 'deer, elk, bison', tier: 'ask', note: 'Cook thoroughly (ground to 160°F). Wild game is more likely to carry toxoplasmosis, so never rare.' },
+  { name: 'Steak tartare, carpaccio', aka: 'raw beef, kibbeh nayeh', tier: 'avoid', note: 'Raw meat. Skip until after the baby.' },
+  { name: 'Gyro, shawarma, kebab', aka: 'doner, al pastor', tier: 'ok', note: 'Fine when sliced hot off the spit or grill.' },
+  { name: 'Hot pot, pho, ramen with raw meat', aka: 'shabu shabu, rare beef pho, tai', tier: 'ask', note: 'Ask for the meat well done, or cook it fully in the boiling broth. The rare slices in pho often aren\'t cooked through.' },
+
+  // ── Fish & seafood
+  { name: 'Canned salmon & sardines', aka: 'anchovies, kippers, herring', tier: 'ok', note: 'Low mercury and full of omega-3s. Great choice.' },
+  { name: 'Low-mercury fish (best choices)', aka: 'catfish, pollock, haddock, trout, flounder, sole, whitefish, perch, crawfish, crayfish', tier: 'ok', note: 'FDA "best choices": 2–3 servings a week, cooked to 145°F (flaky and opaque).' },
+  { name: 'Mahi-mahi, halibut, snapper, grouper', aka: 'sea bass, chilean sea bass, striped bass, yellowfin tuna, ahi, rockfish, bluefish, monkfish', tier: 'ask', note: 'FDA "good choices": a bit more mercury. Limit to 1 serving a week, cooked through. Ahi or yellowfin must be cooked, not seared rare.' },
+  { name: 'Shrimp, crab, lobster, scallops (cooked)', aka: 'prawns, crab legs, crab cakes, lobster roll, imitation crab, surimi', tier: 'ok', note: 'Low mercury. Fine cooked until firm and opaque (shrimp pink, scallops milky white).' },
+  { name: 'Fish sticks & fried fish', aka: 'fish and chips, fish tacos, filet o fish', tier: 'ok', note: 'Usually low-mercury fish (cod, pollock). Fine cooked hot.' },
+  { name: 'Ceviche', aka: 'aguachile, leche de tigre', tier: 'avoid', note: 'Lime juice doesn\'t kill bacteria or parasites the way heat does. Skip it.' },
+  { name: 'Poke & sashimi', aka: 'poke bowl, raw tuna, raw salmon, crudo, tuna tartare', tier: 'avoid', note: 'Raw fish. Ask for a cooked protein in your bowl instead.' },
+  { name: 'Cooked sushi rolls', aka: 'california roll, shrimp tempura roll, eel, unagi, cooked roll, vegetable roll, cucumber roll, avocado roll', tier: 'ok', note: 'Fine: imitation or cooked crab, tempura shrimp, eel and veggie rolls are all cooked. Make sure nothing raw is mixed in.' },
+  { name: 'Fried oysters, clams, mussels', aka: 'steamed mussels, clam chowder, linguine with clams', tier: 'ok', note: 'Fine when fully cooked: shells open when steamed, and the meat is firm.' },
+  { name: 'Fish you or friends caught', aka: 'lake fish, river fish, local fish', tier: 'ask', note: 'Check your state\'s fish advisory for that lake or river. If there isn\'t one, eat at most 1 serving a week and no other fish that week.' },
+
+  // ── Dairy & eggs
+  { name: 'Milk (pasteurized)', aka: 'whole milk, skim, 2%, lactose free milk, chocolate milk', tier: 'ok', note: 'Fine and a good source of calcium. Almost all store milk in the US is pasteurized.' },
+  { name: 'Yogurt & Greek yogurt', aka: 'kefir, skyr, yoghurt, parfait', tier: 'ok', note: 'Fine when made from pasteurized milk (nearly all store brands).' },
+  { name: 'Ice cream', aka: 'gelato, frozen yogurt, froyo, milkshake', tier: 'ok', note: 'Store-bought ice cream is fine. Soft-serve machines have occasionally been linked to listeria, so a well-run shop matters.' },
+  { name: 'Mozzarella, burrata, ricotta, cream cheese, cottage cheese', aka: 'fresh mozzarella, string cheese, mascarpone, paneer', tier: 'ok', note: 'Fine when pasteurized, which nearly all US store brands are. Check the label at farmers markets.' },
+  { name: 'Brie, camembert, feta, goat cheese, blue cheese', aka: 'gorgonzola, roquefort, chevre, stilton, soft cheese', tier: 'ask', note: 'OK if the label says pasteurized and it\'s been kept cold. Avoid unpasteurized or if you can\'t tell. Baked until bubbling hot is always fine.' },
+  { name: 'Halloumi', aka: 'grilled cheese', tier: 'ok', note: 'Fine when pasteurized and cooked.' },
+  { name: 'Butter, sour cream, whipped cream', aka: 'ghee, half and half, heavy cream, creamer', tier: 'ok', note: 'Fine from pasteurized milk.' },
+  { name: 'Scrambled or hard-boiled eggs', aka: 'omelet, omelette, fried egg over hard, egg salad, frittata, quiche', tier: 'ok', note: 'Fine cooked until the whites and yolks are firm.' },
+  { name: 'Eggnog', aka: 'egg nog', tier: 'ask', note: 'Store-bought pasteurized and alcohol-free is fine. Skip homemade (raw egg) and spiked versions.' },
+  { name: 'Tiramisu, mousse, homemade meringue', aka: 'chocolate mousse, raw egg dessert, zabaglione', tier: 'avoid', note: 'Often made with raw eggs, and tiramisu usually has alcohol and coffee too. Fine if made with pasteurized eggs and no alcohol.' },
+
+  // ── Fruits & veggies
+  { name: 'Fresh fruit', aka: 'apples, bananas, oranges, berries, strawberries, blueberries, grapes, peaches, pears, mango, kiwi, cherries', tier: 'ok', note: 'Great for her. Rinse well under running water first, even if you\'re peeling it.' },
+  { name: 'Pineapple', aka: 'pineapple juice', tier: 'ok', note: 'Fine in normal amounts. The myth that it causes miscarriage or labor isn\'t supported.' },
+  { name: 'Papaya', aka: 'green papaya, papaya salad, som tam', tier: 'ask', note: 'Ripe papaya is fine. Unripe or green papaya (as in papaya salad) contains latex that may trigger contractions, so skip that one.' },
+  { name: 'Melon', aka: 'watermelon, cantaloupe, honeydew', tier: 'ok', note: 'Scrub the rind before cutting, eat or refrigerate right away, and toss cut melon left out over 4 hours (listeria).' },
+  { name: 'Salad & leafy greens', aka: 'lettuce, spinach, kale, bagged salad, arugula, romaine, spring mix', tier: 'ok', note: 'Great source of folate. Rinse well, keep cold, and use bagged greens before the date.' },
+  { name: 'Vegetables (cooked or raw)', aka: 'broccoli, carrots, peppers, tomatoes, cucumber, corn, peas, green beans, zucchini, cauliflower, sweet potato, potatoes', tier: 'ok', note: 'Fine and encouraged. Wash raw veggies well.' },
+  { name: 'Frozen vegetables', aka: 'frozen corn, frozen peas, frozen broccoli', tier: 'ask', note: 'Cook them as the package says. Frozen veggies have been linked to listeria when eaten uncooked, like thawed in a salad or smoothie.' },
+  { name: 'Frozen fruit & smoothies', aka: 'smoothie, acai bowl, smoothie bowl', tier: 'ok', note: 'Fine. Use pasteurized juice, milk and yogurt in smoothies, and skip raw-milk or unpasteurized juice add-ins.' },
+  { name: 'Avocado & guacamole', aka: 'avocado toast, guac', tier: 'ok', note: 'Fine and full of healthy fats. Homemade or fresh guacamole kept cold.' },
+  { name: 'Mushrooms', aka: 'portobello, shiitake', tier: 'ok', note: 'Store-bought mushrooms are fine, ideally cooked. Never eat foraged wild mushrooms.' },
+  { name: 'Garlic, onions, herbs & spices', aka: 'cinnamon, turmeric, basil, cilantro, parsley, oregano, spicy, hot sauce, chili, jalapeno, sriracha', tier: 'ok', note: 'Fine in food amounts. Spicy food is safe for the baby but may worsen heartburn. Large-dose herb supplements are a different story: ask first.' },
+  { name: 'Dried fruit & dates', aka: 'raisins, prunes, figs, medjool dates', tier: 'ok', note: 'Fine, and prunes help with constipation.' },
+  { name: 'Seaweed', aka: 'nori, seaweed snacks, kelp, hijiki', tier: 'ask', note: 'Nori and seaweed snacks are fine in moderation. Skip hijiki (high arsenic) and kelp supplements (too much iodine).' },
+  { name: 'Black licorice', aka: 'licorice root, licorice candy', tier: 'ask', note: 'Real licorice (glycyrrhizin) in large amounts has been linked to preterm birth. A little red "licorice" candy is fine; skip lots of the real black kind.' },
+  { name: 'Fresh juice from a juice bar or farmers market', aka: 'fresh squeezed juice, cold pressed juice, apple cider, orange juice', tier: 'ask', note: 'Often unpasteurized. Choose bottled juice labeled pasteurized, or juice made fresh at home from washed fruit.' },
+
+  // ── Grains, snacks & sweets
+  { name: 'Bread, pasta, rice, cereal', aka: 'oatmeal, bagel, toast, noodles, tortillas, quinoa, crackers', tier: 'ok', note: 'Fine. Fortified cereals add folic acid and iron.' },
+  { name: 'Leftover rice', aka: 'fried rice, takeout rice', tier: 'ok', note: 'Refrigerate within an hour or two and reheat until steaming. Rice left out can grow bacteria that heat doesn\'t destroy.' },
+  { name: 'Peanut butter & nuts', aka: 'almonds, cashews, walnuts, almond butter, trail mix, peanuts', tier: 'ok', note: 'Fine unless she\'s allergic. Good protein and healthy fats.' },
+  { name: 'Chocolate', aka: 'dark chocolate, hot chocolate, candy, cocoa', tier: 'ok', note: 'Fine. It has a little caffeine (dark chocolate more), which counts toward 200 mg a day.' },
+  { name: 'Chips, popcorn, pretzels', aka: 'crisps, fries, french fries', tier: 'ok', note: 'Fine as snacks. Salty snacks can make swelling worse later on.' },
+  { name: 'Honey', aka: 'raw honey, manuka', tier: 'ok', note: 'Fine for her, even raw. Honey is only off-limits for babies under 1 year old.' },
+  { name: 'Artificial sweeteners', aka: 'aspartame, sucralose, splenda, stevia, monk fruit, diet soda, equal', tier: 'ok', note: 'The FDA considers common sweeteners safe in moderation. Water is still the better default drink.' },
+  { name: 'Baked goods & pastries', aka: 'cake, cookies, cupcakes, muffins, donuts, croissant, pie, cheesecake', tier: 'ok', note: 'Fine once baked. Cream-filled pastries should be kept refrigerated.' },
+  { name: 'Hummus & dips', aka: 'tzatziki, salsa, queso dip, spinach dip', tier: 'ok', note: 'Store-bought, kept cold, is fine. Hot cheese dips should be steaming. Skip dips that sat out at a party for hours.' },
+  { name: 'Fast food', aka: 'mcdonalds, chick fil a, burger king, taco bell, wendys, chipotle', tier: 'ok', note: 'Fine when served hot and freshly made. Ask for burgers well done.' },
+  { name: 'Subway & deli sandwiches', aka: 'sub, hoagie, turkey sandwich, ham sandwich, italian sub, cold cuts sandwich', tier: 'ask', note: 'Ask for the meat toasted until steaming hot (listeria). Hot subs like meatball or chicken are fine.' },
+  { name: 'Buffets & salad bars', aka: 'potluck, catering, party food', tier: 'ask', note: 'Food sitting out is the risk. Hot food should be steaming, cold food cold, and skip anything that\'s been out more than 2 hours.' },
+  { name: 'MSG', aka: 'monosodium glutamate, chinese food', tier: 'ok', note: 'Considered safe in normal food amounts.' },
+
+  // ── Drinks
+  { name: 'Decaf coffee', aka: 'decaf', tier: 'ok', note: 'Fine. It still has a little caffeine (around 2–15 mg a cup).' },
+  { name: 'Green tea & matcha', aka: 'black tea, iced tea, chai, matcha latte', tier: 'ok', note: 'Fine, but they count toward 200 mg of caffeine a day. Matcha can have as much as a coffee.' },
+  { name: 'Soda', aka: 'coke, pepsi, mountain dew, dr pepper, sprite, ginger ale', tier: 'ok', note: 'Caffeinated sodas count toward the 200 mg limit (about 35–55 mg a can). Ginger ale can help nausea.' },
+  { name: 'Sports & electrolyte drinks', aka: 'gatorade, liquid iv, pedialyte, powerade, coconut water', tier: 'ok', note: 'Fine, and useful when vomiting or dehydrated. Watch the sugar.' },
+  { name: 'Sparkling water', aka: 'la croix, seltzer, club soda, bubly', tier: 'ok', note: 'Fine, and a good swap for soda.' },
+  { name: 'Kombucha', aka: 'booch', tier: 'ask', note: 'Often unpasteurized, has some caffeine, and contains a little alcohol. Most providers suggest skipping it.' },
+  { name: 'Non-alcoholic beer & wine', aka: 'na beer, mocktail, alcohol free beer, athletic brewing', tier: 'ask', note: 'Many "non-alcoholic" drinks still have up to 0.5% alcohol. Look for 0.0%, or stick to mocktails.' },
+  { name: 'Wine, beer, liquor, cocktails', aka: 'alcohol, vodka, tequila, whiskey, rum, champagne, margarita, seltzer, white claw', tier: 'avoid', note: 'There\'s no known safe amount of alcohol in pregnancy, so skip it completely.' },
+  { name: 'Tonic water', aka: 'quinine', tier: 'ask', note: 'Small amounts in a mocktail are generally fine. Avoid large amounts (quinine).' },
+  { name: 'Raspberry leaf, chamomile & other herbal teas', aka: 'red raspberry leaf, chamomile tea, hibiscus, rooibos, dandelion, nettle', tier: 'ask', note: 'Some herbal teas are fine in normal amounts (peppermint, ginger, rooibos). Ask about raspberry leaf, hibiscus and large amounts of chamomile.' },
+  { name: 'Peppermint & ginger tea', aka: 'mint tea', tier: 'ok', note: 'Commonly considered OK in normal amounts, and both can ease nausea.' },
+]
+
+// When a search finds nothing on the list, these rules still answer it.
+// [regex on the normalized query, tier, what applies]
+const FOOD_RULES = [
+  ['\\b(raw|rare|tartare|carpaccio|ceviche|crudo|sashimi|poke|undercooked|pink|medium rare|bloody)\\b', 'avoid', 'Raw or undercooked meat, fish, shellfish or eggs: skip them until after the baby. Cook meat to a safe temperature (poultry 165°F, ground 160°F, steaks 145°F) and fish until opaque.'],
+  ['\\b(unpasteurized|raw milk|farm|farmers market|homemade cheese)\\b', 'avoid', 'Unpasteurized milk, cheese and juice can carry listeria. Look for "pasteurized" on the label.'],
+  ['\\b(smoked|lox|nova|gravlax|kipper)\\b', 'ask', 'Refrigerated smoked fish carries listeria risk. It\'s fine cooked into a hot dish, and canned or shelf-stable versions are OK.'],
+  ['\\b(deli|lunch meat|cold cut|salami|ham|turkey slice|bologna|mortadella|cured|charcuterie|hot dog|frank)\\b', 'ask', 'Deli and cured meats: eat them heated until steaming hot (listeria).'],
+  ['\\b(cheese|queso)\\b', 'ask', 'Cheese: hard cheeses are fine. Soft cheeses are fine if pasteurized. Queso fresco-style fresh cheeses are safest cooked until hot.'],
+  ['\\b(fish|tuna|bass|mackerel|swordfish|shark|marlin|tilefish|roughy|trout|salmon|cod|snapper|grouper|halibut|seafood|shellfish)\\b', 'ask', 'Fish: choose low-mercury fish (salmon, shrimp, cod, pollock, canned light tuna) 2–3 times a week. Avoid shark, swordfish, king mackerel, marlin, orange roughy, bigeye tuna and Gulf tilefish. Always cook it through.'],
+  ['\\b(egg|eggs|mayo|aioli|hollandaise|meringue|custard|caesar)\\b', 'ask', 'Eggs: cook until yolks are firm. Homemade sauces and desserts may use raw egg; store-bought versions are pasteurized.'],
+  ['\\b(sprout|sprouts|microgreen)\\b', 'avoid', 'Raw sprouts carry bacteria in the seed. Fine only when cooked thoroughly.'],
+  ['\\b(wine|beer|vodka|rum|gin|tequila|whiskey|bourbon|liquor|liqueur|cocktail|sake|soju|cider|spiked|alcohol|margarita|mimosa)\\b', 'avoid', 'Alcohol: there\'s no known safe amount in pregnancy. Mocktails and 0.0% drinks are fine.'],
+  ['\\b(coffee|espresso|latte|cappuccino|cold brew|energy|red bull|monster|celsius|caffeine|tea|matcha|yerba)\\b', 'ask', 'Caffeine: keep the total under 200 mg a day (about one 12 oz home-brewed coffee). Skip energy drinks.'],
+  ['\\b(herb|herbal|supplement|tincture|essential oil|ashwagandha|cbd|kratom|detox|cleanse|tea)\\b', 'ask', 'Herbs and supplements aren\'t regulated like medicine, and some aren\'t safe in pregnancy. Ask the OB or pharmacist about each one.'],
+  ['\\b(liver|pate|foie)\\b', 'ask', 'Liver and liver pâté are very high in vitamin A. Eat them rarely, if at all; refrigerated pâté also carries listeria.'],
+  ['\\b(leftover|left out|sat out|room temperature|overnight)\\b', 'ask', 'Food left out more than 2 hours (1 hour if it\'s hot outside) should be thrown away. Reheat leftovers until steaming and eat within 3–4 days.'],
+  ['\\b(foraged|wild mushroom|wild plant)', 'avoid', 'Never eat foraged wild mushrooms or plants. Store-bought is fine.'],
+]
+// The general rules, shown when nothing matched at all.
+const FOOD_BASICS = [
+  'Raw or undercooked meat, fish, shellfish and eggs',
+  'Unpasteurized milk, cheese and juice (check the label)',
+  'Deli meat, hot dogs and refrigerated smoked fish, unless heated until steaming',
+  'High-mercury fish: shark, swordfish, king mackerel, marlin, orange roughy, bigeye tuna, Gulf tilefish',
+  'Alcohol (none), and caffeine over 200 mg a day',
+  'Raw sprouts, and food left out more than 2 hours',
 ]
 
 // ── Dad / partner space ─────────────────────────────────────────────────────
@@ -649,7 +763,7 @@ const INFO_UPDATED = 'October 2026'
 const REVIEWED = false
 const DISCLAIMER_SHORT = 'Not medical advice. Compiled by an AI assistant from public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT } }
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT } }
 })()
 
 const S = (() => {
@@ -1052,7 +1166,7 @@ const num = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Ma
 const DAY = 86400000
 
 let tab = 'today'
-let lookupTab = 'meds'
+let lookupTab = 'foods'
 let lookupQuery = ''
 let planView = 'calendar' // 'calendar' | 'registry' | 'settings' inside the Plan tab
 let histWho = 'both', histDays = 14
@@ -1314,7 +1428,7 @@ function renderScreen() {
     <main>${({ today, checkin, timeline, lookup, plan })[tab]()}</main>
     <nav class="tabs">
       ${[['today', '🏡', 'Today'], ['checkin', '✍️', me() === 'mom' ? 'Check in' : 'You'], ['timeline', '💞', 'Us'], ['lookup', '🔎', 'Is it safe?'], ['plan', '🗓️', 'Plan']]
-        .map(([id, i, l]) => `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
+        .map(([id, i, l]) => `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}${id === 'checkin' && !checkedInToday() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>${l}</button>`).join('')}
     </nav>`
   if (tab === 'checkin' && me() === 'dad') bindBreath()
 }
@@ -1520,18 +1634,14 @@ function today() {
     }
     main += `<section class="card"><h3>💡 Guy's-eye view</h3><p>${esc(pick(C.DAD_TRUTHS, dayIndex()))}</p><p class="fine">${esc(pick(C.DAD_TRIMESTER[g ? g.tri : 1], dayIndex()))}</p></section>`
   } else {
-    main = herToday
-      ? `${checkinCard(herToday, 'Your check-in today')}`
-      : `<section class="card prompt">
-          <h3>How are you feeling today, ${esc(n.mom === 'Mom' ? 'mama' : n.mom)}?</h3>
-          <div class="moods">${C.MOOD.map(m => `<button data-quickmood="${m.v}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
-          <p class="fine">Tap one to start. Add symptoms and notes on the next screen.</p>
-        </section>`
+    // (when she hasn't checked in, the mood prompt sits at the very top: see myCheckinStatus)
+    main = herToday ? `${checkinCard(herToday, 'Your check-in today')}` : ''
     const dadCI = entries('dadcheck', 'dad').filter(e => !e.local).at(-1)
     if (dadCI && sameDay(dadCI.created_at)) main += `<section class="card soft"><p>${esc(n.dad)} checked in too: <b>${dadCI.data.feelings?.map(f => C.DAD_FEELINGS.find(x => x.id === f)?.label).filter(Boolean).join(', ') || 'stress ' + num(dadCI.data.stress, 1, 5) + '/5'}</b></p></section>`
   }
 
   return `
+    ${myCheckinStatus()}
     ${morningCard()}
     ${flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''}
     ${g ? babyCard(g, wk, fe, fruit, len) : datesCard()}
@@ -1548,6 +1658,32 @@ function today() {
       ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
       ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
     </section>` : ''}`
+}
+
+// This phone's own check-in today, always the first thing on Today: a big
+// "check in" prompt until it's done, then a clear "done" line with the time.
+const myCheckinsToday = () => entries(me() === 'mom' ? 'checkin' : 'dadcheck', me()).filter(e => sameDay(e.created_at))
+const checkedInToday = () => myCheckinsToday().length > 0
+function myCheckinStatus() {
+  const n = names(), mine = myCheckinsToday(), last = mine.at(-1)
+  if (last) {
+    const t = new Date(last.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+    const waiting = S.isPaired() && !last.local && !last.synced
+    const what = me() === 'mom' ? (C.MOOD.find(m => m.v === last.data.mood)?.label || '') : `stress ${num(last.data.stress, 1, 5)}/5`
+    return `<section class="card done-card"><span class="done-tick">✅</span><div><b>You checked in today</b> · ${t}${what ? ` · ${esc(what)}` : ''}${mine.length > 1 ? ` · ${mine.length} times` : ''}
+      <div class="fine">${last.local ? '🔒 Private, on this phone only' : waiting ? '⏳ Saved on this phone, sending when you have signal' : S.isPaired() ? `${esc(nameOf(other()))} can see it` : 'Saved'}</div></div>
+      <button class="mini" data-tab="checkin">${me() === 'mom' ? 'Add more' : 'Again'}</button></section>`
+  }
+  if (me() === 'mom') return `<section class="card prompt cta">
+      <h3>How are you feeling today, ${esc(n.mom === 'Mom' ? 'mama' : n.mom)}?</h3>
+      <div class="moods">${C.MOOD.map(m => `<button data-quickmood="${m.v}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
+      <p class="fine">You haven't checked in today. Tap one to start. ${S.isPaired() ? esc(n.dad) + ' sees it right away.' : ''}</p>
+    </section>`
+  return `<section class="card prompt cta">
+      <h3>✍️ You haven't checked in today</h3>
+      <p>20 seconds: your stress and what's on your mind.${S.isPaired() ? ` ${esc(n.mom)} sees it unless you mark it private.` : ''}</p>
+      <button class="big primary" data-tab="checkin">Check in now</button>
+    </section>`
 }
 
 // First open of the day: a short tip at the top of Today, until tapped away.
@@ -1988,25 +2124,71 @@ function disclaimerCard(compact) {
 }
 
 // ── Lookup ──────────────────────────────────────────────────────────────────
+// One search over foods and medicines. Words match by start ("egg" finds
+// "Eggs", "tylenol" finds Acetaminophen through its brand names).
+const TIER_L = { ok: '✅ Generally OK', ask: '🟡 Depends / ask', avoid: '⛔ Avoid' }
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
+const stem = w => w.length > 4 && w.endsWith('es') ? w.slice(0, -2) : w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w
+// "is sushi ok while pregnant" → just "sushi"
+const STOP = new Set('is it ok okay safe can i we she you eat eating drink drinking have having take taking to a an the for of and or with in on at my baby pregnant pregnancy during while when how much many good bad fine allowed some any too'.split(' '))
+const queryWords = q => norm(q).split(' ').filter(w => w.length > 1 && !STOP.has(w)).map(stem)
+// Score = how many of the typed words it matches (name hits count extra).
+function matches(q, fields) {
+  const words = queryWords(q)
+  if (!words.length) return 0
+  const hay = ' ' + norm(fields.join(' ')) + ' ', name = ' ' + norm(fields[0])
+  return words.reduce((s, w) => s + (hay.includes(' ' + w) ? 2 : 0) + (name.includes(' ' + w) ? 1 : 0), 0)
+}
+const medItem = m => `<details class="item t-${m.tier}"><summary><b>💊 ${esc(m.name)}</b>${m.aka ? `<span class="aka">${esc(m.aka)}</span>` : ''}<span class="tier">${TIER_L[m.tier]}</span></summary>${m.use ? `<p class="fine">For: ${esc(m.use)}</p>` : ''}<p>${esc(m.note)}</p></details>`
+const foodItem = f => `<details class="item t-${f.tier}"><summary><b>🍽️ ${esc(f.name)}</b>${f.aka ? `<span class="aka">${esc(f.aka)}</span>` : ''}<span class="tier">${TIER_L[f.tier]}</span></summary><p>${esc(f.note)}</p></details>`
+
+function searchResults(q) {
+  // keep the closest matches: those within one word of the best score
+  const rank = (arr, f) => {
+    const scored = arr.map(x => [x, matches(q, f(x))]).filter(([, s]) => s)
+    const best = Math.max(0, ...scored.map(([, s]) => s))
+    return scored.filter(([, s]) => s >= best - 1).sort((a, b) => b[1] - a[1]).map(([x]) => x)
+  }
+  const foods = rank(C.FOODS, f => [f.name, f.aka || '']), meds = rank(C.MEDS, m => [m.name, m.aka || '', m.use || ''])
+  const syms = rank(C.SYMPTOMS, s => [s.label])
+  // not on the list: the food-safety rules that apply to what was typed
+  const rules = C.FOOD_RULES.filter(r => new RegExp(r[0], 'i').test(norm(q)))
+  let html = ''
+  // "pink chicken", "rare steak", "raw milk": the warning wins over a list match
+  const warn = rules.filter(r => r[1] === 'avoid')
+  if (warn.length && (foods.length || meds.length)) html += `<section class="card warnc"><h3>⚠️ Heads up</h3>${warn.map(r => `<p>${esc(r[2])}</p>`).join('')}</section>`
+  if (foods.length || meds.length) html += [...foods.slice(0, 12).map(foodItem), ...meds.slice(0, 8).map(medItem)].join('')
+  if (syms.length) html += syms.slice(0, 3).map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b><span class="tier">Symptom</span></summary><p>${esc(s.meaning)}</p>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
+  if (!foods.length && !meds.length) {
+    html += rules.length
+      ? `<section class="card"><h3>"${esc(lookupQuery.trim())}" isn't on our list, but these rules apply:</h3>${rules.map(r => `<div class="item t-${r[1]}"><p><b>${TIER_L[r[1]]}:</b> ${esc(r[2])}</p></div>`).join('')}</section>`
+      : `<section class="card"><h3>"${esc(lookupQuery.trim())}" isn't on our list yet</h3>
+          <p>Most everyday foods are fine in pregnancy when they're <b>pasteurized, washed, and cooked until hot</b>. The ones to watch:</p>
+          <ul>${C.FOOD_BASICS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+          <p class="fine">For a medicine or supplement, ask the pharmacist or call MotherToBaby for free (1-866-626-6847, mothertobaby.org).</p></section>`
+  }
+  return html
+}
+
 function lookup() {
-  const q = lookupQuery.trim().toLowerCase()
-  const tierL = { ok: '✅ Generally OK', ask: '🟡 Ask first', avoid: '⛔ Avoid' }
-  const filt = (arr, keys) => !q ? arr : arr.filter(x => keys.some(k => String(x[k] || '').toLowerCase().includes(q)))
+  const q = lookupQuery.trim()
   let body = ''
-  if (lookupTab === 'meds') {
-    body = filt(C.MEDS, ['name', 'aka', 'use']).map(m => `<details class="item t-${m.tier}"><summary><b>${esc(m.name)}</b>${m.aka ? `<span class="aka">${esc(m.aka)}</span>` : ''}<span class="tier">${tierL[m.tier]}</span></summary>${m.use ? `<p class="fine">For: ${esc(m.use)}</p>` : ''}<p>${esc(m.note)}</p></details>`).join('')
-  } else if (lookupTab === 'foods') {
-    body = filt(C.FOODS, ['name', 'note']).map(f => `<details class="item t-${f.tier}"><summary><b>${esc(f.name)}</b><span class="tier">${tierL[f.tier]}</span></summary><p>${esc(f.note)}</p></details>`).join('')
-  } else if (lookupTab === 'symptoms') {
-    body = filt(C.SYMPTOMS, ['label', 'meaning', 'flag']).map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b></summary><p>${esc(s.meaning)}</p><h4>How he can help</h4><ul>${s.help.map(h => `<li>${esc(h)}</li>`).join('')}</ul>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
+  if (q) body = searchResults(q)
+  else if (lookupTab === 'meds') body = C.MEDS.map(medItem).join('')
+  else if (lookupTab === 'foods') body = C.FOODS.slice().sort((a, b) => a.name.localeCompare(b.name)).map(foodItem).join('')
+  else if (lookupTab === 'symptoms') {
+    body = C.SYMPTOMS.map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b></summary><p>${esc(s.meaning)}</p><h4>How he can help</h4><ul>${s.help.map(h => `<li>${esc(h)}</li>`).join('')}</ul>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
   } else {
-    body = C.RED_FLAGS.map(([h, list], i) => `<section class="card ${i === 0 ? 'alert' : i === 1 ? 'warnc' : 'soft'}"><h3>${esc(h)}</h3><ul>${list.filter(x => !q || x.toLowerCase().includes(q)).map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')
+    body = C.RED_FLAGS.map(([h, list], i) => `<section class="card ${i === 0 ? 'alert' : i === 1 ? 'warnc' : 'soft'}"><h3>${esc(h)}</h3><ul>${list.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')
   }
   return `
-    ${disclaimerCard(true)}
-    <div class="seg">${[['meds', '💊 Meds'], ['foods', '🍽️ Food'], ['symptoms', '🩺 Symptoms'], ['redflags', '🚨 When to call']].map(([id, l]) => `<button data-lt="${id}" class="${lookupTab === id ? 'on' : ''}">${l}</button>`).join('')}</div>
-    <input class="search" id="q" type="search" placeholder="Search ${lookupTab === 'meds' ? 'e.g. ibuprofen, Benadryl, sleep' : lookupTab === 'foods' ? 'e.g. sushi, brie, coffee' : '…'}" value="${esc(lookupQuery)}">
-    <div class="list">${body || '<p class="fine center">No match. Ask the OB, midwife, or a pharmacist. MotherToBaby (mothertobaby.org, 1-866-626-6847) answers medication questions for free.</p>'}</div>
+    <section class="card search-card">
+      <h3>🔎 Is it safe for baby?</h3>
+      <input class="search" id="q" type="search" enterkeyhint="search" placeholder="Type any food, drink or medicine: sushi, brie, Tylenol…" value="${esc(lookupQuery)}">
+      ${q ? `<p class="fine">${C.FOODS.length} foods and ${C.MEDS.length} medicines in the app. Not on the list? You still get the rules that apply.</p>` : ''}
+    </section>
+    ${q ? '' : `<div class="seg">${[['foods', '🍽️ Food'], ['meds', '💊 Meds'], ['symptoms', '🩺 Symptoms'], ['redflags', '🚨 When to call']].map(([id, l]) => `<button data-lt="${id}" class="${lookupTab === id ? 'on' : ''}">${l}</button>`).join('')}</div>`}
+    <div class="list">${body}</div>
     ${disclaimerCard()}`
 }
 
@@ -2426,7 +2608,7 @@ app.addEventListener('click', async ev => {
       if (!draft.stress) return
       await S.addEntry('dadcheck', { stress: draft.stress, feelings: draft.feelings, note: draft.note.trim() }, { local: draft.private })
       const priv = draft.private
-      draft = null; render(); toast(priv ? 'Saved privately 🔒' : 'Saved'); return
+      draft = null; tab = 'today'; render(); scrollTo(0, 0); toast(priv ? 'Checked in privately 🔒' : 'Checked in ✅'); return
     }
     case 'send-msg': {
       const t = $('#msg').value.trim(); if (!t) return

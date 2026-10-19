@@ -107,6 +107,28 @@ await test('Us → his side: self-care on his phone, "support him" only on hers'
   ok(t.includes('How you can support him') && !t.includes('Taking care of yourself'), 'wrong cards on her phone')
 })
 
+await test('Today puts his own check-in first: prompt + tab dot, then a ✅ once done', async page => {
+  await seed(page, 'dad')
+  ok((await page.innerText('main')).includes("You haven't checked in today"), 'no check-in prompt on Today')
+  ok(await page.locator('[data-tab=checkin] .badge').count() === 1, 'no dot on the check-in tab')
+  await page.click('.cta [data-tab=checkin]'); await page.click('[data-stress="2"]'); await page.click('[data-act=save-dadcheck]')
+  ok((await page.innerText('main')).includes('You checked in today'), 'no ✅ after checking in')
+  ok(await page.locator('[data-tab=checkin] .badge').count() === 0, 'dot still showing')
+})
+
+await test('food search answers anything: list hits, warnings, and rules for unknown foods', async page => {
+  await seed(page, 'mom')
+  await page.click('[data-tab=lookup]')
+  await page.fill('#q', 'is sushi ok')
+  ok((await page.innerText('.list')).includes('Sushi (raw fish)'), 'sushi not found')
+  await page.fill('#q', 'pink chicken')
+  ok((await page.innerText('.list')).includes('Heads up'), 'no warning for pink chicken')
+  await page.fill('#q', 'mimosa')
+  ok((await page.innerText('.list')).includes('no known safe amount'), 'no alcohol rule for an unlisted drink')
+  await page.fill('#q', 'pad thai')
+  ok((await page.innerText('.list')).includes('pasteurized, washed, and cooked'), 'no general guidance for an unknown food')
+})
+
 await test('Is it safe? search finds brand names and shows the disclaimer', async page => {
   await seed(page, 'dad')
   await page.click('[data-tab=lookup]')
