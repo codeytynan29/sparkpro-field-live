@@ -115,21 +115,22 @@ await test('a phone removed from the couple keeps its entries on screen', async 
   await page.evaluate(() => { window.__srv.removed = true; window.__srv.rows = []; window.dispatchEvent(new Event('online')) })
   await sleep(1500)
   ok((await L(page)).entries.some(e => e.id === 'n9'), 'local entries were wiped')
-  ok((await page.innerText('.top')).includes('Disconnected'), 'no "Disconnected" status')
+  ok((await page.innerText('body')).includes('Disconnected'), 'no "Disconnected" status')
 })
 
 await test('week count is right across daylight saving (due date and period date)', async page => {
   await page.clock.install({ time: new Date('2026-10-16T12:00:00-07:00') })
   for (const prefs of [{ due: '2027-01-10' }, { lmp: '2026-04-05' }]) {
     await local(page, { role: 'mom', entries: [], prefs })
-    ok((await page.innerText('.top')).includes('Week 27 + 5'), 'wrong week: ' + await page.innerText('.top'))
+    const wk = await page.innerText('.baby .wk')
+    ok(wk.includes('Week 27') && wk.includes('day 6'), 'wrong week: ' + wk)
     const due = await page.innerText('.baby .due')
     ok(due.includes('Jan 10, 2027') && due.includes('86 days'), 'wrong due line: ' + due)
   }
 }, { timezoneId: 'America/Los_Angeles' })
 
 await test("his dates never blank her name or OB phone", async page => {
-  await page.goto(BASE); await page.click('[data-role=dad]'); await page.click('[data-act=after-connect]')
+  await page.goto(BASE); await page.click('[data-role=dad]')
   await page.fill('#due', '2027-06-21'); await page.click('[data-act=save-dates]')
   const his = (await L(page)).entries.find(e => e.kind === 'profile').data
   ok(JSON.stringify(his) === '{"due":"2027-06-21"}', 'saved blanks: ' + JSON.stringify(his))
@@ -147,7 +148,9 @@ for (const act of ['unpair', 'reset']) {
     await page.evaluate(() => { localStorage.clear(); localStorage.setItem('together.v1', JSON.stringify({ role: 'dad', coupleId: '11111111-1111-4111-8111-111111111111', code: 'ABCD2345', entries: [], prefs: { due: '2027-06-20' } })) })
     const icon = BASE + '?c=ABCD2345&r=dad'
     await page.goto(icon); await sleep(400)
-    await page.click('[data-tab=plan]'); await page.click('[data-pv=settings]'); await page.click(`[data-act=${act}]`); await page.click('dialog.sheet [data-r="1"]')
+    await page.click('.avatar')
+    if (act === 'reset') await page.click('details[data-keep=setmore] > summary')
+    await page.click(`[data-act=${act}]`); await page.click('dialog.sheet [data-r="1"]')
     await sleep(800); await page.goto(icon); await sleep(800)
     ok(!(await L(page))?.coupleId, 'phone paired itself again')
   })

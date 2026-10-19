@@ -70,6 +70,94 @@ export const WEEK_NOTES = {
   41: '"Late term." Your provider will talk about monitoring and induction options.',
 }
 
+// ── Stages: what changes as the pregnancy goes on ───────────────────────────
+// Today shows the current stage to both of you: what's common right now and
+// how to handle it, what to watch for, and what's coming next. `common` lists
+// symptom ids (these go first in the check-in). General guidance only.
+export const STAGES = [
+  { from: 0, to: 8, title: 'Early first trimester', emoji: '🌱',
+    common: ['fatigue', 'breasts', 'nausea', 'peeing', 'moody', 'bloating', 'cramping', 'aversions', 'spotting'],
+    now: [
+      ['Exhaustion', 'Progesterone hits hard now. Sleep when you can; it usually lifts in the second trimester.'],
+      ['Nausea starting', 'Often begins around week 6. Eat small snacks every 2–3 hours, keep crackers by the bed, and try ginger. Ask the OB about vitamin B6.'],
+      ['Sore breasts & peeing a lot', 'Both normal and early. A soft wireless bra helps.'],
+      ['Mild cramps or light spotting', 'Common early on. Heavy bleeding, or strong pain on one side, needs a call right away.'],
+    ],
+    todo: ['Take a prenatal vitamin with folic acid every day', 'Book the first OB or midwife visit (usually 8–10 weeks)', 'No alcohol, hot tubs or saunas; keep caffeine under 200 mg'],
+    partner: ['Take dinner and smelly chores (trash, litter, fridge) off {m:their} plate.', 'Expect {m:them} to be wiped out by evening. Plan quiet nights.', 'Learn the "When to call" list now, so you know when to act.'],
+    next: 'Weeks 9–13: nausea usually peaks around week 9, then starts easing by 12–14.' },
+  { from: 9, to: 13, title: 'Peak of the first trimester', emoji: '🌿',
+    common: ['nausea', 'vomiting', 'fatigue', 'aversions', 'bloating', 'headache', 'moody', 'dizzy', 'peeing'],
+    now: [
+      ['Nausea at its worst', 'This is usually the hardest stretch. Small, bland, frequent snacks; sip fluids between meals, not with them.'],
+      ['Food aversions', 'Eat what you can keep down. A prenatal vitamin covers the gaps for now.'],
+      ['Constipation & bloating', 'Water, fiber and a short walk help. Ask the OB before laxatives.'],
+      ['Headaches & dizziness', 'Usually hydration or blood sugar. Stand up slowly and keep snacks with you.'],
+    ],
+    watch: 'Can\'t keep fluids down for a day, very little urine, or losing weight: call the OB (this can be hyperemesis, and it\'s treatable).',
+    todo: ['Decide on genetic screening (NIPT from 10 weeks, NT scan at 11–13)', 'Think about when you want to share the news', 'Dental check-ups are safe and a good idea'],
+    partner: ['Keep {m:their} water bottle full and snacks within reach, all day.', 'Ask what sounds OK to eat, then go get it. Don\'t take aversions personally.', 'Go to the screening appointments together if you can.'],
+    next: 'Weeks 14–20: for most, energy comes back and nausea fades.' },
+  { from: 14, to: 20, title: 'Second trimester begins', emoji: '🌸',
+    common: ['backpain', 'heartburn', 'congestion', 'headache', 'cramping', 'dizzy', 'cravings', 'peeing'],
+    now: [
+      ['Energy coming back', 'Many feel best in this stretch. A good time for exercise, planning and a babymoon.'],
+      ['Round ligament pain', 'Sharp twinges low on the sides when moving or standing fast. Move slowly; a warm (not hot) compress helps.'],
+      ['Stuffy nose & nosebleeds', 'Extra blood flow. Saline spray and a humidifier help.'],
+      ['First flutters', 'Usually felt between 16 and 22 weeks, often later in a first pregnancy.'],
+    ],
+    todo: ['Anatomy scan (18–22 weeks)', 'Start sleeping on your side and get a body pillow', 'Shop for maternity clothes and a supportive bra'],
+    partner: ['Plan something fun together while {m:their} energy is up.', 'Feel for kicks with {m:them} once {m:they} {m:feels|feel} movement.', 'Start the registry and the nursery list together.'],
+    next: 'Weeks 21–27: the bump grows fast; backaches, heartburn and leg cramps often show up.' },
+  { from: 21, to: 27, title: 'Middle of the second trimester', emoji: '🌷',
+    common: ['backpain', 'heartburn', 'cramps_leg', 'swelling', 'insomnia', 'peeing', 'breath', 'movement'],
+    now: [
+      ['Backaches', 'The growing bump shifts posture. Supportive shoes, a pillow between the knees, and gentle stretches.'],
+      ['Heartburn', 'Smaller meals, and no lying down for 2–3 hours after eating. Tums are generally fine.'],
+      ['Leg cramps at night', 'Flex the foot (toes toward the shin) and stretch the calf before bed.'],
+      ['Practice contractions', 'Braxton Hicks: irregular tightening that eases with rest and water.'],
+    ],
+    watch: 'Before 37 weeks: regular contractions, rhythmic back pain, fluid leaking, or fewer baby movements: call labor & delivery.',
+    todo: ['Glucose test (24–28 weeks)', 'Learn baby\'s movement pattern', 'Sign up for a childbirth class and tour the hospital'],
+    partner: ['Offer a back rub tonight, and do the lifting from now on.', 'Learn the preterm labor signs with {m:them}.', 'Book the childbirth class and put it in both calendars.'],
+    next: 'Week 28: the third trimester. Visits get more frequent and sleep gets harder.' },
+  { from: 28, to: 32, title: 'Third trimester begins', emoji: '🌼',
+    common: ['breath', 'heartburn', 'backpain', 'insomnia', 'swelling', 'peeing', 'cramps_leg', 'movement'],
+    now: [
+      ['Short of breath', 'Baby is crowding the lungs. Slow down, sit upright, and prop up with pillows at night.'],
+      ['Harder to sleep', 'Side sleeping with a pillow between the knees and behind the back.'],
+      ['Swelling', 'Feet up and stay hydrated. Sudden swelling of the face or hands is different: call.'],
+      ['Baby\'s movements', 'Know the usual pattern. Fewer movements or a change: call labor & delivery right away, without waiting.'],
+    ],
+    watch: 'Severe headache, vision changes, sudden swelling or upper-right belly pain: call now (possible preeclampsia).',
+    todo: ['Tdap vaccine (27–36 weeks)', 'Rh shot around 28 weeks if Rh-negative', 'Pre-register at the hospital and pick a pediatrician'],
+    partner: ['Take over anything that involves bending, lifting or long standing.', 'Know the preeclampsia warning signs and the route to the hospital.', 'Start on the car seat and the hospital bag.'],
+    next: 'Weeks 33–36: getting ready. The GBS swab, the car seat install, and a packed bag.' },
+  { from: 33, to: 36, title: 'Getting ready', emoji: '🧳',
+    common: ['breath', 'insomnia', 'swelling', 'backpain', 'peeing', 'heartburn', 'discharge', 'movement'],
+    now: [
+      ['Pelvic pressure & waddling', 'Normal as baby moves lower. A support belt can help.'],
+      ['Tired again', 'Sleep is choppy now. Nap when you can.'],
+      ['More discharge', 'Normal. A gush or steady trickle of watery fluid means call (waters breaking).'],
+      ['Nesting', 'Wanting to get everything ready is common. Pace it.'],
+    ],
+    watch: 'Fewer movements, bleeding, fluid leaking, or regular contractions: call labor & delivery.',
+    todo: ['GBS swab (36–37 weeks)', 'Install the car seat and get it checked', 'Pack the hospital bag and write a birth plan', 'RSV vaccine at 32–36 weeks if it\'s RSV season'],
+    partner: ['Install the car seat now and get it checked for free.', 'Pack your own bag too: charger, snacks, clothes, pillow.', 'Fill the freezer with easy meals.'],
+    next: 'Week 37: full term. Learn the signs of labor and when your provider wants you to come in.' },
+  { from: 37, to: 45, title: 'Full term', emoji: '👶',
+    common: ['backpain', 'insomnia', 'peeing', 'discharge', 'swelling', 'cramping', 'movement', 'breath'],
+    now: [
+      ['Baby dropping', 'Easier breathing, more peeing and more pelvic pressure.'],
+      ['Early labor signs', 'Losing the mucus plug, back pain, and contractions that get longer, stronger and closer together.'],
+      ['When to go in', 'Follow your provider\'s rule (often contractions 5 minutes apart for an hour), or right away if waters break.'],
+    ],
+    watch: 'Go in right away for: waters breaking, bleeding, fewer movements, severe headache or vision changes.',
+    todo: ['Keep the bag and car seat in the car', 'Know your provider\'s "when to come in" rule', 'After 40 weeks, your provider will talk about monitoring and induction'],
+    partner: ['Keep your phone charged and on loud.', 'Learn to time contractions: from the start of one to the start of the next.', 'Your job in labor: advocate, snacks, water, and calm.'],
+    next: 'Any day now. Warning signs still count for up to a year after birth.' },
+]
+
 // key: week to start showing it. role: who it matters to (both if omitted).
 export const MILESTONES = [
   { week: 4, title: 'Positive test', detail: 'Start a prenatal vitamin with at least 400 mcg folic acid (and 150 mcg iodine) if {m:they} {m:has|have}n\'t already. Call the OB/midwife to book the first visit. Skip hot tubs and saunas from now on.' },

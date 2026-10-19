@@ -16,9 +16,9 @@ const num = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Ma
 const DAY = 86400000
 
 let tab = 'today'
-let lookupTab = 'foods'
+let lookupTab = 'home' // 'home' | 'foods' | 'meds' | 'symptoms' | 'redflags'
 let lookupQuery = ''
-let planView = 'calendar' // 'calendar' | 'registry' | 'settings' inside the Plan tab
+let planView = 'calendar' // 'calendar' | 'registry' | 'wish' inside the Plan tab
 let histWho = 'both', histDays = 14
 let usView = null // 'her' | 'him' | 'feed'; defaults to the partner's side
 let draft = null // in-progress check-in, survives re-renders
@@ -279,7 +279,11 @@ function restoreForms(focusId, sel) {
 function render() {
   const a = document.activeElement, focusId = a && a.id && app.contains(a) ? a.id : null
   let sel = null; try { sel = a && a.selectionStart } catch {}
-  try { refreshContent(); renderScreen(); restoreForms(focusId, sel) } catch (e) {
+  const sheetY = $('.sheet-body')?.scrollTop // keep an open sheet where it was
+  try {
+    refreshContent(); renderScreen(); restoreForms(focusId, sel)
+    const sb = $('.sheet-body'); if (sb && sheetY) sb.scrollTop = sheetY
+  } catch (e) {
     console.error(e)
     app.innerHTML = `<div class="onb center"><div class="hero">🤍</div><h2>Something went wrong</h2>
       <p class="lead">Your check-ins are safe. Tap Repair, and if this keeps happening, send a screenshot of this screen.</p>
@@ -295,22 +299,47 @@ function renderScreen() {
     return
   }
   if (!S.state.role || onboardStep) { app.innerHTML = onboarding(); return }
-  const g = gest()
-  const sync = { local: '', live: '<span class="dot live"></span>Live', connecting: '<span class="dot"></span>Connecting', offline: `<span class="dot off"></span>Offline${S.pendingCount() ? ` · ${S.pendingCount()} waiting` : ' — will sync'}`, unpaired: '<span class="dot off"></span>Not paired', removed: '<span class="dot off"></span>Disconnected' }[S.status]
+  if (!SCREENS[tab]) tab = 'today'
+  // sync state lives on the profile button as a dot; the words are in Settings
+  const dot = { live: 'live', offline: S.pendingCount() ? 'wait' : 'off', connecting: 'off', unpaired: '', removed: 'off', local: '' }[S.status] || ''
+  const sub = tab === 'today' ? new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) : ''
   app.innerHTML = `
     <header class="top">
-      <div>
-        <div class="brand">Together</div>
-        <div class="sub">${g && g.week >= 0 ? `Week ${g.week} + ${g.day} · ${['', '1st', '2nd', '3rd'][g.tri]} trimester` : 'Dates not set yet'}</div>
-      </div>
-      <button class="sync" data-go="plan" data-pv="settings">${sync}</button>
+      <div><h1 class="title">${TITLES[tab]}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>
+      <button class="avatar ${tab === 'settings' ? 'on' : ''}" data-tab="settings" aria-label="Settings and sync">${esc((nameOf(me()) || '?').charAt(0).toUpperCase())}${dot ? `<i class="sdot ${dot}"></i>` : ''}</button>
     </header>
-    <main>${({ today, checkin, timeline, lookup, plan })[tab]()}</main>
+    ${S.status === 'removed' && tab !== 'settings' ? '<button class="call-banner fix" data-tab="settings"><b>⚠️ Disconnected</b><span>This phone was removed from your couple. Your entries are safe here. Tap to reconnect ›</span></button>' : ''}
+    <main>${SCREENS[tab]()}</main>
     <nav class="tabs">
-      ${[['today', '🏡', 'Today'], ['checkin', '✍️', me() === 'mom' ? 'Check in' : 'You'], ['timeline', '💞', 'Us'], ['lookup', '🔎', 'Is it safe?'], ['plan', '🗓️', 'Plan']]
-        .map(([id, i, l]) => `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}${id === 'checkin' && !checkedInToday() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>${l}</button>`).join('')}
-    </nav>`
-  if (tab === 'checkin' && me() === 'dad') bindBreath()
+      ${NAV.map(([id, i, l]) => id === 'checkin'
+        ? `<button data-tab="checkin" class="plus ${sheet === 'log' ? 'on' : ''}" aria-label="Check in"><span>＋${!checkedInToday() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>Check in</button>`
+        : `<button data-tab="${id}" class="${tab === id ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
+    </nav>
+    ${sheet ? sheetHtml() : ''}`
+  document.body.classList.toggle('noscroll', !!sheet)
+  if ($('#circle')) bindBreath()
+  if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
+}
+const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
+const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Is it safe?', plan: 'Plan', settings: 'Settings' }
+const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings() }
+
+// ── Sheets: forms slide up over the current screen ──────────────────────────
+// Drawn as part of the screen (so a live update redraws them too, and typed
+// values come back through formState / draft).
+let sheet = null // 'log' | 'appt' | 'reg' | 'wish'
+function openSheet(s) { sheet = s; render() }
+function closeSheet() { sheet = null; editReg = null; editAppt = null; editWish = null; render() }
+function sheetHtml() {
+  const body = sheet === 'log' ? checkin() : sheet === 'appt' ? apptForm() : sheet === 'reg' ? regForm() : sheet === 'wish' ? wishForm() : ''
+  const title = sheet === 'log' ? (draft?.editing ? 'Edit check-in' : me() === 'mom' ? 'Check in' : 'Your check-in')
+    : sheet === 'appt' ? (editAppt ? 'Edit appointment' : 'Add an appointment')
+    : sheet === 'reg' ? (editReg ? 'Edit item' : 'Add to the registry')
+    : (editWish ? 'Edit wish' : 'Add a wish')
+  return `<div class="overlay" data-close-sheet="1"><div class="sheet-panel" role="dialog" aria-label="${esc(title)}">
+    <div class="sheet-head"><b>${esc(title)}</b><button class="mini" data-act="close-sheet" aria-label="Close">✕</button></div>
+    <div class="sheet-body">${body}</div>
+  </div></div>`
 }
 
 // ask({ title, text, ok, danger, input, placeholder }) → resolves true / the typed
@@ -391,47 +420,65 @@ function onboarding() {
       <button class="ghost center" data-act="after-connect">Skip, just this phone for now</button>
     </div>`
   }
-  if (onboardStep === 3) {
-    const needsIcon = isIOS && !standalone()
-    return `<div class="onb">
-      <div class="hero">🎉</div>
-      <h2 class="center">You're all set</h2>
-      ${needsIcon ? `<section class="card"><h3>📲 One more step: add it to your home screen</h3>
-        <ol class="plan"><li>Tap the <b>Share</b> button in Safari (the square with an arrow).</li><li>Tap <b>Add to Home Screen</b>.</li><li>From now on, open Together from that icon. It remembers your pairing, and notifications only work from the icon.</li></ol></section>` : ''}
-      <section class="card soft"><p>Next: turn on reminders and partner alerts in <b>Plan → Settings</b>.</p></section>
-      <button class="big primary" data-act="finish-onboard">Start</button>
-    </div>`
-  }
-  {
-    return `<div class="onb">
-      <h2>About you two</h2>
-      ${['mom', 'dad'].sort((a, b) => (b === me()) - (a === me())).map(personFields).join('')}
-      <h3>Your dates</h3>
-      <label class="field"><b>Due date from your doctor</b> (most accurate, and the app counts everything from it)
-        <input type="date" id="due" value="${esc(p.due || '')}">
-      </label>
-      <p class="or">— no due date yet? —</p>
-      <label class="field">First day of last period (we'll estimate until the OB gives you a date)
-        <input type="date" id="lmp" value="${esc(p.due ? '' : p.lmp || '')}" max="${isoDate(new Date())}">
-      </label>
-      <label class="field">OB / midwife phone (for one-tap calling)
-        <input id="obPhone" type="tel" value="${esc(p.obPhone || '')}" placeholder="optional">
-      </label>
+  // step 1: the due date (one question) · step 4: names · step 5: edit everything (from Settings)
+  const dots = n => firstRun ? `<div class="steps">${[1, 4, 2].map((x, i) => `<i class="${[1, 4, 2].indexOf(n) >= i ? 'on' : ''}"></i>`).join('')}</div>` : ''
+  if (onboardStep === 1) {
+    return `<div class="onb">${dots(1)}
+      <div class="hero">📅</div>
+      <h2 class="center">When's the baby due?</h2>
+      <p class="lead center">Use the date from your doctor or midwife. Everything in the app counts from it.</p>
+      <label class="field">Due date <input type="date" id="due" value="${esc(p.due || '')}"></label>
+      <details class="mini-details" ${!p.due && p.lmp ? 'open' : ''}><summary>No due date yet? Use the first day of the last period</summary>
+        <label class="field">First day of last period <input type="date" id="lmp" value="${esc(p.due ? '' : p.lmp || '')}" max="${isoDate(new Date())}"></label>
+        <p class="fine">We'll estimate until the OB gives you a date.</p>
+      </details>
       <button class="big primary" data-act="save-dates">Continue</button>
-      <button class="big" data-act="skip-dates">${p.lmp || p.due ? 'Cancel' : 'Skip for now'}</button>
-
+      <button class="ghost center" data-act="skip-dates">Skip for now</button>
     </div>`
   }
+  if (onboardStep === 4) {
+    const r = me(), o = other()
+    return `<div class="onb">${dots(4)}
+      <div class="hero">👋</div>
+      <h2 class="center">What should we call you?</h2>
+      <label class="field">Your first name <input id="${r}Name" value="${esc(p[r + 'Name'] || '')}" autocomplete="given-name"></label>
+      <label class="field">Your partner's first name <input id="${o}Name" value="${esc(p[o + 'Name'] || '')}" autocomplete="off"></label>
+      <details class="mini-details"><summary>Pronouns & what you're each called as parents</summary>
+        <p class="fine">Starts as she/her & Mom for the one who's pregnant, he/him & Dad for the partner. Change either one here.</p>
+        ${['mom', 'dad'].sort((a, b) => (b === r) - (a === r)).map(x => personFields(x, false)).join('')}
+      </details>
+      <button class="big primary" data-act="save-dates">Continue</button>
+    </div>`
+  }
+  return `<div class="onb">
+      <h2>You two</h2>
+      ${['mom', 'dad'].sort((a, b) => (b === me()) - (a === me())).map(personFields).join('')}
+      <h3>Dates</h3>
+      <label class="field"><b>Due date from your doctor</b> <input type="date" id="due" value="${esc(p.due || '')}"></label>
+      <label class="field">or the first day of the last period <input type="date" id="lmp" value="${esc(p.due ? '' : p.lmp || '')}" max="${isoDate(new Date())}"></label>
+      <label class="field">OB / midwife phone (for one-tap calling) <input id="obPhone" type="tel" value="${esc(p.obPhone || '')}" placeholder="optional"></label>
+      <button class="big primary" data-act="save-dates">Save</button>
+      <button class="big" data-act="skip-dates">Cancel</button>
+    </div>`
+}
+
+// First run: due date (1) → names (4) → connect (2) → Today. Editing (5) just closes.
+function nextStep() {
+  if (!firstRun) return 0
+  if (onboardStep === 1) return 4
+  if (onboardStep === 4 && S.syncAvailable() && !S.isPaired()) return 2
+  firstRun = false
+  return 0
 }
 
 // Name, pronouns and parent title for one person (set up once, editable later)
 const TERMS = { mom: ['Mom', 'Mama', 'Mommy', 'Dad', 'Papa', 'Parent', 'Baba', 'Mapa'], dad: ['Dad', 'Daddy', 'Papa', 'Mom', 'Mama', 'Parent', 'Baba', 'Partner'] }
-function personFields(r) {
+function personFields(r, withName = true) {
   const p = profile(), mine = r === me()
   const title = r === 'mom' ? `🫄 The one who's pregnant${mine ? ' (you)' : ''}` : `🫶 The partner${mine ? ' (you)' : ''}`
   const pron = p[r + 'Pron'] || DEF[r].pron
   return `<fieldset class="person"><legend>${title}</legend>
-    <label class="field">Name <input id="${r}Name" value="${esc(p[r + 'Name'] || '')}" placeholder="${mine ? 'Your first name' : 'Their first name'}" autocomplete="off"></label>
+    ${withName ? `<label class="field">Name <input id="${r}Name" value="${esc(p[r + 'Name'] || '')}" placeholder="${mine ? 'Your first name' : 'Their first name'}" autocomplete="off"></label>` : ''}
     <div class="row2">
       <label class="field">Pronouns
         <select id="${r}Pron" class="inp">${Object.entries(PRON).map(([k, v]) => `<option value="${k}" ${pron === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select>
@@ -503,118 +550,132 @@ function today() {
   const g = gest()
   const n = names()
   const wk = g ? Math.max(4, Math.min(42, g.week)) : 4
-  const [fruit, fe, len] = C.BABY_SIZE[wk] || C.BABY_SIZE[4]
   const herCI = latest('checkin', 'mom')
   const herToday = herCI && sameDay(herCI.created_at) ? herCI : null
   const flags = flagsFor(herToday)
-  const enc = pick(me() === 'mom' ? C.ENCOURAGE_MOM : C.ENCOURAGE_DAD, dayIndex())
-  const upcoming = g ? C.MILESTONES.filter(m => m.week >= g.week).slice(0, 2) : []
-  const appts = entries('appointment').filter(a => a.data.date && a.data.date >= isoDate(new Date())).sort((a, b) => a.data.date.localeCompare(b.data.date)).slice(0, 2)
-  const lastNote = entries('note', other()).at(-1)
-
-  let main = ''
-  if (me() === 'dad') {
-    if (herToday) {
-      const plan = gamePlan(herToday)
-      main = `
-        ${checkinCard(herToday, `${esc(n.mom)}'s check-in`)}
-        <section class="card">
-          <h3>🧭 Your game plan today</h3>
-          ${plan.length ? `<ol class="plan">${plan.slice(0, 6).map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`).join('')}</ol>
-            ${plan.length > 6 ? `<details><summary>${plan.length - 6} more ideas</summary><ol class="plan" start="7">${plan.slice(6).map(p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`).join('')}</ol></details>` : ''}` : T('<p>No symptoms logged. Ask {m:them} how {m:they} {m:is|are} doing, and do one thing off {m:their} list without being asked.</p>')}
-          ${Object.keys(herToday.data.symptoms || {}).length ? `<details><summary>${T('What {m:their} symptoms mean')}</summary>${Object.keys(herToday.data.symptoms).map(id => symptom(id)).filter(Boolean).map(s => `<p><b>${s.emoji} ${esc(s.label)}:</b> ${esc(s.meaning)}</p>`).join('')}</details>` : ''}
-        </section>`
-    } else {
-      main = `<section class="card soft">
-        <h3>No check-in from ${esc(n.mom)} yet today</h3>
-        <p>A gentle "How are you feeling today?" text beats guessing. You can also send a quick note below.</p>
-        ${herCI ? `<p class="fine">Last check-in: ${fmtWhen(herCI.created_at)}</p>` : ''}
-      </section>`
-    }
-    main += `<section class="card"><h3>💡 Partner's-eye view</h3><p>${esc(pick(C.DAD_TRUTHS, dayIndex()))}</p><p class="fine">${esc(pick(C.DAD_TRIMESTER[g ? g.tri : 1], dayIndex()))}</p></section>`
-  } else {
-    // (when she hasn't checked in, the mood prompt sits at the very top: see myCheckinStatus)
-    main = herToday ? `${checkinCard(herToday, 'Your check-in today')}` : ''
-    const dadCI = entries('dadcheck', 'dad').filter(e => !e.local).at(-1)
-    if (dadCI && sameDay(dadCI.created_at)) main += `<section class="card soft"><p>${esc(n.dad)} checked in too: <b>${dadCI.data.feelings?.map(f => C.DAD_FEELINGS.find(x => x.id === f)?.label).filter(Boolean).join(', ') || 'stress ' + num(dadCI.data.stress, 1, 5) + '/5'}</b></p></section>`
+  const alert = flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''
+  const hero = (isIOS && !standalone() && !(S.state.prefs || {}).a2hsSeen ? `<section class="card soft"><b>📲 Add Together to your home screen</b>
+      <p class="fine">In Safari tap <b>Share</b> → <b>Add to Home Screen</b>, then open it from that icon. It remembers your pairing, and notifications only work from the icon.</p>
+      <button class="linkish" data-act="a2hs-ok">Got it</button></section>` : '') + (g ? babyCard(g, wk) : datesCard())
+  const notif = S.isPaired() && !pushPrefs().on && pushSupported() ? `<section class="card soft"><p>🔔 Want a daily tip, and a heads-up when ${esc(nameOf(other()))} ${me() === 'dad' ? 'checks in' : 'sends a note'}?</p><button class="ghost" data-tab="settings">Set up notifications</button></section>` : ''
+  if (me() === 'mom') {
+    return `${alert}${hero}
+      ${herToday ? checkinCard(herToday, '✅ Your check-in today', true) : checkinPrompt()}
+      ${g ? stageCard() : ''}
+      ${fromPartnerCard()}
+      ${comingUpCard(g)}
+      ${tipCard()}
+      ${notif}`
   }
-
-  return `
-    ${myCheckinStatus()}
-    ${morningCard()}
-    ${flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''}
-    ${g ? babyCard(g, wk, fe, fruit, len) : datesCard()}
-    ${main}
-    ${S.isPaired() && !pushPrefs().on && pushSupported() ? `<section class="card soft"><p>🔔 Want a daily tip, and a heads-up when ${esc(nameOf(other()))} ${me() === 'dad' ? 'checks in' : 'sends a note'}?</p><button class="ghost" data-go="plan" data-pv="settings">Set up notifications</button></section>` : ''}
-    ${lastNote ? `<section class="card note"><div class="from">💌 ${esc(nameOf(other()))} · ${fmtWhen(lastNote.created_at)}</div><p>${esc(lastNote.data.text)}</p></section>` : ''}
-    <section class="card">
-      <h3>Send ${esc(nameOf(other()))} a little something</h3>
-      <div class="chips">${(me() === 'dad' ? ['Thinking of you ❤️', 'Need anything? I\'ll grab it', 'Proud of you', 'Rest — I\'ve got tonight'] : ['Thank you ❤️', 'Rough one, could use a hug', 'Feeling good today!', 'Can you grab me a snack?'])
-        .map(t => `<button class="chip" data-sendnote="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-    </section>
-    <section class="card quote"><p>“${esc(enc)}”</p></section>
-    ${upcoming.length || appts.length ? `<section class="card"><h3>Coming up</h3>
-      ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
-      ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
-    </section>` : ''}`
+  const myCI = myCheckinsToday().at(-1)
+  return `${alert}${hero}
+    ${myCI ? doneLine(myCI) : checkinPrompt()}
+    ${herToday ? checkinCard(herToday, `${esc(n.mom)}'s check-in`) + gamePlanCard(herToday)
+      : `<section class="card soft"><h3>No check-in from ${esc(n.mom)} yet today</h3><p>A gentle "How are you feeling today?" text beats guessing.${herCI ? ` <span class="fine">Last check-in: ${fmtWhen(herCI.created_at)}</span>` : ''}</p></section>`}
+    ${g ? stageCard() : ''}
+    ${myCI && num(myCI.data.stress, 1, 5) >= 4 ? breatheCard() : ''}
+    ${fromPartnerCard()}
+    ${comingUpCard(g)}
+    ${tipCard()}
+    ${notif}`
 }
 
-// This phone's own check-in today, always the first thing on Today: a big
-// "check in" prompt until it's done, then a clear "done" line with the time.
-const myCheckinsToday = () => entries(me() === 'mom' ? 'checkin' : 'dadcheck', me()).filter(e => sameDay(e.created_at))
-const checkedInToday = () => myCheckinsToday().length > 0
-function myCheckinStatus() {
-  const n = names(), mine = myCheckinsToday(), last = mine.at(-1)
-  if (last) {
-    const t = new Date(last.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-    const waiting = S.isPaired() && !last.local && !last.synced
-    const what = me() === 'mom' ? (C.MOOD.find(m => m.v === last.data.mood)?.label || '') : `stress ${num(last.data.stress, 1, 5)}/5`
-    return `<section class="card done-card"><span class="done-tick">✅</span><div><b>You checked in today</b> · ${t}${what ? ` · ${esc(what)}` : ''}${mine.length > 1 ? ` · ${mine.length} times` : ''}
-      <div class="fine">${last.local ? '🔒 Private, on this phone only' : waiting ? '⏳ Saved on this phone, sending when you have signal' : S.isPaired() ? `${esc(nameOf(other()))} can see it` : 'Saved'}</div></div>
-      <button class="mini" data-tab="checkin">${me() === 'mom' ? 'Add more' : 'Again'}</button></section>`
-  }
-  if (me() === 'mom') return `<section class="card prompt cta">
+// The pregnant partner's own check-in prompt / the partner's one-line prompt
+function checkinPrompt() {
+  const n = names()
+  if (me() === 'mom') return `<section class="card cta">
       <h3>How are you feeling today, ${esc(n.mom)}?</h3>
       <div class="moods">${C.MOOD.map(m => `<button data-quickmood="${m.v}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
-      <p class="fine">You haven't checked in today. Tap one to start. ${S.isPaired() ? esc(n.dad) + ' sees it right away.' : ''}</p>
+      <p class="fine">You haven't checked in today. Tap one to start.${S.isPaired() ? ` ${esc(n.dad)} sees it right away.` : ''}</p>
     </section>`
-  return `<section class="card prompt cta">
-      <h3>✍️ You haven't checked in today</h3>
-      <p>20 seconds: your stress and what's on your mind.${S.isPaired() ? ` ${esc(n.mom)} sees it unless you mark it private.` : ''}</p>
-      <button class="big primary" data-tab="checkin">Check in now</button>
+  return `<section class="card cta row-cta">
+      <div><b>✍️ You haven't checked in today</b><div class="fine">20 seconds: your stress and what's on your mind.</div></div>
+      <button class="primary pill" data-tab="checkin">Check in</button>
     </section>`
 }
+// how this phone's latest check-in is doing on its way to the partner
+function syncNote(e) {
+  return e.local ? '🔒 Private, on this phone only' : S.isPaired() && !e.synced ? '⏳ Saved here, sending when you have signal' : S.isPaired() ? `${esc(nameOf(other()))} can see it` : 'Saved on this phone'
+}
+function doneLine(e) {
+  const t = new Date(e.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  return `<section class="card done-card"><span class="done-tick">✅</span><div><b>You checked in today</b> · ${t} · stress ${num(e.data.stress, 1, 5)}/5<div class="fine">${syncNote(e)}</div></div><button class="mini" data-tab="checkin">Again</button></section>`
+}
 
-// First open of the day: a short tip at the top of Today, until tapped away.
-// His is built from her latest check-in when there's a recent one.
-function morningCard() {
-  const day = isoDate(new Date())
-  if ((S.state.prefs || {}).morningSeen === day) return ''
-  const h = new Date().getHours()
-  const hello = h < 12 ? '☀️ Good morning' : h < 17 ? '👋 Good afternoon' : '🌙 Good evening'
-  let tip = pick(me() === 'mom' ? C.MORNING_MOM : C.MORNING_DAD, dayIndex()), why = ''
-  if (me() === 'dad') {
-    const ci = latest('checkin', 'mom')
-    const step = ci && Date.now() - new Date(ci.created_at) < 30 * 3600e3 ? gamePlan(ci)[0] : null
-    if (step) { tip = step.t; why = `From ${esc(names().mom)}'s last check-in (${esc(step.why)})` }
-  }
-  return `<section class="card morning">
-    <h3>${hello}, ${esc(nameOf(me()))}</h3>
-    <p>${esc(tip)}</p>${why ? `<p class="fine">${why}</p>` : ''}
-    <button class="ghost" data-act="morning-ok">Got it 👍</button>
+// His plan for today, built from her check-in: the top 3, the rest folded away
+function gamePlanCard(ci) {
+  const plan = gamePlan(ci), syms = Object.keys(ci.data.symptoms || {}).map(id => symptom(id)).filter(Boolean)
+  const li = p => `<li>${esc(p.t)}<span class="why">${esc(p.why)}</span></li>`
+  return `<section class="card">
+    <h3>🧭 Your game plan today</h3>
+    ${plan.length ? `<ol class="plan">${plan.slice(0, 3).map(li).join('')}</ol>` : T('<p>No symptoms logged. Ask {m:them} how {m:they} {m:is|are} doing, and do one thing off {m:their} list without being asked.</p>')}
+    ${plan.length > 3 || syms.length ? `<details class="mini-details"><summary>${plan.length > 3 ? `See all ${plan.length} ideas` : 'More'}${syms.length ? T(' & what {m:their} symptoms mean') : ''}</summary>
+      ${plan.length > 3 ? `<ol class="plan" start="4">${plan.slice(3).map(li).join('')}</ol>` : ''}
+      ${syms.map(s => `<p><b>${s.emoji} ${esc(s.label)}:</b> ${esc(s.meaning)}</p>`).join('')}</details>` : ''}
   </section>`
 }
 
-function babyCard(g, wk, fe, fruit, len) {
+// This stage of the pregnancy: changes as the weeks go by
+function stageCard() {
+  const st = stageNow(), n = names(), mom = me() === 'mom'
+  return `<section class="card stage">
+    <div class="stage-head"><span class="stage-emoji">${st.emoji}</span><div><div class="fine">This stage · weeks ${st.from || 4}–${Math.min(st.to, 42)}</div><h3>${esc(st.title)}</h3></div></div>
+    ${mom ? `<p class="fine">What's common for you right now, and how to handle it:</p>` : `<p class="fine">${T(`What ${esc(n.mom)} may be dealing with now:`)}</p>`}
+    <ul class="stage-list">${st.now.map(([h, t]) => `<li><b>${esc(h)}</b><span>${esc(t)}</span></li>`).join('')}</ul>
+    ${st.watch ? `<p class="stage-watch">⚠️ ${esc(st.watch)}</p>` : ''}
+    ${mom ? `<details class="mini-details"><summary>✅ This stage's to-dos</summary><ul>${st.todo.map(t => `<li>${esc(t)}</li>`).join('')}</ul></details>`
+      : `<h4>How you can help this stage</h4><ul>${st.partner.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`}
+    <p class="stage-next">⏭️ ${esc(st.next)}</p>
+  </section>`
+}
+
+// The other person's latest note and check-in, with one-tap replies
+function fromPartnerCard() {
+  const o = other(), n = names(), note = entries('note', o).at(-1)
+  const theirs = o === 'dad' ? entries('dadcheck', 'dad').filter(e => !e.local && sameDay(e.created_at)).at(-1) : null
+  const feel = theirs ? (theirs.data.feelings || []).map(id => C.DAD_FEELINGS.find(f => f.id === id)?.label).filter(Boolean).join(', ') : ''
+  const quick = me() === 'dad' ? ['Thinking of you ❤️', 'Need anything? I\'ll grab it', 'Proud of you', 'Rest, I\'ve got tonight'] : ['Thank you ❤️', 'Could use a hug', 'Feeling good today!', 'Can you grab me a snack?']
+  return `<section class="card">
+    <h3>💌 From ${esc(nameOf(o))}</h3>
+    ${note ? `<div class="bubble theirs"><p>${esc(note.data.text)}</p><span class="fine">${fmtWhen(note.created_at)}</span></div>` : `<p class="fine">No notes yet. Send one below.</p>`}
+    ${theirs ? `<p class="fine">${face('dad')} ${esc(n.dad)} checked in today: ${esc(feel || 'stress ' + num(theirs.data.stress, 1, 5) + '/5')}</p>` : ''}
+    <div class="chips">${quick.map(t => `<button class="chip" data-sendnote="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+  </section>`
+}
+
+function comingUpCard(g) {
+  const upcoming = g ? C.MILESTONES.filter(m => m.week >= g.week).slice(0, 2) : []
+  const appts = entries('appointment').filter(a => a.data.date && a.data.date >= isoDate(new Date())).sort((a, b) => a.data.date.localeCompare(b.data.date)).slice(0, 2)
+  if (!upcoming.length && !appts.length) return ''
+  return `<section class="card"><h3>Coming up</h3>
+    ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
+    ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
+  </section>`
+}
+
+// One tip a day (the same one the morning notification draws from)
+function tipCard() {
+  if (me() === 'dad') return `<section class="card"><h3>💡 Partner's-eye view</h3><p>${esc(pick(C.DAD_TRUTHS, dayIndex()))}</p><p class="fine">${esc(pick(C.DAD_TRIMESTER[gest()?.tri || 1], dayIndex()))}</p></section>`
+  return `<section class="card"><h3>💡 Today's tip</h3><p>${esc(pick(C.MORNING_MOM, dayIndex()))}</p><p class="fine quote-inline">“${esc(pick(C.ENCOURAGE_MOM, dayIndex()))}”</p></section>`
+}
+
+// This phone's own check-ins today (the ＋ button wears a dot until there's one)
+const myCheckinsToday = () => entries(me() === 'mom' ? 'checkin' : 'dadcheck', me()).filter(e => sameDay(e.created_at))
+const checkedInToday = () => myCheckinsToday().length > 0
+
+function babyCard(g, wk) {
+  const [fruit, fe, len] = C.BABY_SIZE[wk] || C.BABY_SIZE[4]
   return `<section class="card baby">
-      <div class="fruit">${fe}</div>
-      <div>
-        <div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> + ${g.day}d</small>`}</div>
-        <div>Baby is about the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
-        <div class="fine">${esc(C.WEEK_NOTES[wk] || '')}</div>
+      <div class="baby-top">
+        <div class="fruit">${fe}</div>
+        <div>
+          <div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> · day ${g.day + 1}</small>`}</div>
+          <div>About the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
+        </div>
       </div>
+      <p class="fine">${esc(C.WEEK_NOTES[wk] || '')}</p>
       <div class="bar"><i style="width:${g.pct}%"></i></div>
-      <div class="due">Due ${fmtDate(g.due)}${g.fromDoctor ? '' : ' (estimate)'} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</div>
+      <div class="due"><span>${['', '1st', '2nd', '3rd'][g.tri]} trimester</span><span>Due ${fmtDate(g.due)}${g.fromDoctor ? '' : ' (est.)'} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</span></div>
     </section>`
 }
 
@@ -623,11 +684,11 @@ function datesCard() {
     <h3>📅 Add your dates</h3>
     <p>Enter the due date your doctor gave you (or the first day of the last period) to see the week, baby size and upcoming milestones.</p>
     <button class="big primary" data-act="edit-dates">Add dates</button>
-    ${S.isPaired() ? '' : '<p class="fine">If your partner already added them, pair your phones (Plan tab) and they\'ll show up here.</p>'}
+    ${S.isPaired() ? '' : '<p class="fine">If your partner already added them, pair your phones (tap your initial, top right) and they\'ll show up here.</p>'}
   </section>`
 }
 
-function checkinCard(ci, title) {
+function checkinCard(ci, title, mine = false) {
   const d = ci.data
   const mood = C.MOOD.find(m => m.v === d.mood)
   const energy = C.ENERGY.find(m => m.v === d.energy)
@@ -648,7 +709,9 @@ function checkinCard(ci, title) {
     <div class="react">
       ${hearts.length ? `<span>${hearts.map(h => esc(h.data.emoji)).join('')} from ${esc(nameOf(hearts[0].author_role))}</span>` : ''}
       ${ci.author_role !== me() ? ['❤️', '🤗', '💪'].map(e => `<button class="mini" data-react="${ci.id}" data-emoji="${e}">${e}</button>`).join('') : `<button class="mini" data-edit-ci="${ci.id}">✏️ Edit</button>`}
+      ${mine ? `<button class="mini" data-act="new-checkin">＋ Another</button>` : ''}
     </div>
+    ${mine ? `<p class="fine">${syncNote(ci)}</p>` : ''}
   </section>`
 }
 
@@ -662,72 +725,73 @@ function editDraft(e) {
   return { kind: 'checkin', editing: e.id, mood: num(e.data.mood, 0, 5) | 0, energy: num(e.data.energy, 0, 5) | 0, symptoms, temp: String(e.data.temp || ''), note: String(e.data.note || '') }
 }
 
+// The stage of pregnancy this week falls in (STAGES in content.js)
+const stageNow = () => { const g = gest(); const w = g ? Math.max(0, g.week) : 0; return C.STAGES.find(s => w >= s.from && w <= s.to) || C.STAGES[0] }
+let showAllSyms = false
+
 function momCheckin() {
   draft = draft && draft.kind === 'checkin' ? draft : { kind: 'checkin', mood: 0, energy: 0, symptoms: {}, temp: '', note: '' }
   const lvl = ['', 'mild', 'moderate', 'strong']
-  const g = gest()
-  // late-pregnancy-only symptoms are hidden early so the list stays short
-  const wkNow = g ? g.week : 0
-  const list = [...C.SYMPTOMS.filter(s => !(s.id === 'movement' && wkNow < 24) && !(s.id === 'swelling' && wkNow < 12) && !(s.id === 'backpain' && wkNow < 10)), ...customSymptoms()]
+  const g = gest(), wk = g ? g.week : 0
+  // this stage's common symptoms first; the rest behind "More symptoms"
+  const common = stageNow().common
+  const all = [...C.SYMPTOMS.filter(s => !(s.id === 'movement' && wk < 20)), ...customSymptoms()]
+  const top = [...common.map(id => all.find(s => s.id === id)).filter(Boolean), ...all.filter(s => s.custom || (draft.symptoms[s.id] && !common.includes(s.id)))]
+  const rest = all.filter(s => !top.includes(s))
+  const chip = s => { const l = draft.symptoms[s.id] || 0; return `<button class="chip ${l ? 'on l' + l : ''}" data-sym="${s.id}">${s.emoji} ${esc(s.label)}${l ? ' · ' + lvl[l] : ''}</button>` }
+  const picked = Object.entries(draft.symptoms).map(([id, l]) => [symptom(id), l]).filter(([s]) => s)
+  const flags = picked.filter(([s, l]) => s.flag && s.flagAt && l >= s.flagAt)
   return `
-    ${draft.editing ? `<section class="card soft"><p>✏️ <b>Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())}</b></p><button class="ghost" data-act="cancel-edit">Cancel editing</button></section>` : ''}
-    <section class="card">
-      <h3>How are you feeling today?</h3>
-      <div class="moods">${C.MOOD.map(m => `<button data-mood="${m.v}" class="${draft.mood === m.v ? 'on' : ''}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
-      <h4>Energy</h4>
-      <div class="moods">${C.ENERGY.map(m => `<button data-energy="${m.v}" class="${draft.energy === m.v ? 'on' : ''}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
-    </section>
-    <section class="card">
-      <h3>Anything going on?</h3>
-      <p class="fine">Tap once for mild, again for moderate, again for strong, a fourth time to clear.</p>
-      <div class="chips">${list.map(s => { const l = draft.symptoms[s.id] || 0; return `<button class="chip ${l ? 'on l' + l : ''}" data-sym="${s.id}">${s.emoji} ${esc(s.label)}${l ? ' · ' + lvl[l] : ''}</button>` }).join('')}<button class="chip add" data-act="add-symptom">＋ Add your own</button></div>
-      ${Object.keys(draft.symptoms).length ? `<div class="explain">${Object.entries(draft.symptoms).map(([id, l]) => {
-        const s = symptom(id); if (!s) return ''
-        const flag = s.flag && s.flagAt && l >= s.flagAt
-        return `<div class="ex ${flag ? 'warn' : ''}"><b>${s.emoji} ${esc(s.label)}</b><p>${esc(s.meaning)}</p>${s.flag ? `<p class="flag">${flag ? '⚠️ ' : 'Call if: '}${esc(s.flag)}</p>` : ''}</div>`
-      }).join('')}<p class="fine">${esc(C.DISCLAIMER_SHORT)}</p></div>` : ''}
-    </section>
-    <section class="card">
-      <label class="field">Temperature (optional, °F or °C)
-        <input id="temp" inputmode="decimal" value="${esc(draft.temp)}" placeholder="e.g. 98.6">
-      </label>
-      <label class="field">Notes for you both
-        <textarea id="note" rows="3" placeholder="Anything else? Cravings, worries, wins…">${esc(draft.note)}</textarea>
-      </label>
-      <button class="big primary" data-act="save-checkin" ${draft.mood ? '' : 'disabled'}>Share check-in</button>
-      ${S.isPaired() ? `<p class="fine center">${esc(names().dad)} will see this right away.</p>` : ''}
-    </section>
-    ${recentList('checkin', 'mom')}`
+    ${draft.editing ? `<p class="fine">Editing your check-in from ${fmtWhen(entries('checkin').find(e => e.id === draft.editing)?.created_at || new Date().toISOString())} · <button class="linkish" data-act="cancel-edit">Cancel</button></p>` : ''}
+    <h4>Mood</h4>
+    <div class="moods">${C.MOOD.map(m => `<button data-mood="${m.v}" class="${draft.mood === m.v ? 'on' : ''}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
+    <h4>Energy</h4>
+    <div class="moods">${C.ENERGY.map(m => `<button data-energy="${m.v}" class="${draft.energy === m.v ? 'on' : ''}"><span>${m.emoji}</span>${m.label}</button>`).join('')}</div>
+    <h4>${g ? `Common at week ${wk}` : 'Anything going on?'} <span class="fine">· tap again for stronger</span></h4>
+    <div class="chips">${top.map(chip).join('')}</div>
+    ${showAllSyms ? `<div class="chips">${rest.map(chip).join('')}<button class="chip add" data-act="add-symptom">＋ Add your own</button></div>`
+      : `<button class="linkish" data-act="more-syms">More symptoms (${rest.length}) ›</button>`}
+    ${flags.map(([s]) => `<div class="ex warn"><b>⚠️ ${s.emoji} ${esc(s.label)}</b><p class="flag">${esc(s.flag)}</p></div>`).join('')}
+    ${picked.length ? `<details class="mini-details"><summary>What these mean</summary>${picked.map(([s]) => `<p><b>${s.emoji} ${esc(s.label)}:</b> ${esc(s.meaning)}</p>`).join('')}<p class="fine">${esc(C.DISCLAIMER_SHORT)}</p></details>` : ''}
+    <label class="field">Notes for you both
+      <textarea id="note" rows="2" placeholder="Cravings, worries, wins…">${esc(draft.note)}</textarea>
+    </label>
+    ${draft.temp || draft.showTemp ? `<label class="field">Temperature (°F or °C)<input id="temp" inputmode="decimal" value="${esc(draft.temp)}" placeholder="e.g. 98.6"></label>`
+      : '<button class="linkish" data-act="show-temp">🌡️ Add a temperature</button>'}
+    <div class="sheet-foot">
+      <button class="big primary" data-act="save-checkin" ${draft.mood ? '' : 'disabled'}>${draft.editing ? 'Save changes' : 'Share check-in'}</button>
+      ${S.isPaired() && !draft.editing ? `<p class="fine center">${esc(names().dad)} sees it right away.</p>` : ''}
+    </div>`
 }
 
 function dadCheckin() {
   draft = draft && draft.kind === 'dadcheck' ? draft : { kind: 'dadcheck', stress: 0, feelings: [], note: '', private: false }
   const chosen = C.DAD_FEELINGS.filter(f => draft.feelings.includes(f.id))
   return `
-    <section class="card">
-      <h3>How are <i>you</i> doing?</h3>
-      <p class="fine">Your space. You're allowed to not be fine. Check in with yourself here.</p>
-      <h4>Stress level</h4>
-      <div class="scale">${[1, 2, 3, 4, 5].map(v => `<button data-stress="${v}" class="${draft.stress === v ? 'on' : ''}">${v}</button>`).join('')}</div>
-      <div class="scale-l"><span>calm</span><span>maxed out</span></div>
-      <h4>What's going on</h4>
-      <div class="chips">${C.DAD_FEELINGS.map(f => `<button class="chip ${draft.feelings.includes(f.id) ? 'on' : ''}" data-feel="${f.id}">${f.emoji} ${esc(f.label)}</button>`).join('')}</div>
-    </section>
-    ${chosen.length ? `<section class="card"><h3>🛠️ What helps</h3>${chosen.map(f => `<h4>${f.emoji} ${esc(f.label)}</h4><ul>${f.cope.map(c => `<li>${esc(c)}</li>`).join('')}</ul>`).join('')}</section>` : ''}
-    <section class="card breathe">
+    <p class="fine">Your space. You're allowed to not be fine.</p>
+    <h4>Stress level</h4>
+    <div class="scale">${[1, 2, 3, 4, 5].map(v => `<button data-stress="${v}" class="${draft.stress === v ? 'on' : ''}">${v}</button>`).join('')}</div>
+    <div class="scale-l"><span>calm</span><span>maxed out</span></div>
+    <h4>What's going on</h4>
+    <div class="chips">${C.DAD_FEELINGS.map(f => `<button class="chip ${draft.feelings.includes(f.id) ? 'on' : ''}" data-feel="${f.id}">${f.emoji} ${esc(f.label)}</button>`).join('')}</div>
+    ${chosen.length ? `<details class="mini-details" open><summary>🛠️ What helps</summary>${chosen.map(f => `<p><b>${f.emoji} ${esc(f.label)}</b></p><ul>${f.cope.map(c => `<li>${esc(c)}</li>`).join('')}</ul>`).join('')}</details>` : ''}
+    <label class="field">Notes
+      <textarea id="note" rows="2" placeholder="What's on your mind?">${esc(draft.note)}</textarea>
+    </label>
+    <label class="toggle"><input type="checkbox" id="private" ${draft.private ? 'checked' : ''}> Keep private (stays on this phone only)</label>
+    ${(draft.stress >= 4 || draft.feelings.includes('scared') || draft.feelings.includes('overwhelmed')) ? supportCard() : ''}
+    <div class="sheet-foot">
+      <button class="big primary" data-act="save-dadcheck" ${draft.stress ? '' : 'disabled'}>Save check-in</button>
+    </div>`
+}
+
+// The 2-minute breathing reset: on his side of Us, and on Today when stress runs high
+function breatheCard() {
+  return `<section class="card breathe">
       <h3>🫁 Two-minute reset</h3>
       <div class="circle" id="circle"><span id="breathLabel">Tap to start</span></div>
       <p class="fine center">Box breathing: 4 in · 4 hold · 4 out · 4 hold. Slows the heart rate and takes the edge off panic.</p>
-    </section>
-    <section class="card">
-      <label class="field">Notes
-        <textarea id="note" rows="3" placeholder="What's on your mind?">${esc(draft.note)}</textarea>
-      </label>
-      <label class="toggle"><input type="checkbox" id="private" ${draft.private ? 'checked' : ''}> Keep private (stays on this phone only)</label>
-      <button class="big primary" data-act="save-dadcheck" ${draft.stress ? '' : 'disabled'}>Save check-in</button>
-    </section>
-    ${(draft.stress >= 4 || draft.feelings.includes('scared') || draft.feelings.includes('overwhelmed')) ? supportCard() : ''}
-    ${recentList('dadcheck', 'dad')}`
+    </section>`
 }
 
 function supportCard() {
@@ -740,15 +804,6 @@ function supportCard() {
       <li>Your own doctor or an EAP through work, often free and confidential.</li>
     </ul>
   </section>`
-}
-
-function recentList(kind, role) {
-  const list = entries(kind, role).slice(-7).reverse()
-  if (!list.length) return ''
-  if (kind === 'checkin') {
-    return `<section class="card"><h3>Last 7 check-ins</h3><div class="spark">${list.slice().reverse().map(e => `<div title="${fmtWhen(e.created_at)}"><i style="height:${(e.data.mood || 0) * 20}%"></i><span>${C.MOOD.find(m => m.v === e.data.mood)?.emoji || ''}</span></div>`).join('')}</div></section>`
-  }
-  return `<section class="card"><h3>Recent</h3>${list.map(e => `<div class="mile"><b>Stress ${num(e.data.stress, 1, 5)}/5 ${e.local ? '🔒' : ''}</b><span>${fmtWhen(e.created_at)}</span></div>`).join('')}</section>`
 }
 
 let breathTimer = null
@@ -804,8 +859,7 @@ function timeline() {
   const time = e => new Date(e.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
   const count = list => list.length > 1 ? ` · ${list.length} today` : ''
   const lastSeen = list => list.length ? `Last: ${esc(fmtWhen(list.at(-1).created_at))}` : 'No check-ins yet'
-  const mineMissing = me() === 'mom' ? !herCI : !hisToday.some(e => e.author_role === 'dad')
-  const strip = `<div class="today-head"><h3>Today</h3><span class="fine">${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</span></div>
+  const strip = `<div class="today-head"><span class="fine">Today's check-ins</span></div>
   <div class="duo">
     <button class="duo-card ${usView === 'her' ? 'on' : ''}" data-us="her">
       <div class="fine">${face('mom')} ${esc(n.mom)}</div>
@@ -822,8 +876,7 @@ function timeline() {
       : `<div class="big-emoji">–</div><div>Not yet today</div><div class="fine">${lastSeen(hisAll)}</div>`}
     </button>
   </div>
-  ${mineMissing ? `<button class="ghost today-cta" data-tab="checkin">✍️ Add your check-in for today</button>` : ''}
-  <div class="seg">${[['her', `${esc(n.mom)}'s side`], ['him', `${esc(n.dad)}'s side`], ['history', 'History'], ['feed', 'Notes']].map(([id, l]) => `<button data-us="${id}" class="${usView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+  <div class="seg eq">${[['her', esc(n.mom)], ['him', esc(n.dad)], ['feed', 'Notes'], ['history', 'History']].map(([id, l]) => `<button data-us="${id}" class="${usView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
   return strip + (usView === 'her' ? herSide() : usView === 'him' ? hisSide() : usView === 'history' ? historyView() : feed())
 }
 
@@ -866,7 +919,7 @@ function hisSide() {
     ${common.length ? `<section class="card"><h3>${me() === 'dad' ? 'On your mind lately' : T('On {p:their} mind lately')}</h3>${common.map(([id, c]) => { const f = C.DAD_FEELINGS.find(x => x.id === id); return f ? `<div class="mile"><b>${f.emoji} ${esc(f.label)}</b><span>${c}× in 2 weeks</span></div>` : '' }).join('')}</section>` : ''}
     ${me() === 'mom'
       ? (support.length ? `<section class="card"><h3>💛 ${T('How you can support {p:them}')}</h3><ol class="plan">${support.map(t => `<li>${esc(t)}</li>`).join('')}</ol></section>` : '')
-      : selfCareCard(ci, feel) + forHerCard()}
+      : selfCareCard(ci, feel) + breatheCard() + forHerCard()}
     ${me() === 'dad' ? T('<p class="fine center">Check-ins marked private stay on your phone and never show here for {m:them}.</p>') : ''}`
 }
 
@@ -880,7 +933,6 @@ function selfCareCard(ci, feel) {
     <p class="fine">Based on your last check-in: stress ${num(ci.data.stress, 1, 5)}/5${feel.length ? ', ' + feel.map(f => f.label.toLowerCase()).join(', ') : ''}.</p>
     <ol class="plan">${list.map(t => `<li>${esc(t)}</li>`).join('')}</ol>
     <p class="fine">${esc(basics)}</p>
-    <button class="ghost" data-tab="checkin">🫁 Do the 2-minute breathing reset</button>
   </section>`
 }
 
@@ -992,27 +1044,29 @@ function obSummaryCard() {
   </section>`
 }
 
+// Notes read like a chat: love notes as bubbles, appointments as a quiet line.
+// (Check-ins live in History, so they don't drown out the notes.)
+let scrollFeed = false
+const dayLabel = iso => { const d = dayDiff(today0(), new Date(new Date(iso).setHours(0, 0, 0, 0))); return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : new Date(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) }
 function feed() {
-  const list = S.state.entries.filter(e => ['checkin', 'dadcheck', 'note', 'appointment'].includes(e.kind)).slice().reverse().slice(0, 150)
   const n = names()
-  return `
-    <section class="card compose">
-      <textarea id="msg" rows="2" placeholder="Write ${esc(nameOf(other()))} a note…"></textarea>
-      <button class="primary" data-act="send-msg">Send</button>
-    </section>
-    ${list.length ? list.map(e => {
-      const who = e.author_role === me() ? 'You' : esc(n[e.author_role])
-      const del = e.author_role === me() ? `<button class="mini del" data-del="${e.id}" title="Delete">✕</button>` : ''
-      if (e.kind === 'checkin') return checkinCard(e, `${who === 'You' ? 'Your' : who + '\'s'} check-in`).replace('</section>', `${del}</section>`)
-      if (e.kind === 'note') return `<section class="card note ${e.author_role === me() ? 'mine' : ''}"><div class="from">${who} · ${fmtWhen(e.created_at)} ${del}</div><p>${esc(e.data.text)}</p></section>`
-      if (e.kind === 'appointment') return `<section class="card soft"><div class="from">${who} added an appointment · ${fmtWhen(e.created_at)} ${del}</div><p>📅 <b>${esc(e.data.title)}</b>, ${fmtDate(parseDate(e.data.date))}</p></section>`
-      if (e.kind === 'dadcheck') {
-        if (e.local && me() !== 'dad') return ''
-        const f = (e.data.feelings || []).map(id => C.DAD_FEELINGS.find(x => x.id === id)).filter(Boolean)
-        return `<section class="card soft"><div class="from">${who} · ${fmtWhen(e.created_at)} ${e.local ? '🔒 private' : ''} ${del}</div><p>Stress ${num(e.data.stress, 1, 5)}/5 ${f.map(x => x.emoji + ' ' + esc(x.label)).join(', ')}</p>${e.data.note ? `<p class="quote-inline">“${esc(e.data.note)}”</p>` : ''}</section>`
-      }
-      return ''
-    }).join('') : '<section class="card soft center"><p>Nothing yet. Check-ins and notes from both of you will show up here.</p></section>'}`
+  const list = S.state.entries.filter(e => e.kind === 'note' || e.kind === 'appointment').slice().sort((a, b) => a.created_at.localeCompare(b.created_at)).slice(-150)
+  let lastDay = ''
+  const rows = list.map(e => {
+    const mine = e.author_role === me(), who = mine ? 'You' : esc(n[e.author_role])
+    const day = dayLabel(e.created_at), sep = day !== lastDay ? `<div class="chat-day">${esc(day)}</div>` : ''
+    lastDay = day
+    const time = new Date(e.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+    const del = mine ? ` · <button class="linkish tiny" data-del="${e.id}" aria-label="Delete">Delete</button>` : ''
+    if (e.kind === 'note') return sep + `<div class="bubble ${mine ? 'mine' : 'theirs'}"><p>${esc(e.data.text)}</p><span class="fine">${time}${del}</span></div>`
+    return sep + `<div class="chat-event"><span>${who} added 📅 ${esc(e.data.title)}${e.data.date ? `, ${fmtDate(parseDate(e.data.date))}` : ''}</span></div>`
+  }).join('')
+  const quick = me() === 'dad' ? ['Thinking of you ❤️', 'Need anything?', 'Proud of you', 'Rest, I\'ve got tonight'] : ['Thank you ❤️', 'Could use a hug', 'Feeling good today!', 'Can you grab me a snack?']
+  return `<div class="chat">${rows || `<p class="fine center">No notes yet. Say something sweet to ${esc(nameOf(other()))}.</p>`}</div>
+    <div class="composer">
+      <div class="chips">${quick.map(t => `<button class="chip" data-sendnote="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+      <div class="compose-row"><textarea id="msg" rows="1" placeholder="Write ${esc(nameOf(other()))} a note…"></textarea><button class="primary" data-act="send-msg">Send</button></div>
+    </div>`
 }
 
 // ── Where the information comes from ────────────────────────────────────────
@@ -1026,6 +1080,7 @@ function disclaimerCard(compact) {
 // One search over foods and medicines. Words match by start ("egg" finds
 // "Eggs", "tylenol" finds Acetaminophen through its brand names).
 const TIER_L = { ok: '✅ Generally OK', ask: '🟡 Depends / ask', avoid: '⛔ Avoid' }
+const TIER_S = { ok: 'OK', ask: 'Depends', avoid: 'Avoid' }
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
 const stem = w => w.length > 4 && w.endsWith('es') ? w.slice(0, -2) : w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w
 // "is sushi ok while pregnant" → just "sushi"
@@ -1038,8 +1093,11 @@ function matches(q, fields) {
   const hay = ' ' + norm(fields.join(' ')) + ' ', name = ' ' + norm(fields[0])
   return words.reduce((s, w) => s + (hay.includes(' ' + w) ? 2 : 0) + (name.includes(' ' + w) ? 1 : 0), 0)
 }
-const medItem = m => `<details class="item t-${m.tier}"><summary><b>💊 ${esc(m.name)}</b>${m.aka ? `<span class="aka">${esc(m.aka)}</span>` : ''}<span class="tier">${TIER_L[m.tier]}</span></summary>${m.use ? `<p class="fine">For: ${esc(m.use)}</p>` : ''}<p>${esc(m.note)}</p></details>`
-const foodItem = f => `<details class="item t-${f.tier}"><summary><b>🍽️ ${esc(f.name)}</b>${f.aka ? `<span class="aka">${esc(f.aka)}</span>` : ''}<span class="tier">${TIER_L[f.tier]}</span></summary><p>${esc(f.note)}</p></details>`
+// One line each: a colored dot, the name, OK / Depends / Avoid. Tap to read why.
+const rowItem = (icon, x, extra = '') => `<details class="item t-${x.tier}"><summary><i class="tdot"></i><b>${icon} ${esc(x.name)}</b><span class="tier">${TIER_S[x.tier]}</span></summary>
+  <p class="tier-long">${TIER_L[x.tier]}</p>${extra}${x.aka ? `<p class="fine">Also: ${esc(x.aka)}</p>` : ''}<p>${esc(x.note)}</p></details>`
+const medItem = m => rowItem('💊', m, m.use ? `<p class="fine">For: ${esc(m.use)}</p>` : '')
+const foodItem = f => rowItem('🍽️', f)
 
 function searchResults(q) {
   // keep the closest matches: those within one word of the best score
@@ -1069,26 +1127,28 @@ function searchResults(q) {
   return html
 }
 
+const MOST_SEARCHED = ['Sushi', 'Deli meat', 'Coffee', 'Tylenol', 'Brie', 'Hot tub', 'Runny eggs', 'Tuna']
 function lookup() {
   const q = lookupQuery.trim()
+  const cats = [['foods', '🍽️', 'Food & drink', `${C.FOODS.length} items`], ['meds', '💊', 'Medicines', `${C.MEDS.length} items`], ['symptoms', '🩺', 'Symptoms', 'What\'s normal'], ['redflags', '🚨', 'When to call', 'Warning signs']]
+  const search = `<input class="search big-search" id="q" type="search" enterkeyhint="search" placeholder="Search any food, drink or medicine" value="${esc(lookupQuery)}">`
+  const banner = `<button class="call-banner" data-lt="redflags"><b>🚨 When to call the doctor</b><span>Bleeding, severe pain, fever, fewer movements… ›</span></button>`
   let body = ''
-  if (q) body = searchResults(q)
-  else if (lookupTab === 'meds') body = C.MEDS.map(medItem).join('')
-  else if (lookupTab === 'foods') body = C.FOODS.slice().sort((a, b) => a.name.localeCompare(b.name)).map(foodItem).join('')
-  else if (lookupTab === 'symptoms') {
-    body = C.SYMPTOMS.map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b></summary><p>${esc(s.meaning)}</p><h4>${T('How {p:they} can help')}</h4><ul>${s.help.map(h => `<li>${esc(h)}</li>`).join('')}</ul>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
+  if (q) body = `<div class="list">${searchResults(q)}</div>`
+  else if (lookupTab === 'home') {
+    body = `${banner}
+      <div class="cat-grid">${cats.map(([id, i, l, sub]) => `<button class="cat ${id === 'redflags' ? 'red' : ''}" data-lt="${id}"><span>${i}</span><b>${l}</b><small>${sub}</small></button>`).join('')}</div>
+      <section class="card"><h3>Most searched</h3><div class="chips">${MOST_SEARCHED.map(t => `<button class="chip" data-q="${esc(t)}">${esc(t)}</button>`).join('')}</div></section>`
   } else {
-    body = C.RED_FLAGS.map(([h, list], i) => `<section class="card ${i === 0 ? 'alert' : i === 1 ? 'warnc' : 'soft'}"><h3>${esc(h)}</h3><ul>${list.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')
+    const [, i, l] = cats.find(c => c[0] === lookupTab) || cats[0]
+    let list = ''
+    if (lookupTab === 'meds') list = C.MEDS.map(medItem).join('')
+    else if (lookupTab === 'foods') list = C.FOODS.slice().sort((a, b) => a.name.localeCompare(b.name)).map(foodItem).join('')
+    else if (lookupTab === 'symptoms') list = C.SYMPTOMS.map(s => `<details class="item"><summary><b>${s.emoji} ${esc(s.label)}</b></summary><p>${esc(s.meaning)}</p><h4>${T('How {p:they} can help')}</h4><ul>${s.help.map(h => `<li>${esc(h)}</li>`).join('')}</ul>${s.flag ? `<p class="flag">Call if: ${esc(s.flag)}</p>` : ''}</details>`).join('')
+    else list = C.RED_FLAGS.map(([h, items], k) => `<section class="card ${k === 0 ? 'alert' : k === 1 ? 'warnc' : 'soft'}"><h3>${esc(h)}</h3><ul>${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')
+    body = `<div class="list-head"><button class="linkish" data-lt="home">‹ All</button><b>${i} ${l}</b></div><div class="list ${lookupTab === 'redflags' ? '' : 'rows'}">${list}</div>`
   }
-  return `
-    <section class="card search-card">
-      <h3>🔎 Is it safe for baby?</h3>
-      <input class="search" id="q" type="search" enterkeyhint="search" placeholder="Type any food, drink or medicine: sushi, brie, Tylenol…" value="${esc(lookupQuery)}">
-      ${q ? `<p class="fine">${C.FOODS.length} foods and ${C.MEDS.length} medicines in the app. Not on the list? You still get the rules that apply.</p>` : ''}
-    </section>
-    ${q ? '' : `<div class="seg">${[['foods', '🍽️ Food'], ['meds', '💊 Meds'], ['symptoms', '🩺 Symptoms'], ['redflags', '🚨 When to call']].map(([id, l]) => `<button data-lt="${id}" class="${lookupTab === id ? 'on' : ''}">${l}</button>`).join('')}</div>`}
-    <div class="list">${body}</div>
-    ${disclaimerCard()}`
+  return `${search}${body}${disclaimerCard(true)}`
 }
 
 // ── Registry ────────────────────────────────────────────────────────────────
@@ -1176,6 +1236,11 @@ function suggestCard(items) {
 }
 const money = n => (n || n === 0) && !isNaN(n) ? '$' + Number(n).toFixed(Number(n) % 1 ? 2 : 0) : ''
 
+// Baby registry | push present wishlist, side by side under Registry
+function giftToggle() {
+  return `<div class="seg eq two">${[['registry', '🎁 Baby registry'], ['wish', `🎀 For ${esc(names().mom)}`]].map(([id, l]) => `<button data-pv="${id}" class="${planView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+}
+
 function registry() {
   const n = names()
   const items = entries('registry')
@@ -1183,72 +1248,69 @@ function registry() {
   const shown = regFilter === 'need' ? need : regFilter === 'got' ? got : items
   const left = need.reduce((t, i) => t + (parseFloat(i.data.price) || 0) * (parseInt(i.data.qty) || 1), 0)
   const links = profile().registryLinks || []
-  const e = editReg ? items.find(i => i.id === editReg) : null
-  const d = e ? e.data : {}
-  return `
-    <section class="card">
-      <h3>🎁 Our registry</h3>
-      <p>${items.length} item${items.length === 1 ? '' : 's'} · <b>${need.length} still needed</b>${left ? ` · about ${money(left)} to go` : ''}</p>
-      <div class="seg">${[['need', 'Still need'], ['got', 'Taken ✅'], ['all', 'All']].map(([id, l]) => `<button data-regf="${id}" class="${regFilter === id ? 'on' : ''}">${l}</button>`).join('')}</div>
-    </section>
-    ${C.REG_CATS.map(([cat, label]) => {
-      const list = shown.filter(i => (i.data.cat || 'other') === cat)
-      if (!list.length) return ''
-      return `<section class="card"><h3>${label}</h3>${list.map(i => {
-        const it = i.data, by = i.author_role === 'mom' ? face('mom') + ' ' + esc(n.mom) : face('dad') + ' ' + esc(n.dad)
-        return `<div class="reg ${it.got ? 'got' : ''}">
-          <button class="tick" data-reg-got="${i.id}" aria-label="Got it">${it.got ? '✅' : '⬜'}</button>
-          <div class="reg-main">
-            <div class="reg-name">${safeUrl(it.url) ? `<a href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}${(parseInt(it.qty) || 1) > 1 ? ` <span class="fine">×${parseInt(it.qty)}</span>` : ''}</div>
-            <div class="fine">${[it.url ? storeOf(it.url) : '', money(it.price), 'added by ' + by, it.got && it.gotBy ? 'got by ' + esc(nameOf(it.gotBy)) : ''].filter(Boolean).join(' · ')}</div>
-            ${it.stars !== '' && it.stars != null ? `<div class="fine rating ${it.stars < 4 ? 'low' : ''}">${it.stars < 4 ? '⚠️ ' : '⭐ '}${num(it.stars, 0, 5)}★${it.reviews ? ` · ${Number(it.reviews).toLocaleString()} reviews` : ''}${it.reviews && it.reviews < 50 ? ' (few reviews, take with salt)' : ''}${it.stars < 4 ? ` · rated low <a href="${esc(reviewsUrl(it))}" target="_blank" rel="noopener">why?</a>` : ''}${it.ratedAt ? ` <span class="faint">as of ${esc(fmtDate(parseDate(it.ratedAt)))}</span>` : ''}</div>` : ''}
-            ${!it.got && recallKind(it.name, it.cat) ? `<div class="reg-links">${recallLink(recallKind(it.name, it.cat), it.name)}</div>` : ''}
-            ${it.claimed ? `<div class="claimed">🎁 <b>${esc(it.claimed.name)}</b> is getting this <button class="mini" data-reg-release="${i.id}">Release</button></div>` : ''}
-            ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
-          </div>
-          <div class="reg-act"><button class="mini" data-edit-reg="${i.id}" aria-label="Edit">✏️</button><button class="mini del" data-del="${i.id}" aria-label="Remove">✕</button></div>
-        </div>`
-      }).join('')}</section>`
-    }).join('')}
-    ${!shown.length ? `<section class="card soft center"><p>${items.length ? 'Nothing here.' : 'Your list is empty. Add things below, or start with the basics.'}</p>${!items.length ? `<button class="big" data-act="reg-starter">Add all ${C.REG_GUIDE.length} suggested basics</button>` : ''}</section>` : ''}
-    ${suggestCard(items)}
-    <section class="card" id="regForm">
-      <h3>${e ? 'Edit item' : 'Add an item'}</h3>
-      <label class="field">Paste a link (Amazon, Target, anywhere), optional
-        <input id="regUrl" type="url" inputmode="url" placeholder="https://www.amazon.com/…" value="${esc(d.url || '')}">
-      </label>
-      <label class="field">What is it? <span class="fine">(filled in from the link when possible; store links sometimes cut the name short, so give it a look)</span>
-        <input id="regName" placeholder="e.g. Infant car seat" value="${esc(d.name || '')}">
-      </label>
-      <div class="store-search"><span class="fine">Find it:</span>${[['amazon', 'Amazon 4★+'], ['target', 'Target'], ['walmart', 'Walmart']].map(([id, l]) => `<button class="chip" data-act="reg-search" data-store="${id}">🔎 ${l}</button>`).join('')}</div>
-      <p class="fine">Opens the store's search. Copy the product link there, paste it above, and the name fills in.</p>
-      <div class="row2">
-        <label class="field">Price <input id="regPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
-        <label class="field">How many <input id="regQty" inputmode="numeric" value="${esc(d.qty || '1')}"></label>
+  const row = i => {
+    const it = i.data, url = safeUrl(it.url)
+    const meta = [url ? storeOf(url) : '', money(it.price), (parseInt(it.qty) || 1) > 1 ? '×' + parseInt(it.qty) : '', it.got && it.gotBy ? 'got by ' + esc(nameOf(it.gotBy)) : ''].filter(Boolean).join(' · ')
+    const low = it.stars !== '' && it.stars != null && it.stars < 4
+    return `<div class="lrow ${it.got ? 'got' : ''}">
+      <button class="tick" data-reg-got="${i.id}" aria-label="${it.got ? 'Mark as still needed' : 'Mark as got'}">${it.got ? '✅' : '⬜'}</button>
+      <div class="lrow-main">
+        <div class="lrow-name">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}</div>
+        ${meta || low || it.claimed ? `<div class="fine">${meta}${low ? `${meta ? ' · ' : ''}<span class="rating low">⚠️ ${num(it.stars, 0, 5)}★ <a href="${esc(reviewsUrl(it))}" target="_blank" rel="noopener">why?</a></span>` : ''}${it.claimed ? `${meta || low ? ' · ' : ''}🎁 ${esc(it.claimed.name)} is getting this` : ''}</div>` : ''}
       </div>
-      <div class="row2">
-        <label class="field">Star rating <input id="regStars" inputmode="decimal" placeholder="e.g. 4.6" value="${esc(d.stars ?? '')}"></label>
-        <label class="field">Reviews <input id="regReviews" inputmode="numeric" placeholder="e.g. 12,000" value="${esc(d.reviews || '')}"></label>
-      </div>
-      <details data-keep="ratingtips" ${openDetails.has('ratingtips') ? 'open' : ''}><summary class="fine">Optional: copy the stars from the store page. How to read ratings</summary>
-        <ul class="fine">${C.RATING_TIPS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
-      </details>
-      <label class="field">Category
-        <select id="regCat" class="inp">${C.REG_CATS.map(([id, l]) => `<option value="${id}" ${(d.cat || 'other') === id ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      </label>
-      <label class="field">Notes <input id="regNotes" placeholder="color, size, why we want it…" value="${esc(d.notes || '')}"></label>
-      <button class="big primary" data-act="reg-save">${e ? 'Save changes' : 'Add to registry'}</button>
-      ${e ? '<button class="ghost" data-act="reg-cancel">Cancel</button>' : ''}
-    </section>
+      <button class="more" data-edit-reg="${i.id}" aria-label="Edit ${esc(it.name)}">⋯</button>
+    </div>`
+  }
+  const groups = C.REG_CATS.map(([cat, label]) => { const list = shown.filter(i => (i.data.cat || 'other') === cat); return list.length ? `<div class="lhead">${label}</div>${list.map(row).join('')}` : '' }).join('')
+  return `${giftToggle()}
     <section class="card">
-      <h3>🔗 Our store registries</h3>
-      ${links.length ? links.map((l, i) => `<div class="mile"><a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener"><b>${esc(l.name)}</b></a><span><button class="mini del" data-reg-link-del="${i}">✕</button></span></div>`).join('') : '<p class="fine">Keep your Amazon, Target or Babylist registry links here so both of you can open them in one tap.</p>'}
+      <div class="card-head"><div><b>${need.length} still needed</b><div class="fine">${items.length} item${items.length === 1 ? '' : 's'}${left ? ` · about ${money(left)} to go` : ''}</div></div>
+        <button class="primary pill" data-act="reg-add">＋ Add item</button></div>
+      <div class="seg eq">${[['need', 'Still need'], ['got', 'Taken'], ['all', 'All']].map(([id, l]) => `<button data-regf="${id}" class="${regFilter === id ? 'on' : ''}">${l}</button>`).join('')}</div>
+      ${groups || `<p class="fine center">${items.length ? 'Nothing here.' : 'Your list is empty.'}</p>${!items.length ? `<button class="big" data-act="reg-starter">Add all ${C.REG_GUIDE.length} suggested basics</button>` : ''}`}
+    </section>
+    <details class="card fold" data-keep="sugg" ${openDetails.has('sugg') ? 'open' : ''}><summary>💡 Suggestions & what to look for</summary>${suggestCard(items)}</details>
+    ${shareCard()}
+    <details class="card fold" data-keep="regmore" ${openDetails.has('regmore') ? 'open' : ''}><summary>🔗 Store registries & publishing elsewhere</summary>
+      ${links.length ? links.map((l, i) => `<div class="mile"><a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener"><b>${esc(l.name)}</b></a><span><button class="mini del" data-reg-link-del="${i}" aria-label="Remove link">✕</button></span></div>`).join('') : '<p class="fine">Keep your Amazon, Target or Babylist registry links here so both of you can open them in one tap.</p>'}
       <div class="row2"><input id="linkName" placeholder="e.g. Amazon registry"><input id="linkUrl" type="url" placeholder="https://…"></div>
       <button class="ghost" data-act="reg-link-add">＋ Save registry link</button>
-      <p class="fine">Tip: Amazon's Baby Registry lets you add your partner as a co-registrant, so you can both add straight from the Amazon app too.</p>
-    </section>
-    ${shareCard()}
-    ${publishElsewhereCard()}`
+      ${publishElsewhereCard()}
+    </details>`
+}
+
+// Add / edit a registry item (a sheet)
+function regForm() {
+  const e = editReg ? entries('registry').find(i => i.id === editReg) : null, d = e ? e.data : {}
+  return `
+    <label class="field">Paste a link (Amazon, Target, anywhere), optional
+      <input id="regUrl" type="url" inputmode="url" placeholder="https://www.amazon.com/…" value="${esc(d.url || '')}">
+    </label>
+    <label class="field">What is it?
+      <input id="regName" placeholder="e.g. Infant car seat" value="${esc(d.name || '')}">
+    </label>
+    <div class="store-search"><span class="fine">Find it:</span>${[['amazon', 'Amazon 4★+'], ['target', 'Target'], ['walmart', 'Walmart']].map(([id, l]) => `<button class="chip" data-act="reg-search" data-store="${id}">🔎 ${l}</button>`).join('')}</div>
+    <div class="row2">
+      <label class="field">Price <input id="regPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
+      <label class="field">How many <input id="regQty" inputmode="numeric" value="${esc(d.qty || '1')}"></label>
+    </div>
+    <div class="row2">
+      <label class="field">Star rating <input id="regStars" inputmode="decimal" placeholder="e.g. 4.6" value="${esc(d.stars ?? '')}"></label>
+      <label class="field">Reviews <input id="regReviews" inputmode="numeric" placeholder="e.g. 12,000" value="${esc(d.reviews || '')}"></label>
+    </div>
+    <details class="mini-details" data-keep="ratingtips" ${openDetails.has('ratingtips') ? 'open' : ''}><summary>How to read ratings</summary>
+      <ul class="fine">${C.RATING_TIPS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+    </details>
+    <label class="field">Category
+      <select id="regCat" class="inp">${C.REG_CATS.map(([id, l]) => `<option value="${id}" ${(d.cat || 'other') === id ? 'selected' : ''}>${l}</option>`).join('')}</select>
+    </label>
+    <label class="field">Notes <input id="regNotes" placeholder="color, size, why we want it…" value="${esc(d.notes || '')}"></label>
+    ${e && recallKind(d.name, d.cat) ? `<div class="reg-links">${recallLink(recallKind(d.name, d.cat), d.name)}</div>` : ''}
+    ${e && d.claimed ? `<p class="claimed">🎁 <b>${esc(d.claimed.name)}</b> is getting this <button class="mini" data-reg-release="${e.id}">Release</button></p>` : ''}
+    <div class="sheet-foot">
+      <button class="big primary" data-act="reg-save">${e ? 'Save changes' : 'Add to registry'}</button>
+      ${e ? `<button class="ghost danger" data-del="${e.id}">Remove from registry</button>` : ''}
+    </div>`
 }
 
 // ── Sharing the registry with family & friends ──────────────────────────────
@@ -1262,7 +1324,7 @@ function loadPub() {
     .finally(() => { pubLoading = false; if (tab === 'plan' && planView === 'registry') render() })
 }
 function shareCard() {
-  if (!S.isPaired()) return `<section class="card soft"><h3>🌐 Share with family & friends</h3><p class="fine">Pair your phones first (Plan tab). Then you can publish a public registry page.</p></section>`
+  if (!S.isPaired()) return `<section class="card soft"><h3>🌐 Share with family & friends</h3><p class="fine">Pair your phones first (tap your initial, top right). Then you can publish a public registry page.</p></section>`
   loadPub()
   if (!pubState) return `<section class="card"><h3>🌐 Share with family & friends</h3><p class="fine">Checking…</p></section>`
   if (!pubState.published) return `<section class="card">
@@ -1311,8 +1373,10 @@ function registryText() {
 
 // ── Plan ────────────────────────────────────────────────────────────────────
 function plan() {
-  const seg = `<div class="seg">${[['calendar', '🗓️ Calendar'], ['registry', '🎁 Registry'], ['wish', '🎀 Push present'], ['settings', '⚙️ Settings']].map(([id, l]) => `<button data-pv="${id}" class="${planView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
-  return seg + (planView === 'registry' ? registry() : planView === 'wish' ? wishlist() : planView === 'settings' ? settings() : calendar())
+  if (planView === 'settings') { planView = 'calendar'; tab = 'settings'; return settings() } // old links
+  const gifts = planView === 'registry' || planView === 'wish'
+  const seg = `<div class="seg eq two">${[['calendar', '🗓️ Calendar', !gifts], ['registry', '🎁 Registry & gifts', gifts]].map(([id, l, on]) => `<button data-pv="${id}" class="${on ? 'on' : ''}">${l}</button>`).join('')}</div>`
+  return seg + (planView === 'registry' ? registry() : planView === 'wish' ? wishlist() : calendar())
 }
 
 // ── Push present wishlist ───────────────────────────────────────────────────
@@ -1324,100 +1388,116 @@ const WISH_IDEAS = ['A piece of jewelry with the baby\'s birthstone or initial',
 function wishlist() {
   const n = names(), mine = me() === 'mom'
   const items = entries('wish').slice().sort((a, b) => (b.data.top ? 1 : 0) - (a.data.top ? 1 : 0))
-  const e = editWish ? items.find(i => i.id === editWish) : null, d = e ? e.data : {}
   const row = i => {
     const it = i.data, url = safeUrl(it.url)
-    return `<div class="reg">
+    const meta = [it.top ? '⭐ Top pick' : '', url ? storeOf(url) : '', money(it.price), it.notes ? esc(it.notes) : ''].filter(Boolean).join(' · ')
+    return `<div class="lrow">
       ${mine ? `<span class="tick">${it.top ? '⭐' : '🎀'}</span>` : `<button class="tick" data-wish-got="${i.id}" aria-label="I've got this">${it.gotByPartner ? '✅' : '⬜'}</button>`}
-      <div class="reg-main">
-        <div class="reg-name">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}</div>
-        <div class="fine">${[it.top ? '⭐ Top pick' : '', url ? storeOf(url) : '', money(it.price)].filter(Boolean).join(' · ')}</div>
-        ${it.notes ? `<div class="fine reg-notes">${esc(it.notes)}</div>` : ''}
+      <div class="lrow-main">
+        <div class="lrow-name">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(it.name)}</a>` : esc(it.name)}</div>
+        ${meta ? `<div class="fine">${meta}</div>` : ''}
         ${!mine && it.gotByPartner ? '<div class="claimed">🤫 You\'ve got this one. It stays hidden on their phone.</div>' : ''}
       </div>
-      ${mine ? `<div class="reg-act"><button class="mini" data-edit-wish="${i.id}" aria-label="Edit">✏️</button><button class="mini del" data-del="${i.id}" aria-label="Remove">✕</button></div>` : ''}
+      ${mine ? `<button class="more" data-edit-wish="${i.id}" aria-label="Edit ${esc(it.name)}">⋯</button>` : ''}
     </div>`
   }
+  const ideas = `<details class="card fold" data-keep="wishideas" ${openDetails.has('wishideas') ? 'open' : ''}><summary>💡 ${mine ? 'Need ideas?' : 'Ideas'}</summary><ul>${WISH_IDEAS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      ${mine ? '' : '<p class="fine">A push present is optional. A heartfelt note and a night of real rest can mean just as much.</p>'}</details>`
   if (!mine) {
-    return `<section class="card">
+    return `${giftToggle()}<section class="card">
         <h3>🎀 ${esc(n.mom)}'s push present wishlist</h3>
-        <p class="fine">${T('Things {m:they} would love, for after the baby arrives. Tap ⬜ when you\'ve got one: it\'s only marked on your phone, so it stays a surprise.')}</p>
+        <p class="fine">${T('Things {m:they} would love for after the baby arrives. Tap ⬜ when you\'ve got one: it\'s only marked on your phone, so it stays a surprise.')}</p>
         ${items.length ? items.map(row).join('') : `<p>${T('Nothing on {m:their} list yet.')}</p>`}
-      </section>
-      <section class="card soft"><h3>💡 Ideas</h3><ul>${WISH_IDEAS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
-        <p class="fine">A push present is optional. A heartfelt note and a night of real rest can mean just as much.</p></section>`
+      </section>${ideas}`
   }
-  return `<section class="card">
-      <h3>🎀 Your push present wishlist</h3>
-      <p class="fine">${esc(n.dad)} can see this list. If they get something from it, it stays a secret from you.</p>
-      ${items.length ? items.map(row).join('') : '<p>Add things you\'d love for after the baby arrives: big, small, practical or just for you.</p>'}
-    </section>
-    <section class="card" id="wishForm">
-      <h3>${e ? 'Edit wish' : 'Add a wish'}</h3>
-      <label class="field">What is it? <input id="wishName" maxlength="120" placeholder="e.g. Birthstone necklace" value="${esc(d.name || '')}"></label>
-      <label class="field">Link (optional) <input id="wishUrl" type="url" inputmode="url" placeholder="https://…" value="${esc(d.url || '')}"></label>
-      <div class="row2">
-        <label class="field">Price <input id="wishPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
-        <label class="field">Notes <input id="wishNotes" placeholder="size, color…" value="${esc(d.notes || '')}"></label>
-      </div>
-      <label class="toggle"><input type="checkbox" id="wishTop" ${d.top ? 'checked' : ''}> ⭐ Top pick</label>
-      <button class="big primary" data-act="wish-save">${e ? 'Save changes' : 'Add to my wishlist'}</button>
-      ${e ? '<button class="ghost" data-act="wish-cancel">Cancel</button>' : ''}
-    </section>
-    <section class="card soft"><h3>💡 Need ideas?</h3><ul>${WISH_IDEAS.map(t => `<li>${esc(t)}</li>`).join('')}</ul></section>`
+  return `${giftToggle()}<section class="card">
+      <div class="card-head"><div><b>🎀 Your push present wishlist</b><div class="fine">${esc(n.dad)} can see it. Anything they get stays a surprise.</div></div>
+        <button class="primary pill" data-act="wish-add">＋ Add</button></div>
+      ${items.length ? items.map(row).join('') : '<p class="fine">Add things you\'d love for after the baby arrives: big, small, practical or just for you.</p>'}
+    </section>${ideas}`
 }
 
+function wishForm() {
+  const e = editWish ? entries('wish').find(i => i.id === editWish) : null, d = e ? e.data : {}
+  return `
+    <label class="field">What is it? <input id="wishName" maxlength="120" placeholder="e.g. Birthstone necklace" value="${esc(d.name || '')}"></label>
+    <label class="field">Link (optional) <input id="wishUrl" type="url" inputmode="url" placeholder="https://…" value="${esc(d.url || '')}"></label>
+    <div class="row2">
+      <label class="field">Price <input id="wishPrice" inputmode="decimal" placeholder="optional" value="${esc(d.price || '')}"></label>
+      <label class="field">Notes <input id="wishNotes" placeholder="size, color…" value="${esc(d.notes || '')}"></label>
+    </div>
+    <label class="toggle"><input type="checkbox" id="wishTop" ${d.top ? 'checked' : ''}> ⭐ Top pick</label>
+    <div class="sheet-foot">
+      <button class="big primary" data-act="wish-save">${e ? 'Save changes' : 'Add to my wishlist'}</button>
+      ${e ? `<button class="ghost danger" data-del="${e.id}">Remove</button>` : ''}
+    </div>`
+}
+
+let showAllMiles = false
 function calendar() {
   const g = gest()
   const lmp = g ? g.lmp : null
   const appts = entries('appointment').filter(a => a.data.date).sort((a, b) => a.data.date.localeCompare(b.data.date))
+  const todayIso = isoDate(new Date())
+  const ahead = appts.filter(a => a.data.date >= todayIso), past = appts.filter(a => a.data.date < todayIso)
+  const apptRow = a => `<div class="lrow ${a.data.date < todayIso ? 'past' : ''}">
+      <span class="tick">📅</span>
+      <div class="lrow-main"><div class="lrow-name">${esc(a.data.title)}</div>
+        <div class="fine">${fmtDate(parseDate(a.data.date))}${a.data.time ? ' · ' + esc(fmtTime(a.data.time)) : ''}${a.data.notes ? ' · ' + esc(a.data.notes) : ''}</div></div>
+      <button class="more" data-edit-appt="${a.id}" aria-label="Edit ${esc(a.data.title)}">⋯</button>
+    </div>`
+  // milestones: the next three, the rest behind "Show all"
+  const nextIdx = g ? Math.max(0, C.MILESTONES.findIndex(m => m.week + 1 >= g.week)) : 0
+  const miles = showAllMiles ? C.MILESTONES : C.MILESTONES.slice(nextIdx, nextIdx + 3)
   return `
     <section class="card">
-      <h3>Appointments</h3>
-      ${appts.length ? appts.map(a => `<div class="mile appt ${a.data.date < isoDate(new Date()) ? 'past' : ''}"><b>📅 ${esc(a.data.title)}${a.data.notes ? `<span class="why">${esc(a.data.notes)}</span>` : ''}</b><span>${fmtDate(parseDate(a.data.date))}${a.data.time ? ' · ' + esc(fmtTime(a.data.time)) : ''} <button class="mini" data-edit-appt="${a.id}">✏️</button> ${a.author_role === me() ? `<button class="mini del" data-del="${a.id}">✕</button>` : ''}</span></div>`).join('') : '<p class="fine">Add the OB visits so you both see what\'s next.</p>'}
-      ${apptForm()}
+      <div class="card-head"><b>Appointments</b><button class="primary pill" data-act="appt-add">＋ Add</button></div>
+      ${ahead.length ? ahead.map(apptRow).join('') : '<p class="fine">Add the OB visits so you both see what\'s next.</p>'}
+      ${past.length ? `<details class="mini-details"><summary>Past (${past.length})</summary>${past.map(apptRow).join('')}</details>` : ''}
     </section>
     <section class="card">
       <h3>Milestones</h3>
-      <div class="timeline">${C.MILESTONES.map(m => {
+      <div class="timeline">${miles.map(m => {
         const st = !g ? '' : g.week > m.week + 1 ? 'past' : g.week >= m.week ? 'now' : ''
         const when = lmp ? fmtDate(addDays(lmp, m.week * 7)) : ''
         return `<details class="tl ${st}"><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${when}</span></summary><p>${esc(m.detail)}</p></details>`
       }).join('')}</div>
-    </section>
-    <section class="card">
-      <h3>For the partner: this trimester</h3>
-      <ul>${C.DAD_TRIMESTER[g ? g.tri : 1].map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      <button class="linkish" data-act="toggle-miles">${showAllMiles ? 'Show the next few only' : `Show all ${C.MILESTONES.length} milestones`}</button>
     </section>`
 }
 
 function settings() {
-  const g = gest()
+  const g = gest(), p = profile(), n = names()
   const ago = S.state.lastSync ? Math.round((Date.now() - S.state.lastSync) / 60000) : null
   const waiting = S.pendingCount()
+  const person = r => `<div class="lrow"><span class="tick">${face(r)}</span><div class="lrow-main"><div class="lrow-name">${esc(n[r])}${r === me() ? ' <span class="fine">· this phone</span>' : ''}</div><div class="fine">${esc(pronOf(r).label)} · ${esc(termOf(r))}</div></div></div>`
+  const syncLine = !S.syncAvailable() ? 'This copy runs on this phone only.' : !S.isPaired() ? 'Not paired yet.'
+    : `${{ live: '🟢 Live', offline: '⚪ Offline', connecting: '⚪ Connecting', removed: '🔴 Disconnected' }[S.status] || esc(S.status)}${ago != null ? ` · last synced ${ago < 1 ? 'just now' : ago + ' min ago'}` : ''}${waiting ? ` · ${waiting} change${waiting === 1 ? '' : 's'} waiting to send` : ''}`
   return `
+    <section class="card">
+      <div class="card-head"><b>👥 You two</b><button class="ghost pill" data-act="edit-dates">Edit</button></div>
+      ${person('mom')}${person('dad')}
+      <p class="fine">${g ? `Due <b>${fmtDate(g.due)}</b> ${g.fromDoctor ? '(from your doctor)' : '(estimated from last period)'}` : 'Dates not set'}${p.obPhone ? ` · OB ${esc(p.obPhone)}` : ''}</p>
+    </section>
+    <section class="card soft">
+      <b>Sync</b>
+      ${S.status === 'removed' ? '<p><b>This phone was removed from your couple.</b> Everything here is still saved on it. To reconnect, tap Unpair below, then join again with your couple code.</p>' : ''}
+      <p class="fine">${syncLine}</p>
+    </section>
     <section class="card">
       <h3>🔔 Daily tips & alerts</h3>
       ${remindersCard()}
     </section>
     <section class="card">
-      <h3>Pairing</h3>
+      <h3>🔗 Pairing</h3>
       ${pairingCard(false)}
     </section>
-    <section class="card">
-      <h3>Settings</h3>
-      <p>${g ? `Due: <b>${fmtDate(g.due)}</b> ${g.fromDoctor ? '(from your doctor)' : '(estimated from last period)'}` : 'Dates: <b>not set</b>'} · This phone: <b>${me() === 'mom' ? face('mom') + ' ' + esc(names().mom) : face('dad') + ' ' + esc(names().dad)}</b></p>
-      <button class="ghost" data-act="edit-dates">Edit dates & names</button>
+    <details class="card fold" data-keep="setmore" ${openDetails.has('setmore') ? 'open' : ''}><summary>⚙️ Backup, role & reset</summary>
       <button class="ghost" data-act="switch-role">Switch role on this phone</button>
       <button class="ghost" data-act="export">Export backup</button>
       <label class="ghost file">Import backup<input type="file" id="importFile" accept="application/json" hidden></label>
       <button class="ghost danger" data-act="reset">Erase everything on this phone</button>
-    </section>
-    <section class="card soft">
-      <h3>Sync</h3>
-      ${S.status === 'removed' ? '<p><b>This phone was removed from your couple.</b> Everything here is still saved on it. To reconnect, tap Unpair above, then join again with your couple code.</p>' : ''}
-      <p class="fine">${!S.syncAvailable() ? 'This copy runs on this phone only.' : !S.isPaired() ? 'Not paired yet.' : `Status: <b>${esc(S.status)}</b>${ago != null ? ` · last synced ${ago < 1 ? 'just now' : ago + ' min ago'}` : ''}${waiting ? ` · ${waiting} change${waiting === 1 ? '' : 's'} waiting to send` : ''}`}</p>
-    </section>
+    </details>
     ${disclaimerCard()}`
 }
 
@@ -1426,12 +1506,13 @@ let editAppt = null
 function apptForm() {
   const a = editAppt ? entries('appointment').find(e => e.id === editAppt) : null
   const d = a ? a.data : {}
-  return `<h4>${a ? 'Edit appointment' : 'Add an appointment'}</h4>
-    <input id="apptTitle" class="inp" placeholder="e.g. 8-week ultrasound" value="${esc(d.title || '')}">
-    <div class="row2"><input id="apptDate" type="date" value="${esc(d.date || '')}"><input id="apptTime" type="time" value="${esc(d.time || '')}"></div>
-    <input id="apptNotes" class="inp" placeholder="Notes (address, questions to ask…)" value="${esc(d.notes || '')}">
-    <button class="big" data-act="add-appt">${a ? 'Save changes' : 'Add appointment'}</button>
-    ${a ? '<button class="ghost" data-act="cancel-appt">Cancel</button>' : ''}`
+  return `<label class="field">What is it? <input id="apptTitle" placeholder="e.g. 8-week ultrasound" value="${esc(d.title || '')}"></label>
+    <div class="row2"><label class="field">Date <input id="apptDate" type="date" value="${esc(d.date || '')}"></label><label class="field">Time <input id="apptTime" type="time" value="${esc(d.time || '')}"></label></div>
+    <label class="field">Notes <input id="apptNotes" placeholder="Address, questions to ask…" value="${esc(d.notes || '')}"></label>
+    <div class="sheet-foot">
+      <button class="big primary" data-act="add-appt">${a ? 'Save changes' : 'Add appointment'}</button>
+      ${a && a.author_role === me() ? `<button class="ghost danger" data-del="${a.id}">Delete appointment</button>` : ''}
+    </div>`
 }
 
 // ── Events ──────────────────────────────────────────────────────────────────
@@ -1443,23 +1524,26 @@ function readDraftInputs() {
 }
 
 app.addEventListener('click', async ev => {
+  if (ev.target.dataset?.closeSheet) { readDraftInputs(); closeSheet(); return } // tapped outside the sheet
   const b = ev.target.closest('button, [data-tab]')
   if (!b) return
   const d = b.dataset
   readDraftInputs()
 
-  if (d.tab) { tab = d.tab; render(); scrollTo(0, 0); return }
-  if (d.go) { tab = d.go; if (d.pv) planView = d.pv; render(); scrollTo(0, 0); return }
+  if (d.tab === 'checkin') { openSheet('log'); return } // the ＋ button and every "Check in" link
+  if (d.tab) { sheet = null; tab = d.tab; render(); scrollTo(0, 0); return }
+  if (d.go) { sheet = null; tab = d.go; if (d.pv) planView = d.pv; render(); scrollTo(0, 0); return }
   if (d.pv) { planView = d.pv; render(); scrollTo(0, 0); return }
   if (d.goLookup) { tab = 'lookup'; lookupTab = d.goLookup; render(); scrollTo(0, 0); return }
   if (d.role && linkCode) { const c = linkCode; linkCode = null; await joinFromLink(c, d.role); return }
-  if (d.role) { S.state.role = d.role; S.save(); firstRun = true; onboardStep = S.syncAvailable() && !S.isPaired() ? 2 : 1; render(); return }
-  if (d.lt) { lookupTab = d.lt; render(); return }
-  if (d.us) { usView = d.us; render(); return }
+  if (d.role) { S.state.role = d.role; S.save(); firstRun = true; onboardStep = 1; render(); return }
+  if (d.lt) { lookupTab = d.lt; lookupQuery = ''; render(); scrollTo(0, 0); return }
+  if (d.q) { lookupQuery = d.q; render(); return }
+  if (d.us) { usView = d.us; scrollFeed = d.us === 'feed'; render(); return }
   if (d.hw) { histWho = d.hw; render(); return }
   if (d.hd) { histDays = d.hd === 'all' ? 'all' : +d.hd; render(); return }
   if (d.obd) { obDays = +d.obd; render(); return }
-  if (d.quickmood) { draft = { kind: 'checkin', mood: +d.quickmood, energy: 0, symptoms: {}, temp: '', note: '' }; tab = 'checkin'; render(); scrollTo(0, 0); return }
+  if (d.quickmood) { draft = { kind: 'checkin', mood: +d.quickmood, energy: 0, symptoms: {}, temp: '', note: '' }; openSheet('log'); return }
   if (d.mood) { draft.mood = +d.mood; render(); return }
   if (d.energy) { draft.energy = draft.energy === +d.energy ? 0 : +d.energy; render(); return }
   if (d.stress) { draft.stress = +d.stress; render(); return }
@@ -1493,22 +1577,22 @@ app.addEventListener('click', async ev => {
     S.updateEntry(it.id, it.data.got ? { got: false, gotBy: null } : { got: true, gotBy: me() })
     if (!it.data.got) toast('Marked as got ✅'); return
   }
-  if (d.editWish) { editWish = d.editWish; clearForm('wish'); render(); document.getElementById('wishForm')?.scrollIntoView({ block: 'start' }); return }
+  if (d.editWish) { editWish = d.editWish; clearForm('wish'); openSheet('wish'); return }
   if (d.wishGot) {
     const it = entries('wish').find(x => x.id === d.wishGot); if (!it) return
     S.updateEntry(it.id, { gotByPartner: !it.data.gotByPartner })
     if (!it.data.gotByPartner) toast('Marked 🤫 Only you can see this'); return
   }
-  if (d.editReg) { editReg = d.editReg; clearForm('reg'); render(); document.getElementById('regForm')?.scrollIntoView({ block: 'start' }); return }
+  if (d.editReg) { editReg = d.editReg; clearForm('reg'); openSheet('reg'); return }
   if (d.regLinkDel != null) { const l = (profile().registryLinks || []).slice(); l.splice(+d.regLinkDel, 1); await S.addEntry('profile', { registryLinks: l }); return }
   if (d.remDel != null) { const list = reminders().slice(); list.splice(+d.remDel, 1); setReminders(list); remindersChanged(); return }
-  if (d.editAppt) { editAppt = d.editAppt; clearForm('appt'); render(); document.getElementById('apptTitle')?.scrollIntoView({ block: 'center' }); return }
+  if (d.editAppt) { editAppt = d.editAppt; clearForm('appt'); openSheet('appt'); return }
   if (d.editCi) {
     const e = entries('checkin').find(x => x.id === d.editCi); if (!e) return
     draft = editDraft(e)
-    tab = 'checkin'; render(); scrollTo(0, 0); return
+    openSheet('log'); return
   }
-  if (d.del) { const gone = S.removeEntry(d.del); if (gone) undoToast('Deleted', () => S.restoreEntry(gone)); return }
+  if (d.del) { if (sheet) { sheet = null; editReg = editWish = editAppt = null } const gone = S.removeEntry(d.del); if (gone) undoToast('Deleted', () => S.restoreEntry(gone)); return }
   if (d.rmDev) {
     if (!await ask({ title: 'Remove this device?', text: 'It stops syncing right away. If it\'s one of yours, you can reconnect it later with your couple code.', ok: 'Remove', danger: true })) return
     try { await S.push('remove-device', { user_id: d.rmDev }); devices = null; toast('Device removed') } catch (e) { toast('Couldn\'t remove it. Check your signal.') }
@@ -1517,8 +1601,8 @@ app.addEventListener('click', async ev => {
 
   switch (d.act) {
     case 'save-dates': {
-      const due = $('#due').value, lmp = due ? '' : $('#lmp').value
       const val = id => ($('#' + id)?.value || '').trim()
+      const due = val('due'), lmp = due ? '' : val('lmp')
       const typed = { due, lmp, obPhone: val('obPhone') }
       for (const r of ['mom', 'dad']) Object.assign(typed, { [r + 'Name']: val(r + 'Name'), [r + 'Pron']: val(r + 'Pron'), [r + 'Term']: val(r + 'Term').slice(0, 20) })
       // share only what changed, so this phone never overwrites the other's
@@ -1531,20 +1615,17 @@ app.addEventListener('click', async ev => {
       // switching from a period date to the doctor's due date: the due date wins anyway
       S.state.prefs = { ...S.state.prefs, ...data }
       if (Object.keys(data).length) await S.addEntry('profile', data)
-      onboardStep = firstRun ? 3 : 0
-      firstRun = false
+      onboardStep = nextStep()
       render(); return
     }
     case 'finish-onboard': onboardStep = 0; render(); return
     case 'skip-dates':
-      onboardStep = firstRun ? 3 : 0
-      firstRun = false; render(); scrollTo(0, 0); return
+      onboardStep = nextStep(); render(); scrollTo(0, 0); return
     case 'after-connect': {
       // the partner's phone may already have shared the dates
-      const p = profile()
-      onboardStep = p.due || p.lmp ? 3 : 1; render(); scrollTo(0, 0); return
+      onboardStep = 0; firstRun = false; render(); scrollTo(0, 0); return
     }
-    case 'edit-dates': onboardStep = 1; render(); scrollTo(0, 0); return
+    case 'edit-dates': onboardStep = 5; firstRun = false; render(); scrollTo(0, 0); return
     case 'switch-role': {
       const to = other()
       if (!await ask({ title: `Make this ${nameOf(to)}'s phone?`, text: `New check-ins and notes from this phone will be saved as ${nameOf(to)}'s, and partner alerts will go to ${nameOf(me())} instead. Only do this if you handed this phone to the other person.`, ok: 'Switch' })) return
@@ -1558,10 +1639,10 @@ app.addEventListener('click', async ev => {
       const ciData = { mood: draft.mood, energy: draft.energy || null, symptoms: draft.symptoms, temp: draft.temp.trim(), note: draft.note.trim() }
       if (draft.editing) {
         S.updateEntry(draft.editing, ciData)
-        draft = null; tab = 'today'; render(); scrollTo(0, 0); toast('Check-in updated'); return
+        draft = null; sheet = null; tab = 'today'; render(); scrollTo(0, 0); toast('Check-in updated'); return
       }
       const saved = await S.addEntry('checkin', ciData)
-      draft = null; tab = 'today'; render(); scrollTo(0, 0)
+      draft = null; sheet = null; tab = 'today'; render(); scrollTo(0, 0)
       notifyPartner('checkin', '', nudgeFor(saved), saved.id)
       toast(S.isPaired() ? 'Shared with ' + names().dad : 'Saved'); return
     }
@@ -1569,7 +1650,7 @@ app.addEventListener('click', async ev => {
       if (!draft.stress) return
       await S.addEntry('dadcheck', { stress: draft.stress, feelings: draft.feelings, note: draft.note.trim() }, { local: draft.private })
       const priv = draft.private
-      draft = null; tab = 'today'; render(); scrollTo(0, 0); toast(priv ? 'Checked in privately 🔒' : 'Checked in ✅'); return
+      draft = null; sheet = null; tab = 'today'; render(); scrollTo(0, 0); toast(priv ? 'Checked in privately 🔒' : 'Checked in ✅'); return
     }
     case 'send-msg': {
       const t = $('#msg').value.trim(); if (!t) return
@@ -1579,12 +1660,18 @@ app.addEventListener('click', async ev => {
       const title = $('#apptTitle').value.trim(), date = $('#apptDate').value
       if (!title || !date) return toast('Add a title and a date')
       const appt = { title, date, time: $('#apptTime').value, notes: $('#apptNotes').value.trim() }
+      sheet = null
       if (editAppt) { S.updateEntry(editAppt, appt); editAppt = null; toast('Appointment updated') } else { await S.addEntry('appointment', appt); toast('Added 📅') }
       clearForm('appt')
       return
     }
-    case 'cancel-appt': editAppt = null; clearForm('appt'); render(); return
-    case 'cancel-edit': draft = null; render(); return
+    case 'cancel-edit': draft = null; closeSheet(); return
+    case 'new-checkin': draft = null; openSheet('log'); return
+    case 'close-sheet': readDraftInputs(); closeSheet(); return
+    case 'toggle-miles': showAllMiles = !showAllMiles; render(); return
+    case 'more-syms': showAllSyms = true; render(); return
+    case 'show-temp': if (draft) draft.showTemp = true; render(); $('#temp')?.focus(); return
+    case 'a2hs-ok': S.state.prefs = { ...S.state.prefs, a2hsSeen: true }; S.save(); render(); return
     case 'morning-ok': S.state.prefs = { ...S.state.prefs, morningSeen: isoDate(new Date()) }; S.save(); render(); return
     case 'add-symptom': {
       const label = ((await ask({ title: 'Add your own symptom', ok: 'Add', input: true, placeholder: 'e.g. Metallic taste' })) || '').slice(0, 40)
@@ -1606,7 +1693,7 @@ app.addEventListener('click', async ev => {
       b.disabled = true; b.textContent = 'Joining…'
       try {
         await S.joinCouple(code); clearForm('joinCode'); toast('Paired! 🎉')
-        if (onboardStep === 2) { const p = profile(); onboardStep = p.due || p.lmp ? 3 : 1 }
+        if (onboardStep === 2) { onboardStep = 0; firstRun = false }
         render()
       } catch (e) { toast(e.message || 'Could not join'); render() }
       return
@@ -1629,6 +1716,7 @@ app.addEventListener('click', async ev => {
       const before = editReg ? entries('registry').find(x => x.id === editReg)?.data : null
       if (stars !== '' && (!before || before.stars !== stars)) item.ratedAt = isoDate(new Date())
       const warn = stars !== '' && stars < 4 && (!before || before.stars !== stars)
+      sheet = null
       if (editReg) { S.updateEntry(editReg, item); editReg = null; clearForm('reg'); toast('Saved') }
       else {
         const added = await S.addEntry('registry', { ...item, got: false })
@@ -1678,18 +1766,20 @@ app.addEventListener('click', async ev => {
       navigator.clipboard?.writeText(txt).then(() => toast('List copied. Paste it wherever you need it.'), () => toast('Couldn\'t copy on this phone'))
       return
     }
-    case 'reg-cancel': editReg = null; clearForm('reg'); render(); return
+    case 'reg-add': editReg = null; clearForm('reg'); openSheet('reg'); return
+    case 'wish-add': editWish = null; clearForm('wish'); openSheet('wish'); return
+    case 'appt-add': editAppt = null; clearForm('appt'); openSheet('appt'); return
     case 'wish-save': {
       const name = $('#wishName').value.trim().slice(0, 120), url = $('#wishUrl').value.trim()
       if (!name) return toast('What would you like?')
       if (url && !safeUrl(url)) return toast('Links need to start with https://')
       const item = { name, url, price: $('#wishPrice').value.replace(/[^0-9.]/g, ''), notes: $('#wishNotes').value.trim(), top: $('#wishTop').checked }
+      sheet = null
       if (editWish) { S.updateEntry(editWish, item); editWish = null; clearForm('wish'); toast('Saved'); return }
       const added = await S.addEntry('wish', item)
       notifyPartner('wish', '', { title: `🎀 ${nameOf(me())} added to ${T('{m:their}')} wishlist`, body: name }, added.id)
       clearForm('wish'); toast('Added 🎀'); return
     }
-    case 'wish-cancel': editWish = null; clearForm('wish'); render(); return
     case 'reg-starter': {
       if (entries('registry').length || startingList) return
       startingList = true; b.disabled = true
@@ -1843,7 +1933,7 @@ async function joinFromLink(code, role) {
   autoJoining = false
   // someone opening the link for the first time gets the short welcome
   const p = profile()
-  onboardStep = ok && brandNew ? (p.due || p.lmp ? 3 : 1) : 0
+  onboardStep = ok && brandNew ? (p.due || p.lmp ? 4 : 1) : 0
   firstRun = ok && brandNew
   render()
   S.start()
