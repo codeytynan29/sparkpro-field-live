@@ -1971,7 +1971,7 @@ let monthShown = null
 function monthsView() {
   const now = babyMonth(), list = C.BABY_MONTHS || [], mo = Math.max(0, Math.min(list.length - 1, monthShown ?? now)), m = list[mo], b = bornDate()
   if (!m) return '<p class="fine">Coming soon.</p>'
-  const visits = (C.WELL_VISITS || []).filter(v => Math.min(12, Math.floor(v[1] / 30.44)) === mo)
+  const visits = (C.WELL_VISITS || []).filter(v => Math.min(12, Math.round(v[1] / 30.44)) === mo)
   return `<div class="week-nav">
       <button class="more" data-month="${mo - 1}" ${mo <= 0 ? 'disabled' : ''} aria-label="Previous month">‹</button>
       <div class="center"><b>${mo ? `Month ${mo}` : 'First weeks'}</b><div class="fine">${esc(m.title)}${mo === now ? ' · <b>now</b>' : ''}</div></div>

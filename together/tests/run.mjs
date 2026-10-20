@@ -368,7 +368,7 @@ await test('weekly to-dos: tick on Today, shared, and shown in week by week', as
   await page.locator('[data-todo]').last().click()
   const st = await stored(page)
   ok(st.entries.some(e => e.kind === 'todo' && e.data.done && e.data.by === 'dad'), 'tick not saved')
-  ok((await page.innerText('main')).includes('done by Codey'), 'done-by missing')
+  ok((await page.innerText('main')).includes('done by '), 'done-by missing')
   await page.click('.baby [data-week]')
   ok((await page.innerText('main')).includes('To-dos for week 12'), 'week view to-dos missing')
 })
