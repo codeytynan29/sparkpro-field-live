@@ -227,7 +227,7 @@ const STAGES = [
 // key: week to start showing it. role: who it matters to (both if omitted).
 const MILESTONES = [
   { week: 4, title: 'Positive test', detail: 'Start a prenatal vitamin with at least 400 mcg folic acid (and 150 mcg iodine) if {m:they} {m:has|have}n\'t already. Call the OB/midwife to book the first visit. Skip hot tubs and saunas from now on.' },
-  { week: 5, title: 'Tell the OB early about…', detail: 'A past ectopic pregnancy, tubal surgery, or an IUD in place when {m:they} got pregnant: these mean an early ultrasound to check where the pregnancy is. Also mention any bleeding if {m:they} {m:knows|know} {m:they} {m:is|are} Rh-negative ({m:they} may need an Rh shot), and every medicine or supplement {m:they} {m:takes|take}.' },
+  { week: 5, title: 'Early things to tell the OB', detail: 'A past ectopic pregnancy, tubal surgery, or an IUD in place when {m:they} got pregnant: these mean an early ultrasound to check where the pregnancy is. Also mention any bleeding if {m:they} {m:knows|know} {m:they} {m:is|are} Rh-negative ({m:they} may need an Rh shot), and every medicine or supplement {m:they} {m:takes|take}.' },
   { week: 8, title: 'Flu & COVID shots', detail: 'A flu shot is recommended in any trimester during flu season. ACOG also recommends the COVID vaccine in pregnancy; the CDC currently leaves it to {m:them} and {m:their} provider to decide. Ask at the first visit.' },
   { week: 6, title: 'Heartbeat may be visible', detail: 'On a transvaginal ultrasound, cardiac activity is often seen 6–7 weeks. Not seeing it this early is common — dating can be off by days.' },
   { week: 8, title: 'First prenatal visit (typically 8–10 wks)', detail: 'Dating ultrasound, bloodwork (blood type, Rh factor, immunity, anemia), urine test. Bring your questions — you can go too.' },
@@ -2362,7 +2362,7 @@ function comingUpCard(g) {
   if (!upcoming.length && !appts.length) return ''
   return `<section class="card"><h3>Coming up</h3>
     ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
-    ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
+    ${upcoming.map(m => `<div class="mile top"><div><b>${esc(m.title)}</b><p class="fine mile-detail">${esc(m.detail)}</p></div><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
   </section>`
 }
 
@@ -3220,7 +3220,7 @@ function calendar() {
       <div class="timeline">${miles.map(m => {
         const st = !g ? '' : g.week > m.week + 1 ? 'past' : g.week >= m.week ? 'now' : ''
         const when = lmp ? fmtDate(addDays(lmp, m.week * 7)) : ''
-        return `<details class="tl ${st}"><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${when}</span></summary><p>${esc(m.detail)}</p></details>`
+        return `<details class="tl ${st}" ${st === 'now' ? 'open' : ''}><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${when}</span></summary><p>${esc(m.detail)}</p></details>`
       }).join('')}</div>
       <button class="linkish" data-act="toggle-miles">${showAllMiles ? 'Show the next few only' : `Show all ${C.MILESTONES.length} milestones`}</button>
     </section>`

@@ -654,7 +654,7 @@ function comingUpCard(g) {
   if (!upcoming.length && !appts.length) return ''
   return `<section class="card"><h3>Coming up</h3>
     ${appts.map(a => `<div class="mile"><b>📅 ${esc(a.data.title)}</b><span>${fmtDate(parseDate(a.data.date))}</span></div>`).join('')}
-    ${upcoming.map(m => `<div class="mile"><b>${esc(m.title)}</b><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
+    ${upcoming.map(m => `<div class="mile top"><div><b>${esc(m.title)}</b><p class="fine mile-detail">${esc(m.detail)}</p></div><span>Week ${m.week}${m.week > g.week ? ` · ~${fmtDate(addDays(g.lmp, m.week * 7))}` : ' · now'}</span></div>`).join('')}
   </section>`
 }
 
@@ -1512,7 +1512,7 @@ function calendar() {
       <div class="timeline">${miles.map(m => {
         const st = !g ? '' : g.week > m.week + 1 ? 'past' : g.week >= m.week ? 'now' : ''
         const when = lmp ? fmtDate(addDays(lmp, m.week * 7)) : ''
-        return `<details class="tl ${st}"><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${when}</span></summary><p>${esc(m.detail)}</p></details>`
+        return `<details class="tl ${st}" ${st === 'now' ? 'open' : ''}><summary><span class="w">Wk ${m.week}</span><b>${esc(m.title)}</b><span class="fine">${when}</span></summary><p>${esc(m.detail)}</p></details>`
       }).join('')}</div>
       <button class="linkish" data-act="toggle-miles">${showAllMiles ? 'Show the next few only' : `Show all ${C.MILESTONES.length} milestones`}</button>
     </section>`
