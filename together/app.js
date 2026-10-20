@@ -265,7 +265,7 @@ function stampLink() {
 
 // Typed-but-unsaved values, keyed by input id. Every render puts them back, so
 // a live update from the other phone never wipes a half-filled form.
-const FORM_IDS = ['wishName', 'wishUrl', 'wishPrice', 'wishNotes', 'regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'regStars', 'regReviews', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode', 'checkAdd', 'nameAdd', 'bumpNote', 'vWeight', 'vBp', 'vPre', 'vHeight']
+const FORM_IDS = ['wishName', 'wishUrl', 'wishPrice', 'wishNotes', 'regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'regStars', 'regReviews', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode', 'checkAdd', 'nameAdd', 'bumpNote', 'vWeight', 'vBp', 'vPre', 'vHeight', 'jText']
 const formState = {}
 const clearForm = prefix => { for (const k of Object.keys(formState)) if (k.startsWith(prefix)) delete formState[k] }
 function restoreForms(focusId, sel) {
@@ -313,7 +313,7 @@ function renderScreen() {
     <nav class="tabs">
       ${NAV.map(([id, i, l]) => id === 'checkin'
         ? `<button data-tab="checkin" class="plus ${sheet === 'log' ? 'on' : ''}" aria-label="Check in"><span>＋${!checkedInToday() && !lossMode() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>Check in</button>`
-        : `<button data-tab="${id}" class="${tab === id || (tab === 'weeks' && id === 'today') || (tab === 'tool' && id === (toolView === 'moodcheck' ? 'today' : 'plan')) ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
+        : `<button data-tab="${id}" class="${tab === id || ((tab === 'weeks' || tab === 'months') && id === 'today') || (tab === 'tool' && id === (toolView === 'moodcheck' ? 'today' : 'plan')) ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
     </nav>
     ${sheet ? sheetHtml() : ''}`
   document.body.classList.toggle('noscroll', !!sheet)
@@ -321,8 +321,8 @@ function renderScreen() {
   if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
 }
 const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
-const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Is it safe?', plan: 'Plan', settings: 'Settings', weeks: 'Week by week', tool: 'Tools' }
-const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView(), tool: () => toolScreen() }
+const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Safe? & guides', plan: 'Plan', settings: 'Settings', weeks: 'Week by week', tool: 'Tools', months: 'Month by month' }
+const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView(), tool: () => toolScreen(), months: () => monthsView() }
 
 // ── Sheets: forms slide up over the current screen ──────────────────────────
 // Drawn as part of the screen (so a live update redraws them too, and typed
@@ -564,6 +564,7 @@ function today() {
   if (me() === 'mom') {
     return `${alert}${hero}
       ${herToday ? checkinCard(herToday, '✅ Your check-in today', true) : checkinPrompt()}
+      ${g ? todoCard(wk) : ''}
       ${g ? stageCard() : ''}
       ${tools}
       ${fromPartnerCard()}
@@ -576,6 +577,7 @@ function today() {
     ${myCI ? doneLine(myCI) : checkinPrompt()}
     ${herToday ? checkinCard(herToday, `${esc(n.mom)}'s check-in`) + gamePlanCard(herToday)
       : `<section class="card soft"><h3>No check-in from ${esc(n.mom)} yet today</h3><p>A gentle "How are you feeling today?" text beats guessing.${herCI ? ` <span class="fine">Last check-in: ${fmtWhen(herCI.created_at)}</span>` : ''}</p></section>`}
+    ${g ? todoCard(wk) : ''}
     ${g ? stageCard() : ''}
     ${tools}
     ${myCI && num(myCI.data.stress, 1, 5) >= 4 ? breatheCard() : ''}
@@ -720,6 +722,7 @@ function weeksView() {
     <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
     ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}
     ${help ? `<section class="card"><h3>🫶 For ${me() === 'dad' ? 'you' : esc(names().dad)} this week</h3><p>${esc(help)}</p></section>` : ''}
+    ${(C.WEEK_TODOS || {})[w] ? `<section class="card"><h3>✅ To-dos for week ${w}</h3>${todoRows(w, todoState())}</section>` : ''}
     ${miles.length ? `<section class="card"><h3>📅 This week's milestones</h3>${miles.map(m => `<p><b>${esc(m.title)}</b><br><span class="fine">${esc(m.detail)}</span></p>`).join('')}</section>` : ''}
     ${st ? `<p class="fine center">Part of: ${st.emoji} ${esc(st.title)} (weeks ${st.from || 4}–${Math.min(st.to, 42)})</p>` : ''}
     ${w !== now ? `<button class="big" data-week="${now}">Back to this week</button>` : ''}
@@ -1190,7 +1193,10 @@ function lookup() {
   else if (lookupTab === 'home') {
     body = `${banner}
       <div class="cat-grid">${cats.map(([id, i, l, sub]) => `<button class="cat ${id === 'redflags' ? 'red' : ''}" data-lt="${id}"><span>${i}</span><b>${l}</b><small>${sub}</small></button>`).join('')}</div>
-      <section class="card"><h3>Most searched</h3><div class="chips">${MOST_SEARCHED.map(t => `<button class="chip" data-q="${esc(t)}">${esc(t)}</button>`).join('')}</div></section>`
+      <section class="card"><h3>Most searched</h3><div class="chips">${MOST_SEARCHED.map(t => `<button class="chip" data-q="${esc(t)}">${esc(t)}</button>`).join('')}</div></section>
+      ${guidesList()}`
+  } else if (lookupTab === 'guide') {
+    body = guideView()
   } else {
     const [, i, l] = cats.find(c => c[0] === lookupTab) || cats[0]
     let list = ''
@@ -1584,6 +1590,7 @@ const TOOLS = [
   ['birthplan', '📝', 'Birth plan', 'Your preferences'],
   ['questions', '❓', 'Questions for the OB', 'Bring them to the visit'],
   ['health', '⚖️', 'Weight & blood pressure', 'Feeds the OB summary'],
+  ['journal', '📔', 'Journal', 'Private, or shared'],
 ]
 const toolTitle = id => id === 'moodcheck' ? 'How are you doing?' : (TOOLS.find(t => t[0] === id) || [])[2] || 'Tools'
 const live = kind => entries(kind).filter(e => !e.data.removed)
@@ -1612,7 +1619,7 @@ function toolShortcuts() {
 }
 
 function toolScreen() {
-  const body = { kicks: kicksTool, contractions: contractionsTool, bump: bumpTool, names: namesTool, bag: () => listTool('bag'), questions: () => listTool('q'), birthplan: birthPlanTool, health: healthTool, moodcheck: moodCheckTool }[toolView]
+  const body = { kicks: kicksTool, contractions: contractionsTool, bump: bumpTool, names: namesTool, bag: () => listTool('bag'), questions: () => listTool('q'), birthplan: birthPlanTool, health: healthTool, moodcheck: moodCheckTool, journal: journalTool }[toolView]
   return `${toolView === 'moodcheck' ? '<button class="linkish" data-tab="today">‹ Today</button>' : '<button class="linkish" data-go="plan" data-pv="tools">‹ All tools</button>'}${body ? body() : toolsGrid()}`
 }
 
@@ -1875,6 +1882,7 @@ function babyToday() {
       <div class="stat-row"><div><b>${feeds.length}</b><span>feeds today</span></div><div><b>${wet}/${dirty}</b><span>wet / dirty</span></div><div><b>${slept ? `${Math.floor(slept / 60)}h ${Math.round(slept % 60)}m` : '–'}</b><span>sleep logged</span></div></div>
       ${lastFeed ? `<p class="fine center">Last feed ${esc(ago2(lastFeed.created_at))}${lastFeed.data.type?.startsWith('breast') ? ` · ${esc(FEED_L()[lastFeed.data.type] || '')}` : ''}</p>` : ''}
     </section>
+    ${babyMonthCard()}
     <section class="card"><h3>Log it</h3>
       <div class="fine">Feed</div><div class="chips">${(C.FEED_TYPES || []).map(([id, l]) => `<button class="chip" data-feed="${id}">${esc(l)}</button>`).join('')}</div>
       <div class="fine">Diaper</div><div class="chips">${(C.DIAPER_TYPES || []).map(([id, l]) => `<button class="chip" data-diaper="${id}">${esc(l)}</button>`).join('')}</div>
@@ -1920,6 +1928,93 @@ function lossToday() {
     <section class="card"><h3>Support</h3>${(L.resources || []).map(([nm, c, d]) => { const tel = /\d{3}.*\d{4}|^Call or text 988/.test(c) ? (c.includes('988') && !/\d{3}-\d{3}/.test(c) ? '988' : c.replace(/[^0-9]/g, '').slice(-10)) : ''; const web = !tel && /\.\w{2,}$/.test(c) ? 'https://' + c : ''; return `<div class="mile"><b>${esc(nm)}</b><span>${tel ? `<a href="tel:${tel}">${esc(c)}</a>` : web ? `<a href="${esc(web)}" target="_blank" rel="noopener">${esc(c)}</a>` : esc(c)}</span></div><p class="fine">${esc(d)}</p>` }).join('')}</section>
     ${fromPartnerCard()}
     <p class="fine center">Daily tips and check-in reminders are paused. You can turn things back on in Settings whenever you're ready.</p>`
+}
+
+// ── This week's to-dos ──────────────────────────────────────────────────────
+// Ticking one adds a 'todo' entry; the latest entry per item wins, so either
+// of you can tick or untick and both phones agree.
+function todoState() { const m = new Map(); for (const e of entries('todo')) m.set(e.data.key, e.data); return m }
+function todoRows(w, st, leftover) {
+  return ((C.WEEK_TODOS || {})[w] || []).map((t, i) => {
+    const key = `w${w}:${i}`, s = st.get(key), done = !!s?.done
+    if (leftover && done) return ''
+    return `<div class="lrow ${done ? 'got' : ''}"><button class="tick" data-todo="${key}" aria-label="${done ? 'Not done' : 'Done'}">${done ? '✅' : '⬜'}</button>
+      <div class="lrow-main"><div class="lrow-name">${esc(t)}</div>${done && s.by ? `<div class="fine">done by ${esc(nameOf(s.by))}</div>` : leftover ? `<div class="fine">from week ${w}</div>` : ''}</div></div>`
+  }).join('')
+}
+function todoCard(wk) {
+  const st = todoState()
+  // anything left over from the last two weeks comes along, so nothing slips
+  const left = [wk - 2, wk - 1].filter(w => w >= 4).map(w => todoRows(w, st, true)).join('')
+  const now = todoRows(wk, st)
+  if (!now && !left) return ''
+  return `<section class="card"><div class="card-head"><b>✅ This week's to-dos</b><span class="fine">Shared</span></div>${left}${now}</section>`
+}
+
+// ── Baby's first year, month by month ───────────────────────────────────────
+const babyDays = () => { const b = bornDate(); return b ? Math.max(0, dayDiff(today0(), b)) : 0 }
+const babyMonth = () => Math.min(12, Math.floor(babyDays() / 30.44))
+function nextVisit() {
+  const d = babyDays()
+  return (C.WELL_VISITS || []).find(v => v[1] >= d - 3) || null
+}
+function babyMonthCard() {
+  const m = (C.BABY_MONTHS || [])[babyMonth()], v = nextVisit(), b = bornDate()
+  if (!m) return ''
+  return `<section class="card"><div class="card-head"><b>🌱 ${babyMonth() ? `Month ${babyMonth()}` : 'The first weeks'}: ${esc(m.title)}</b></div>
+    <ul>${m.can.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+    ${me() === 'dad' && m.partner ? `<p>🫶 ${esc(m.partner)}</p>` : `<p>💡 ${esc(m.tip)}</p>`}
+    ${v ? `<div class="mile top"><div><b>🩺 Next checkup: ${esc(v[0])}</b><p class="fine mile-detail">${esc(v[2])}</p></div><span>~${fmtDate(addDays(b, v[1]))}</span></div>` : ''}
+    <button class="linkish" data-month="${babyMonth()}">📖 Month by month ›</button></section>`
+}
+let monthShown = null
+function monthsView() {
+  const now = babyMonth(), list = C.BABY_MONTHS || [], mo = Math.max(0, Math.min(list.length - 1, monthShown ?? now)), m = list[mo], b = bornDate()
+  if (!m) return '<p class="fine">Coming soon.</p>'
+  const visits = (C.WELL_VISITS || []).filter(v => Math.min(12, Math.floor(v[1] / 30.44)) === mo)
+  return `<div class="week-nav">
+      <button class="more" data-month="${mo - 1}" ${mo <= 0 ? 'disabled' : ''} aria-label="Previous month">‹</button>
+      <div class="center"><b>${mo ? `Month ${mo}` : 'First weeks'}</b><div class="fine">${esc(m.title)}${mo === now ? ' · <b>now</b>' : ''}</div></div>
+      <button class="more" data-month="${mo + 1}" ${mo >= list.length - 1 ? 'disabled' : ''} aria-label="Next month">›</button>
+    </div>
+    <section class="card"><h3>👶 What many babies do</h3><ul>${m.can.map(t => `<li>${esc(t)}</li>`).join('')}</ul><p class="fine">${esc(C.BABY_MONTH_NOTE || '')}</p></section>
+    <section class="card"><h3>💡 Care tip</h3><p>${esc(m.tip)}</p></section>
+    ${m.partner ? `<section class="card"><h3>🫶 For ${me() === 'dad' ? 'you' : esc(names().dad)}</h3><p>${esc(m.partner)}</p></section>` : ''}
+    <section class="card"><h3>⏭️ Coming next</h3><p>${esc(m.next)}</p></section>
+    ${m.watch ? `<section class="card soft"><h3>📞 Call the pediatrician if</h3><p>${esc(m.watch)}</p></section>` : ''}
+    ${visits.length ? `<section class="card"><h3>🩺 Checkups this month</h3>${visits.map(v => `<div class="mile top"><div><b>${esc(v[0])}</b><p class="fine mile-detail">${esc(v[2])}</p></div><span>${b ? '~' + fmtDate(addDays(b, v[1])) : ''}</span></div>`).join('')}<p class="fine">${esc(C.VACCINE_NOTE || '')}</p></section>` : ''}
+    ${mo !== now ? `<button class="big" data-month="${now}">Back to this month</button>` : ''}
+    <button class="big" data-tab="today">Done</button>`
+}
+
+// ── Guides: longer reads, in the Safe? tab ──────────────────────────────────
+let guideOpen = null
+function guidesList() {
+  const g = C.GUIDES || []
+  return g.length ? `<section class="card"><h3>📚 Guides</h3>${g.map(x => `<button class="lrow guide-row" data-guide="${x.id}"><span class="tick">${x.emoji}</span><div class="lrow-main"><div class="lrow-name">${esc(x.title)}</div><div class="fine">${esc(x.intro)}</div></div><span class="more">›</span></button>`).join('')}</section>` : ''
+}
+function guideView() {
+  const x = (C.GUIDES || []).find(g => g.id === guideOpen)
+  if (!x) return guidesList()
+  return `<div class="list-head"><button class="linkish" data-guide="">‹ All</button><b>${x.emoji} ${esc(x.title)}</b></div>
+    <p class="lead">${esc(x.intro)}</p>
+    ${x.sections.map(([h, t]) => `<section class="card"><h3>${esc(h)}</h3><p>${esc(t)}</p></section>`).join('')}`
+}
+
+// ── Journal ─────────────────────────────────────────────────────────────────
+// Private by default: a private entry never leaves this phone (it's in Export
+// backup, not the cloud). Shared ones show on both phones.
+function journalTool() {
+  const prompt = pick(C.JOURNAL_PROMPTS || ['How are you feeling today?'], dayIndex())
+  const list = entries('journal').filter(e => e.author_role === me() || !e.local).slice().reverse()
+  return `<section class="card">
+      <p class="fine">Today's prompt</p><p><b>${esc(prompt)}</b></p>
+      <textarea id="jText" rows="5" maxlength="4000" placeholder="Write as much or as little as you like…"></textarea>
+      <label class="toggle"><input type="checkbox" id="jShare"> Share this one with ${esc(nameOf(other()))}</label>
+      <button class="big primary" data-act="journal-save">Save</button>
+      <p class="fine">🔒 Private entries stay on this phone only, so they aren't backed up online. Export a backup in Settings now and then.</p>
+    </section>
+    ${list.length ? list.map(e => `<section class="card"><div class="card-head"><span class="fine">${esc(fmtWhen(e.created_at))} · ${e.local ? '🔒 Private' : e.author_role === me() ? 'Shared' : `${face(e.author_role)} ${esc(nameOf(e.author_role))}`}</span>${e.author_role === me() ? `<button class="mini" data-del="${e.id}" aria-label="Delete">✕</button>` : ''}</div>${e.data.prompt ? `<p class="fine">${esc(e.data.prompt)}</p>` : ''}<p class="journal-text">${esc(e.data.text)}</p></section>`).join('') : '<p class="fine center">Your entries will show up here.</p>'}`
 }
 
 // ── Events ──────────────────────────────────────────────────────────────────
@@ -2008,6 +2103,9 @@ app.addEventListener('click', async ev => {
   }
 
   // ── tools ──
+  if (d.todo != null && d.todo) { const cur = todoState().get(d.todo); await S.addEntry('todo', { key: d.todo, done: !cur?.done, by: me() }); return }
+  if (d.month != null && d.month !== '') { monthShown = +d.month; const fresh = tab !== 'months'; tab = 'months'; sheet = null; render(); if (fresh) scrollTo(0, 0); return }
+  if (d.guide != null) { guideOpen = d.guide || null; lookupTab = d.guide ? 'guide' : 'home'; lookupQuery = ''; render(); scrollTo(0, 0); return }
   if (d.tool) { sheet = null; toolView = d.tool; photoOpen = null; if (d.tool === 'moodcheck') moodAns = {}; tab = 'tool'; render(); scrollTo(0, 0); return }
   if (d.vote) { await S.addEntry('namevote', { name: d.vote, like: d.like === '1' }); if (d.like === '1' && nameVotes(other()).get(d.vote) === true) toast(`💞 It's a match: ${d.vote}`); return }
   if (d.unvote) { await S.addEntry('namevote', { name: d.unvote, like: false }); return }
@@ -2034,6 +2132,12 @@ app.addEventListener('click', async ev => {
   if (d.moodQ) { moodAns = { ...moodAns, [d.moodQ]: d.yes === '1' }; const y = scrollY; render(); scrollTo(0, y); return }
 
   switch (d.act) {
+    case 'journal-save': {
+      const t = ($('#jText')?.value || '').trim().slice(0, 4000); if (!t) return toast('Write something first')
+      const share = !!$('#jShare')?.checked
+      await S.addEntry('journal', { text: t, prompt: pick(C.JOURNAL_PROMPTS || [''], dayIndex()) }, { local: !share })
+      delete formState.jText; toast(share ? `Saved and shared with ${nameOf(other())}` : 'Saved privately 🔒'); render(); return
+    }
     case 'kick-start': setToolState({ kick: { start: Date.now(), count: 0 } }); render(); return
     case 'kick-tap': {
       const k = toolState().kick; if (!k) return

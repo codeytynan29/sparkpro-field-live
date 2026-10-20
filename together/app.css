@@ -479,3 +479,7 @@ details summary { padding: 10px 0; margin-top: 0; }
 a.btn + a.btn { margin-left: 6px; }
 .mile.top { align-items: flex-start; }
 .mile-detail { margin: 2px 0 0; font-weight: 400; }
+.guide-row { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.guide-row:last-child { border-bottom: 0; }
+.journal-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+#jText { width: 100%; margin: 8px 0; }
