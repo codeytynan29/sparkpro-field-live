@@ -18,7 +18,7 @@ const DAY = 86400000
 let tab = 'today'
 let lookupTab = 'home' // 'home' | 'foods' | 'meds' | 'symptoms' | 'redflags'
 let lookupQuery = ''
-let planView = 'calendar' // 'calendar' | 'registry' | 'wish' inside the Plan tab
+let planView = 'calendar' // 'calendar' | 'registry' | 'wish' | 'tools' inside the Plan tab
 let histWho = 'both', histDays = 14
 let usView = null // 'her' | 'him' | 'feed'; defaults to the partner's side
 let draft = null // in-progress check-in, survives re-renders
@@ -265,7 +265,7 @@ function stampLink() {
 
 // Typed-but-unsaved values, keyed by input id. Every render puts them back, so
 // a live update from the other phone never wipes a half-filled form.
-const FORM_IDS = ['wishName', 'wishUrl', 'wishPrice', 'wishNotes', 'regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'regStars', 'regReviews', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode']
+const FORM_IDS = ['wishName', 'wishUrl', 'wishPrice', 'wishNotes', 'regUrl', 'regName', 'regPrice', 'regQty', 'regCat', 'regNotes', 'regStars', 'regReviews', 'apptTitle', 'apptDate', 'apptTime', 'apptNotes', 'msg', 'linkName', 'linkUrl', 'joinCode', 'checkAdd', 'nameAdd', 'bumpNote', 'vWeight', 'vBp', 'vPre', 'vHeight']
 const formState = {}
 const clearForm = prefix => { for (const k of Object.keys(formState)) if (k.startsWith(prefix)) delete formState[k] }
 function restoreForms(focusId, sel) {
@@ -305,15 +305,15 @@ function renderScreen() {
   const sub = tab === 'today' ? new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) : ''
   app.innerHTML = `
     <header class="top">
-      <div><h1 class="title">${TITLES[tab]}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>
+      <div><h1 class="title">${tab === 'tool' ? esc(toolTitle(toolView)) : TITLES[tab]}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>
       <button class="avatar ${tab === 'settings' ? 'on' : ''}" data-tab="settings" aria-label="Settings and sync">${esc((nameOf(me()) || '?').charAt(0).toUpperCase())}${dot ? `<i class="sdot ${dot}"></i>` : ''}</button>
     </header>
     ${S.status === 'removed' && tab !== 'settings' ? '<button class="call-banner fix" data-tab="settings"><b>⚠️ Disconnected</b><span>This phone was removed from your couple. Your entries are safe here. Tap to reconnect ›</span></button>' : ''}
     <main>${SCREENS[tab]()}</main>
     <nav class="tabs">
       ${NAV.map(([id, i, l]) => id === 'checkin'
-        ? `<button data-tab="checkin" class="plus ${sheet === 'log' ? 'on' : ''}" aria-label="Check in"><span>＋${!checkedInToday() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>Check in</button>`
-        : `<button data-tab="${id}" class="${tab === id || (tab === 'weeks' && id === 'today') ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
+        ? `<button data-tab="checkin" class="plus ${sheet === 'log' ? 'on' : ''}" aria-label="Check in"><span>＋${!checkedInToday() && !lossMode() ? '<i class="badge" aria-label="not checked in today"></i>' : ''}</span>Check in</button>`
+        : `<button data-tab="${id}" class="${tab === id || (tab === 'weeks' && id === 'today') || (tab === 'tool' && id === (toolView === 'moodcheck' ? 'today' : 'plan')) ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('')}
     </nav>
     ${sheet ? sheetHtml() : ''}`
   document.body.classList.toggle('noscroll', !!sheet)
@@ -321,8 +321,8 @@ function renderScreen() {
   if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
 }
 const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
-const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Is it safe?', plan: 'Plan', settings: 'Settings', weeks: 'Week by week' }
-const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView() }
+const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Is it safe?', plan: 'Plan', settings: 'Settings', weeks: 'Week by week', tool: 'Tools' }
+const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView(), tool: () => toolScreen() }
 
 // ── Sheets: forms slide up over the current screen ──────────────────────────
 // Drawn as part of the screen (so a live update redraws them too, and typed
@@ -344,11 +344,11 @@ function sheetHtml() {
 
 // ask({ title, text, ok, danger, input, placeholder }) → resolves true / the typed
 // text, or null if cancelled. Replaces the browser's confirm() and prompt().
-function ask({ title, text = '', ok = 'OK', cancel = 'Cancel', danger = false, input = false, placeholder = '' }) {
+function ask({ title, text = '', ok = 'OK', cancel = 'Cancel', danger = false, input = false, placeholder = '', max = 40, value = '' }) {
   return new Promise(resolve => {
     const d = document.createElement('dialog')
     d.className = 'sheet'
-    d.innerHTML = `<h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}${input ? `<input class="inp" maxlength="40" placeholder="${esc(placeholder)}">` : ''}
+    d.innerHTML = `<h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}${input ? `<input class="inp" maxlength="${max}" placeholder="${esc(placeholder)}" value="${esc(value)}">` : ''}
       <div class="sheet-row"><button class="big" data-r="0">${esc(cancel)}</button><button class="big ${danger ? 'danger-btn' : 'primary'}" data-r="1">${esc(ok)}</button></div>`
     document.body.append(d)
     const done = v => { d.close(); d.remove(); resolve(v) }
@@ -547,13 +547,16 @@ function devicesCard() {
 
 // ── Today ───────────────────────────────────────────────────────────────────
 function today() {
+  if (lossMode()) return lossToday()
+  if (bornDate()) return babyToday()
   const g = gest()
   const n = names()
   const wk = g ? Math.max(4, Math.min(42, g.week)) : 4
   const herCI = latest('checkin', 'mom')
   const herToday = herCI && sameDay(herCI.created_at) ? herCI : null
   const flags = flagsFor(herToday)
-  const alert = flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : ''
+  const alert = vitalsFlag() + (flags.length ? `<section class="card alert"><h3>⚠️ Worth a call</h3>${flags.map(f => `<p>${esc(f.text)}</p>`).join('')}${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''} <button class="ghost" data-go-lookup="redflags">When to call</button></section>` : '')
+  const tools = g ? toolShortcuts() + (g.week >= 36 ? babyHereCard() : '') : ''
   const hero = (isIOS && !standalone() && !(S.state.prefs || {}).a2hsSeen ? `<section class="card soft"><b>📲 Add Together to your home screen</b>
       <p class="fine">In Safari tap <b>Share</b> → <b>Add to Home Screen</b>, then open it from that icon. It remembers your pairing, and notifications only work from the icon.</p>
       <button class="linkish" data-act="a2hs-ok">Got it</button></section>` : '') + (g ? babyCard(g, wk) : datesCard())
@@ -562,6 +565,7 @@ function today() {
     return `${alert}${hero}
       ${herToday ? checkinCard(herToday, '✅ Your check-in today', true) : checkinPrompt()}
       ${g ? stageCard() : ''}
+      ${tools}
       ${fromPartnerCard()}
       ${comingUpCard(g)}
       ${tipCard()}
@@ -573,6 +577,7 @@ function today() {
     ${herToday ? checkinCard(herToday, `${esc(n.mom)}'s check-in`) + gamePlanCard(herToday)
       : `<section class="card soft"><h3>No check-in from ${esc(n.mom)} yet today</h3><p>A gentle "How are you feeling today?" text beats guessing.${herCI ? ` <span class="fine">Last check-in: ${fmtWhen(herCI.created_at)}</span>` : ''}</p></section>`}
     ${g ? stageCard() : ''}
+    ${tools}
     ${myCI && num(myCI.data.stress, 1, 5) >= 4 ? breatheCard() : ''}
     ${fromPartnerCard()}
     ${comingUpCard(g)}
@@ -669,7 +674,7 @@ function babyCard(g, wk) {
   const mom = me() === 'mom'
   return `<section class="card baby">
       <div class="baby-top">
-        <div class="fruit">${fe}</div>
+        <div class="fruit">${fe}${art(wk)}</div>
         <div>
           <div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> · day ${g.day + 1}</small>`}</div>
           <div>About the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
@@ -683,6 +688,12 @@ function babyCard(g, wk) {
       <button class="linkish" data-week="${wk}">📖 Week by week ›</button>
     </section>`
 }
+
+// Real artwork, when there is some: drop img/weeks/12.webp (etc.) next to
+// index.html and it covers the emoji. A missing file is only asked for once.
+const noArt = new Set()
+window.tgNoArt = el => { noArt.add(el.dataset.w); el.remove() }
+const art = w => noArt.has(String(w)) ? '' : `<img class="art" src="img/weeks/${w}.webp" alt="" data-w="${w}" onerror="tgNoArt(this)">`
 
 // ── Week by week: flip through every week, like the book ────────────────────
 let weekShown = null
@@ -703,7 +714,7 @@ function weeksView() {
     </div>
     <div class="week-dots">${Array.from({ length: 39 }, (_, i) => i + 4).map(x => `<button data-week="${x}" class="${x === w ? 'on' : ''} ${x === now ? 'now' : ''}" aria-label="Week ${x}"></button>`).join('')}</div>
     <section class="card week-hero">
-      <div class="big-fruit">${fe}</div>
+      <div class="big-fruit">${fe}${art(w)}</div>
       <p class="center">About the size of a <b>${esc(fruit)}</b><br><span class="fine">${esc(len)}</span></p>
     </section>
     <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
@@ -1044,7 +1055,7 @@ let obDays = 14
 function obSummaryText(days) {
   const n = names(), since = Date.now() - days * DAY
   const cis = entries('checkin', 'mom').filter(e => new Date(e.created_at) >= since)
-  if (!cis.length) return ''
+  if (!cis.length && !live('vitals').length && !live('check').some(e => e.data.list === 'q' && !e.data.done)) return ''
   const dayset = new Set(cis.map(e => new Date(e.created_at).toDateString()))
   const avg = k => { const v = cis.map(e => e.data[k]).filter(Boolean); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0 }
   const label = (list, v) => v ? (list.find(m => m.v === Math.round(v)) || {}).label : '—'
@@ -1057,15 +1068,20 @@ function obSummaryText(days) {
   const temps = cis.filter(e => parseFloat(e.data.temp)).map(e => `${new Date(e.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: ${e.data.temp}°`)
   const flags = cis.flatMap(e => flagsFor(e).map(f => `${new Date(e.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: ${f.s ? f.s.label : 'Flag'}`))
   const notes = cis.filter(e => e.data.note).slice(-5).map(e => `${new Date(e.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: "${e.data.note}"`)
+  const short = iso => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  const vit = live('vitals').filter(e => new Date(e.created_at) >= since).map(e => `• ${short(e.created_at)}: ${[e.data.weight ? e.data.weight + ' lb' : '', e.data.sys ? `BP ${e.data.sys}/${e.data.dia}` : ''].filter(Boolean).join(', ')}`)
+  const qs = live('check').filter(e => e.data.list === 'q' && !e.data.done).map(e => e.data.text)
   const g = gest()
   return [
     `${n.mom}'s check-in summary, last ${days} days${g ? ` (now ${weekAt(new Date().toISOString())}, due ${fmtDate(g.due)})` : ''}`,
-    `Checked in on ${dayset.size} of ${days} days.`,
-    `Average mood: ${label(C.MOOD, avg('mood'))}. Average energy: ${label(C.ENERGY, avg('energy'))}. Low-mood days: ${new Set(cis.filter(e => e.data.mood && e.data.mood <= 2).map(e => new Date(e.created_at).toDateString())).size}.`,
-    syms.length ? 'Symptoms:\n' + syms.map(([id, c]) => `• ${symptom(id)?.label || id}: ${c} day${c > 1 ? 's' : ''}, strongest ${LVL[symMax[id]]}`).join('\n') : 'No symptoms logged.',
+    cis.length ? `Checked in on ${dayset.size} of ${days} days.` : 'No check-ins in this period.',
+    cis.length && `Average mood: ${label(C.MOOD, avg('mood'))}. Average energy: ${label(C.ENERGY, avg('energy'))}. Low-mood days: ${new Set(cis.filter(e => e.data.mood && e.data.mood <= 2).map(e => new Date(e.created_at).toDateString())).size}.`,
+    !cis.length ? '' : syms.length ? 'Symptoms:\n' + syms.map(([id, c]) => `• ${symptom(id)?.label || id}: ${c} day${c > 1 ? 's' : ''}, strongest ${LVL[symMax[id]]}`).join('\n') : 'No symptoms logged.',
     temps.length ? 'Temperatures logged: ' + temps.join(', ') : '',
     flags.length ? 'Warning signs logged: ' + flags.join(', ') : '',
     notes.length ? `${n.mom}'s notes:\n` + notes.map(t => '• ' + t).join('\n') : '',
+    vit.length ? 'Weight & blood pressure:\n' + vit.join('\n') : '',
+    qs.length ? 'Questions for this visit:\n' + qs.map(t => '• ' + t).join('\n') : '',
     '(From the Together app. Self-reported, not a medical record.)',
   ].filter(Boolean).join('\n\n')
 }
@@ -1411,8 +1427,8 @@ function registryText() {
 function plan() {
   if (planView === 'settings') { planView = 'calendar'; tab = 'settings'; return settings() } // old links
   const gifts = planView === 'registry' || planView === 'wish'
-  const seg = `<div class="seg eq two">${[['calendar', '🗓️ Calendar', !gifts], ['registry', '🎁 Registry & gifts', gifts]].map(([id, l, on]) => `<button data-pv="${id}" class="${on ? 'on' : ''}">${l}</button>`).join('')}</div>`
-  return seg + (planView === 'registry' ? registry() : planView === 'wish' ? wishlist() : calendar())
+  const seg = `<div class="seg eq">${[['calendar', '🗓️ Calendar', planView === 'calendar'], ['registry', '🎁 Gifts', gifts], ['tools', '🧰 Tools', planView === 'tools']].map(([id, l, on]) => `<button data-pv="${id}" class="${on ? 'on' : ''}">${l}</button>`).join('')}</div>`
+  return seg + (planView === 'registry' ? registry() : planView === 'wish' ? wishlist() : planView === 'tools' ? toolsGrid() : calendar())
 }
 
 // ── Push present wishlist ───────────────────────────────────────────────────
@@ -1515,6 +1531,9 @@ function settings() {
       ${person('mom')}${person('dad')}
       <p class="fine">${g ? `Due <b>${fmtDate(g.due)}</b> ${g.fromDoctor ? '(from your doctor)' : '(estimated from last period)'}` : 'Dates not set'}${p.obPhone ? ` · OB ${esc(p.obPhone)}` : ''}</p>
     </section>
+    ${lossMode() ? `<section class="card"><b>🤍 Pregnancy updates are paused</b><p class="fine">Today shows support instead of weekly updates, and daily tips are off.</p><button class="ghost pill" data-act="loss-off">Turn pregnancy updates back on</button></section>`
+      : bornDate() ? `<section class="card"><b>👶 Newborn mode</b><p class="fine">${esc(babyName())} · born ${fmtDate(bornDate())}</p><div class="chips"><button class="chip" data-act="baby-here">Edit name or date</button><button class="chip" data-act="baby-undo">Turn off</button></div></section>`
+      : babyHereCard()}
     <section class="card soft">
       <b>Sync</b>
       ${S.status === 'removed' ? '<p><b>This phone was removed from your couple.</b> Everything here is still saved on it. To reconnect, tap Unpair below, then join again with your couple code.</p>' : ''}
@@ -1534,6 +1553,7 @@ function settings() {
       <label class="ghost file">Import backup<input type="file" id="importFile" accept="application/json" hidden></label>
       <button class="ghost danger" data-act="reset">Erase everything on this phone</button>
     </details>
+    ${lossMode() ? '' : `<details class="card fold"><summary>🤍 If the pregnancy has ended</summary><p class="fine">We're so sorry. This pauses the weekly updates and daily tips on both phones and shows support instead. Your entries stay, and you can turn it back any time.</p><button class="ghost" data-act="loss-on">Pause pregnancy updates</button></details>`}
     ${disclaimerCard()}`
 }
 
@@ -1549,6 +1569,357 @@ function apptForm() {
       <button class="big primary" data-act="add-appt">${a ? 'Save changes' : 'Add appointment'}</button>
       ${a && a.author_role === me() ? `<button class="ghost danger" data-del="${a.id}">Delete appointment</button>` : ''}
     </div>`
+}
+
+// ── Tools: kick counter, contractions, bump photos, names, lists, health ────
+// Each tool is its own screen (tab 'tool'). Timers keep running when you
+// leave the screen: their state lives in prefs.tools on this phone.
+let toolView = 'kicks'
+const TOOLS = [
+  ['kicks', '👣', 'Kick counter', 'From about 28 weeks'],
+  ['contractions', '⏱️', 'Contraction timer', 'Either phone can time'],
+  ['bump', '📸', 'Bump photos', 'A photo a week'],
+  ['names', '💬', 'Baby names', 'Vote, see your matches'],
+  ['bag', '🧳', 'Hospital bag', 'One shared checklist'],
+  ['birthplan', '📝', 'Birth plan', 'Your preferences'],
+  ['questions', '❓', 'Questions for the OB', 'Bring them to the visit'],
+  ['health', '⚖️', 'Weight & blood pressure', 'Feeds the OB summary'],
+]
+const toolTitle = id => id === 'moodcheck' ? 'How are you doing?' : (TOOLS.find(t => t[0] === id) || [])[2] || 'Tools'
+const live = kind => entries(kind).filter(e => !e.data.removed)
+const toolState = () => (S.state.prefs || {}).tools || {}
+function setToolState(patch) { S.state.prefs = { ...S.state.prefs, tools: { ...toolState(), ...patch } }; S.save() }
+const mmss = s => { s = Math.max(0, Math.round(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }
+const ago2 = iso => { const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.floor(m / 60)}h ${m % 60}m ago` : fmtWhen(iso) }
+
+function toolsGrid() {
+  const wk = gest()?.week ?? 0
+  return `<div class="cat-grid">${TOOLS.map(([id, i, l, sub]) => `<button class="cat" data-tool="${id}"><span>${i}</span><b>${l}</b><small>${sub}</small></button>`).join('')}</div>
+    ${wk >= 36 && !bornDate() ? babyHereCard() : ''}`
+}
+// The tools that matter this week, as a row on Today
+function toolShortcuts() {
+  const g = gest(), wk = g ? g.week : 0, list = []
+  if (wk >= 26) list.push(['kicks', '👣 Count kicks'])
+  if (wk >= 34) list.push(['contractions', '⏱️ Time contractions'])
+  if (wk >= 8 && !live('bump').some(e => e.data.week === wk)) list.push(['bump', `📸 Week ${wk} photo`])
+  list.push(['names', '💬 Baby names'])
+  if (wk >= 30) list.push(['bag', '🧳 Hospital bag'])
+  const q = live('check').filter(e => e.data.list === 'q' && !e.data.done).length
+  list.push(['questions', `❓ OB questions${q ? ` (${q})` : ''}`])
+  return `<section class="card"><div class="card-head"><b>🧰 Tools</b><button class="linkish" data-go="plan" data-pv="tools">All tools ›</button></div>
+    <div class="chips">${list.map(([id, l]) => `<button class="chip" data-tool="${id}">${l}</button>`).join('')}</div></section>`
+}
+
+function toolScreen() {
+  const body = { kicks: kicksTool, contractions: contractionsTool, bump: bumpTool, names: namesTool, bag: () => listTool('bag'), questions: () => listTool('q'), birthplan: birthPlanTool, health: healthTool, moodcheck: moodCheckTool }[toolView]
+  return `${toolView === 'moodcheck' ? '<button class="linkish" data-tab="today">‹ Today</button>' : '<button class="linkish" data-go="plan" data-pv="tools">‹ All tools</button>'}${body ? body() : toolsGrid()}`
+}
+
+// ── Kick counter ──
+function kicksTool() {
+  const k = toolState().kick, n = names()
+  const past = live('kicks').slice(-8).reverse()
+  const running = !!k
+  return `<section class="card center tool-hero">
+      ${running ? `<div class="fine">Started ${new Date(k.start).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} · <span id="tick" data-since="${k.start}">${mmss((Date.now() - k.start) / 1000)}</span></div>
+        <button class="big-round" data-act="kick-tap"><b>${k.count}</b><small>of 10</small></button>
+        <p>Tap for each movement: kicks, rolls, swishes and jabs all count.</p>
+        <div class="sheet-row"><button class="big" data-act="kick-cancel">Cancel</button><button class="big primary" data-act="kick-done">Done</button></div>`
+      : `<div class="big-emoji">👣</div><h3>Count to 10 movements</h3>
+        <p class="fine">${esc(C.KICK_NOTE || '')}</p>
+        <button class="big primary" data-act="kick-start">Start counting</button>`}
+    </section>
+    ${running && Date.now() - k.start > 2 * 3600e3 && k.count < 10 ? `<section class="card alert"><h3>⚠️ Fewer than 10 movements in 2 hours</h3><p>Call labor & delivery now. Don't wait to count again.</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call</a>` : ''}</section>` : ''}
+    ${past.length ? `<section class="card"><h3>Recent counts</h3>${past.map(e => `<div class="mile"><b>${num(e.data.count, 0, 99)} movements in ${num(e.data.minutes, 0, 999)} min</b><span>${esc(fmtWhen(e.created_at))} · ${face(e.author_role)}</span></div>`).join('')}</section>` : ''}`
+}
+
+// ── Contraction timer ──
+// Each contraction is saved the moment it ends, so the other phone sees it live.
+function contractionSession() {
+  const since = toolState().ctxSince || 0
+  const list = live('contraction').filter(e => e.data.end && e.data.start > since).sort((a, b) => a.data.start - b.data.start)
+  const session = []
+  for (let i = list.length - 1; i >= 0; i--) {
+    if (session.length && session[0].data.start - list[i].data.end > 2 * 3600e3) break
+    session.unshift(list[i])
+  }
+  return session.length && Date.now() - session.at(-1).data.end < 3 * 3600e3 ? session : []
+}
+function contractionStats(s) {
+  const hour = s.filter(e => e.data.start > Date.now() - 3600e3)
+  const dur = hour.length ? hour.reduce((t, e) => t + (e.data.end - e.data.start), 0) / hour.length / 1000 : 0
+  const gaps = hour.slice(1).map((e, i) => (e.data.start - hour[i].data.start) / 1000)
+  const freq = gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : 0
+  const span = hour.length > 1 ? (hour.at(-1).data.start - hour[0].data.start) / 60000 : 0
+  return { count: hour.length, dur, freq, fiveOneOne: hour.length >= 8 && freq && freq <= 330 && dur >= 50 && span >= 45 }
+}
+function contractionsTool() {
+  const c = toolState().contraction, s = contractionSession(), st = contractionStats(s)
+  return `<section class="card center tool-hero">
+      ${c ? `<div class="fine">Contraction in progress</div><div class="timer" id="tick" data-since="${c.start}">${mmss((Date.now() - c.start) / 1000)}</div>
+        <button class="big-round stop" data-act="ctx-stop"><b>Stop</b><small>when it ends</small></button>`
+      : `<div class="timer">${s.length ? ago2(new Date(s.at(-1).data.end).toISOString()).replace(' ago', '') : '0:00'}</div><div class="fine">${s.length ? 'since the last one ended' : 'Tap when a contraction starts'}</div>
+        <button class="big-round" data-act="ctx-start"><b>Start</b><small>contraction</small></button>`}
+    </section>
+    ${st.fiveOneOne ? `<section class="card alert"><h3>⏰ About 5 minutes apart, about a minute long, for an hour</h3><p>Many providers want a call at this point. Follow your own provider's rule, and call now if you're unsure.</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call</a>` : ''}</section>` : ''}
+    ${s.length ? `<section class="card">
+        <div class="stat-row"><div><b>${st.count}</b><span>in the last hour</span></div><div><b>${st.dur ? mmss(st.dur) : '–'}</b><span>avg length</span></div><div><b>${st.freq ? mmss(st.freq) : '–'}</b><span>avg apart</span></div></div>
+        ${s.slice(-10).reverse().map((e, i, arr) => { const next = arr[i + 1]; return `<div class="mile"><b>${new Date(e.data.start).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} · ${mmss((e.data.end - e.data.start) / 1000)} long</b><span>${next ? mmss((e.data.start - next.data.start) / 1000) + ' apart' : ''}</span></div>` }).join('')}
+        <div class="sheet-row"><button class="big" data-act="ctx-undo">Undo last</button><button class="big" data-act="ctx-clear">New session</button></div>
+      </section>` : ''}
+    <p class="fine">${esc(C.CONTRACTION_NOTE || '')}</p>`
+}
+
+// ── Bump photos ──
+let photoOpen = null
+const fullUrls = {}
+function bumpTool() {
+  const g = gest(), wk = g ? g.week : 0
+  const list = live('bump').slice().sort((a, b) => b.data.week - a.data.week || b.created_at.localeCompare(a.created_at))
+  const has = list.some(e => e.data.week === wk)
+  const open = photoOpen ? list.find(e => e.id === photoOpen) : null
+  return `${open ? `<section class="card photo-full"><img id="fullPhoto" src="${esc(fullUrls[open.id] || open.data.thumb)}" alt="Week ${num(open.data.week, 0, 45)} bump photo">
+        <p><b>Week ${num(open.data.week, 0, 45)}</b> · ${esc(fmtDate(new Date(open.created_at)))}</p>${open.data.note ? `<p>${esc(open.data.note)}</p>` : ''}
+        <div class="sheet-row"><button class="big" data-act="photo-close">Close</button>${open.author_role === me() ? `<button class="big danger-btn" data-act="photo-del" data-id="${open.id}">Delete</button>` : '<span></span>'}</div></section>` : ''}
+    <section class="card">
+      <div class="card-head"><div><b>${has ? `Week ${wk} ✓` : `Week ${wk} photo`}</b><div class="fine">${has ? 'Add another, or come back next week.' : 'Same spot, same pose each week makes a great timeline.'}</div></div>
+        <label class="primary pill file-pill">＋ Photo<input type="file" id="bumpFile" accept="image/*" hidden></label></div>
+      <label class="field">Note for this week (optional) <input id="bumpNote" placeholder="How you're feeling, cravings, firsts…"></label>
+    </section>
+    ${list.length ? `<div class="photo-grid">${list.map(e => `<button class="photo" data-photo="${e.id}"><img src="${esc(e.data.thumb)}" alt="Week ${num(e.data.week, 0, 45)}"><span>Wk ${num(e.data.week, 0, 45)}</span></button>`).join('')}</div>`
+      : '<p class="fine center">Your bump timeline will show up here.</p>'}`
+}
+// shrink a picked photo: a full image (for storage) and a small thumbnail (for the entry)
+function shrink(file, max, q) {
+  return new Promise((resolve, reject) => {
+    const img = new Image(), url = URL.createObjectURL(file)
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height))
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k)
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height)
+      URL.revokeObjectURL(url)
+      cv.toBlob(b => b ? resolve({ blob: b, dataUrl: max <= 400 ? cv.toDataURL('image/jpeg', q) : null }) : reject(new Error('Could not read the photo')), 'image/jpeg', q)
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That file isn\'t a photo this phone can read')) }
+    img.src = url
+  })
+}
+async function addBumpPhoto(file) {
+  const wk = gest()?.week ?? 0, note = ($('#bumpNote')?.value || '').trim().slice(0, 300)
+  toast('Saving photo…')
+  const thumb = await shrink(file, 360, 0.72)
+  const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
+  let path = ''
+  if (S.isPaired()) {
+    try { const full = await shrink(file, 1600, 0.85); path = await S.uploadPhoto(`${id}.jpg`, full.blob) } catch (e) { console.warn('full photo upload failed', e) }
+  }
+  await S.addEntry('bump', { week: wk, thumb: thumb.dataUrl, path, note })
+  toast(path ? 'Photo saved 📸' : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
+}
+
+async function saveKicks(k) {
+  const minutes = Math.max(1, Math.round((Date.now() - k.start) / 60000))
+  setToolState({ kick: null })
+  const e = await S.addEntry('kicks', { count: k.count, minutes })
+  if (k.count < 10 && minutes >= 120) notifyPartner('checkin', '', { title: `👣 Only ${k.count} movements in ${minutes} min`, body: 'Fewer movements than usual is a reason to call labor & delivery now.' }, e.id)
+  render()
+}
+// running timers tick on screen without redrawing the page
+setInterval(() => { const el = document.getElementById('tick'); if (el) el.textContent = mmss((Date.now() - +el.dataset.since) / 1000) }, 1000)
+
+// ── Baby names ──
+// Each vote is its own entry, so the two of you never overwrite each other.
+// You only ever see the other person's likes once they match yours.
+let nameView = 'swipe', nameSex = 'all'
+function nameVotes(role) {
+  const m = new Map()
+  for (const e of entries('namevote', role)) m.set(e.data.name, e.data.like)
+  return m
+}
+function namesTool() {
+  const mine = nameVotes(me()), theirs = nameVotes(other())
+  const custom = live('name').map(e => [e.data.name, e.data.sex || 'n'])
+  const all = [...custom, ...(C.BABY_NAMES || [])].filter((x, i, a) => a.findIndex(y => y[0].toLowerCase() === x[0].toLowerCase()) === i)
+  const pool = all.filter(([nm, sx]) => !mine.has(nm) && (nameSex === 'all' || sx === nameSex || sx === 'n'))
+  const next = pool[(dayIndex() * 7 + mine.size) % Math.max(1, pool.length)]
+  const matches = all.filter(([nm]) => mine.get(nm) === true && theirs.get(nm) === true)
+  const liked = all.filter(([nm]) => mine.get(nm) === true)
+  const sexL = { g: 'Girl', b: 'Boy', n: 'Either' }
+  const seg = `<div class="seg eq">${[['swipe', 'Vote'], ['matches', `Matches${matches.length ? ` (${matches.length})` : ''}`], ['mine', 'My likes']].map(([id, l]) => `<button data-nameview="${id}" class="${nameView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+  if (nameView === 'matches') return seg + `<section class="card">${matches.length ? matches.map(([nm, sx]) => `<div class="mile"><b>💞 ${esc(nm)}</b><span>${sexL[sx] || ''}</span></div>`).join('') : `<p class="fine">No matches yet. Names you both ❤️ show up here. ${esc(nameOf(other()))} never sees the names you pass on.</p>`}</section>`
+  if (nameView === 'mine') return seg + `<section class="card">${liked.length ? liked.map(([nm, sx]) => `<div class="mile"><b>❤️ ${esc(nm)}</b><span>${sexL[sx] || ''} <button class="mini del" data-unvote="${esc(nm)}" aria-label="Remove">✕</button></span></div>`).join('') : '<p class="fine">Names you like show up here.</p>'}</section>`
+  return seg + `<div class="chips">${[['all', 'All'], ['g', 'Girl'], ['b', 'Boy'], ['n', 'Neutral']].map(([id, l]) => `<button class="chip ${nameSex === id ? 'on' : ''}" data-namesex="${id}">${l}</button>`).join('')}</div>
+    <section class="card center name-card">
+      ${next ? `<div class="fine">${sexL[next[1]] || ''}</div><div class="name-big">${esc(next[0])}</div>
+        <div class="sheet-row"><button class="big" data-vote="${esc(next[0])}" data-like="0">✕ Pass</button><button class="big primary" data-vote="${esc(next[0])}" data-like="1">❤️ Like</button></div>`
+      : '<p>You\'ve been through every name on the list. Add your own below.</p>'}
+      <p class="fine">${mine.size} voted · ${matches.length} match${matches.length === 1 ? '' : 'es'}</p>
+    </section>
+    <section class="card"><label class="field">Add a name you love <input id="nameAdd" maxlength="30" placeholder="e.g. Juniper"></label>
+      <div class="chips">${[['g', 'Girl'], ['b', 'Boy'], ['n', 'Either']].map(([id, l]) => `<button class="chip" data-act="name-add" data-sex="${id}">＋ ${l}</button>`).join('')}</div></section>`
+}
+
+// ── Shared lists: hospital bag, questions for the OB ──
+let checkOpen = null
+function listTool(list) {
+  const items = live('check').filter(e => e.data.list === list)
+  const isBag = list === 'bag'
+  const open = items.filter(e => !e.data.done), done = items.filter(e => e.data.done)
+  const row = e => `<div class="lrow ${e.data.done ? 'got' : ''}">
+      <button class="tick" data-check="${e.id}" aria-label="${e.data.done ? 'Not done' : 'Done'}">${e.data.done ? '✅' : '⬜'}</button>
+      <div class="lrow-main"><div class="lrow-name">${esc(e.data.text)}</div>${e.data.answer ? `<div class="fine">💬 ${esc(e.data.answer)}</div>` : ''}${e.data.done && e.data.doneBy ? `<div class="fine">${isBag ? 'packed' : 'asked'} by ${esc(nameOf(e.data.doneBy))}</div>` : ''}</div>
+      <button class="more" data-check-more="${e.id}" aria-label="More">⋯</button>
+    </div>${checkOpen === e.id ? `<div class="chips row-actions"><button class="chip" data-act="check-note" data-id="${e.id}">📝 ${isBag ? 'Note' : 'Add the answer'}</button><button class="chip" data-act="check-remove" data-id="${e.id}">🗑 Remove</button></div>` : ''}`
+  const sections = isBag ? [...new Set(items.map(e => e.data.section || 'Other'))] : null
+  const wk = gest()?.week ?? 0
+  const ideas = !isBag ? (C.QUESTION_IDEAS || []).filter(([w, t]) => w <= wk + 4 && !items.some(e => e.data.text === t)).slice(0, 8) : []
+  return `<section class="card">
+      <div class="card-head"><div><b>${isBag ? `🧳 ${open.length} left to pack` : `❓ ${open.length} to ask`}</b><div class="fine">Shared: ${esc(nameOf(other()))} sees changes right away.</div></div></div>
+      <div class="compose-row"><textarea id="checkAdd" rows="1" placeholder="${isBag ? 'Add something to pack' : 'Add a question for the next visit'}"></textarea><button class="primary" data-act="check-add" data-list="${list}">Add</button></div>
+      ${isBag ? sections.map(sec => `<div class="lhead">${esc(sec)}</div>${items.filter(e => (e.data.section || 'Other') === sec && !e.data.done).map(row).join('')}`).join('') : open.map(row).join('')}
+      ${!items.length && isBag ? `<button class="big" data-act="bag-starter">Add the suggested list (${(C.BAG_LIST || []).length} items)</button>` : ''}
+      ${done.length ? `<details class="mini-details"><summary>${isBag ? 'Packed' : 'Asked'} (${done.length})</summary>${done.map(row).join('')}</details>` : ''}
+    </section>
+    ${ideas.length ? `<section class="card"><h3>💡 Questions people often ask around now</h3><div class="chips">${ideas.map(([, t]) => `<button class="chip" data-qidea="${esc(t)}">＋ ${esc(t)}</button>`).join('')}</div></section>` : ''}`
+}
+
+// ── Birth plan ──
+function birthPlan() {
+  const p = {}
+  for (const e of entries('birthplan')) Object.assign(p, e.data)
+  return p
+}
+function birthPlanText() {
+  const p = birthPlan(), n = names()
+  return [`Birth preferences: ${n.mom}${p.due ? '' : ''}`, ...(C.BIRTH_PLAN || []).map(sec => {
+    const chosen = (p[sec.id] || []).map(id => (sec.options.find(o => o[0] === id) || [])[1]).filter(Boolean)
+    const note = p[sec.id + '_note']
+    return chosen.length || note ? `${sec.title}:\n${chosen.map(c => '• ' + c).join('\n')}${note ? `\n• ${note}` : ''}` : ''
+  }).filter(Boolean), '(Preferences, not a contract. We know plans can change.)'].join('\n\n')
+}
+function birthPlanTool() {
+  const p = birthPlan()
+  return `<p class="fine">${esc(C.BIRTH_PLAN_INTRO || '')}</p>
+    ${(C.BIRTH_PLAN || []).map(sec => `<section class="card"><h3>${esc(sec.title)}</h3>${sec.note ? `<p class="fine">${esc(sec.note)}</p>` : ''}
+      <div class="chips">${sec.options.map(([id, l]) => `<button class="chip ${(p[sec.id] || []).includes(id) ? 'on' : ''}" data-bp="${sec.id}" data-opt="${id}">${esc(l)}</button>`).join('')}</div>
+      <label class="field">Anything else <input data-bpnote="${sec.id}" value="${esc(p[sec.id + '_note'] || '')}" placeholder="optional"></label></section>`).join('')}
+    <div class="sheet-row"><button class="big" data-act="bp-copy">📋 Copy</button><button class="big primary" data-act="bp-share">Share</button></div>`
+}
+
+// ── Weight & blood pressure ──
+function bpLevel(sys, dia) { return (C.BP_RULES || []).find(r => sys >= r.sys || dia >= r.dia) || { level: 'ok', text: '' } }
+function weightRange(wk) {
+  const p = profile(), h = parseFloat(p.heightIn), w0 = parseFloat(p.preWeight)
+  if (!h || !w0) return null
+  const bmi = 703 * w0 / (h * h)
+  const cat = (C.WEIGHT_GAIN || []).find(c => bmi >= c.bmiMin && bmi < c.bmiMax) || (C.WEIGHT_GAIN || [])[1]
+  if (!cat) return null
+  const [f0, f1] = C.FIRST_TRI_GAIN || [1.1, 4.4]
+  const lo = wk <= 13 ? f0 * wk / 13 : Math.min(cat.totalLb[0], f0 + (wk - 13) * cat.weeklyLb2nd3rd[0])
+  const hi = wk <= 13 ? f1 * wk / 13 : Math.min(cat.totalLb[1], f1 + (wk - 13) * cat.weeklyLb2nd3rd[1])
+  return { bmi, cat, lo, hi, w0 }
+}
+function healthTool() {
+  const p = profile(), wk = gest()?.week ?? 0, list = live('vitals').slice(-12).reverse()
+  const lastW = live('vitals').filter(e => e.data.weight).at(-1), r = weightRange(wk)
+  const gain = lastW && r ? parseFloat(lastW.data.weight) - r.w0 : null
+  const where = gain == null ? '' : gain < r.lo - 2 ? 'a bit under' : gain > r.hi + 2 ? 'a bit over' : 'within'
+  return `<section class="card">
+      <h3>Log today</h3>
+      <div class="row2"><label class="field">Weight (lb) <input id="vWeight" inputmode="decimal" placeholder="e.g. 142"></label><label class="field">Blood pressure <input id="vBp" inputmode="numeric" placeholder="e.g. 118/76"></label></div>
+      <button class="big primary" data-act="vitals-save">Save</button>
+      <p class="fine">${esc(C.BP_NOTE || '')}</p>
+    </section>
+    ${gain != null ? `<section class="card"><h3>Weight gain so far: ${gain >= 0 ? '+' : ''}${gain.toFixed(1)} lb</h3><p>That's ${where} the usual range for week ${wk} (${r.lo.toFixed(1)}–${r.hi.toFixed(1)} lb), based on a pre-pregnancy BMI of ${r.bmi.toFixed(1)}. Total recommended: ${r.cat.totalLb[0]}–${r.cat.totalLb[1]} lb.</p><p class="fine">${esc(C.WEIGHT_NOTE || '')}</p></section>`
+      : `<section class="card soft"><b>See weight gain against the recommended range</b><p class="fine">Add the pre-pregnancy weight and height once.</p>
+        <div class="row2"><label class="field">Pre-pregnancy weight (lb) <input id="vPre" inputmode="decimal" value="${esc(p.preWeight || '')}"></label><label class="field">Height (inches) <input id="vHeight" inputmode="decimal" value="${esc(p.heightIn || '')}" placeholder="e.g. 65"></label></div>
+        <button class="big" data-act="vitals-setup">Save</button></section>`}
+    ${list.length ? `<section class="card"><h3>History</h3>${list.map(e => { const lv = e.data.sys ? bpLevel(e.data.sys, e.data.dia) : null; return `<div class="mile"><b>${e.data.weight ? `${esc(e.data.weight)} lb` : ''}${e.data.weight && e.data.sys ? ' · ' : ''}${e.data.sys ? `${lv.level !== 'ok' ? '⚠️ ' : ''}BP ${num(e.data.sys, 0, 300)}/${num(e.data.dia, 0, 200)}` : ''}</b><span>${esc(fmtWhen(e.created_at))}</span></div>` }).join('')}</section>` : ''}`
+}
+// a worrying blood pressure today shows on Today too
+function vitalsFlag() {
+  const e = live('vitals').filter(x => x.data.sys && sameDay(x.created_at)).at(-1)
+  if (!e) return ''
+  const lv = bpLevel(e.data.sys, e.data.dia)
+  return lv.level === 'ok' ? '' : `<section class="card alert"><h3>⚠️ Blood pressure ${num(e.data.sys, 0, 300)}/${num(e.data.dia, 0, 200)}</h3><p>${esc(lv.text)}</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call OB</a>` : ''}</section>`
+}
+
+// ── After the birth: baby mode ──────────────────────────────────────────────
+// profile.born holds the birth date; 'none' switches baby mode back off
+// (profile() ignores blanks, so a blank could never undo it).
+const bornDate = () => { const b = profile().born; return /^\d{4}-\d{2}-\d{2}$/.test(b || '') ? parseDate(b) : null }
+const lossMode = () => profile().mode === 'loss'
+const babyName = () => profile().babyName || 'Baby'
+function babyAge() {
+  const b = bornDate(); if (!b) return ''
+  const d = dayDiff(today0(), b)
+  return d < 1 ? 'born today' : d < 14 ? `${d} day${d === 1 ? '' : 's'} old` : d < 84 ? `${Math.floor(d / 7)} weeks old` : `${Math.floor(d / 30.4)} months old`
+}
+const FEED_L = () => Object.fromEntries(C.FEED_TYPES || []), DIAPER_L = () => Object.fromEntries(C.DIAPER_TYPES || [])
+function babyLogLine(e) {
+  const t = new Date(e.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  const what = e.kind === 'feed' ? `Fed · ${FEED_L()[e.data.type] || ''}` : e.kind === 'diaper' ? `Diaper · ${DIAPER_L()[e.data.type] || ''}` : `😴 Slept ${mmss((e.data.end - e.data.start) / 60000).replace(':', 'h ')}m`
+  return `<div class="mile"><b>${esc(what)}</b><span>${t} · ${face(e.author_role)}${e.author_role === me() ? ` <button class="mini del" data-del="${e.id}" aria-label="Delete">✕</button>` : ''}</span></div>`
+}
+function babyToday() {
+  const n = names(), mom = me() === 'mom'
+  const day = ['feed', 'diaper', 'sleep'].flatMap(k => entries(k)).filter(e => sameDay(e.created_at)).sort((a, b) => a.created_at.localeCompare(b.created_at))
+  const feeds = day.filter(e => e.kind === 'feed'), diapers = day.filter(e => e.kind === 'diaper')
+  const lastFeed = entries('feed').at(-1)
+  const wet = diapers.filter(e => e.data.type !== 'dirty').length, dirty = diapers.filter(e => e.data.type !== 'wet').length
+  const slept = day.filter(e => e.kind === 'sleep').reduce((t, e) => t + (e.data.end - e.data.start), 0) / 60000
+  const sleep = toolState().sleep
+  return `<section class="card baby">
+      <div class="baby-top"><div class="fruit">👶</div><div><div class="wk">${esc(babyName())}</div><div>${esc(babyAge())}</div></div></div>
+      <div class="stat-row"><div><b>${feeds.length}</b><span>feeds today</span></div><div><b>${wet}/${dirty}</b><span>wet / dirty</span></div><div><b>${slept ? `${Math.floor(slept / 60)}h ${Math.round(slept % 60)}m` : '–'}</b><span>sleep logged</span></div></div>
+      ${lastFeed ? `<p class="fine center">Last feed ${esc(ago2(lastFeed.created_at))}${lastFeed.data.type?.startsWith('breast') ? ` · ${esc(FEED_L()[lastFeed.data.type] || '')}` : ''}</p>` : ''}
+    </section>
+    <section class="card"><h3>Log it</h3>
+      <div class="fine">Feed</div><div class="chips">${(C.FEED_TYPES || []).map(([id, l]) => `<button class="chip" data-feed="${id}">${esc(l)}</button>`).join('')}</div>
+      <div class="fine">Diaper</div><div class="chips">${(C.DIAPER_TYPES || []).map(([id, l]) => `<button class="chip" data-diaper="${id}">${esc(l)}</button>`).join('')}</div>
+      <div class="fine">Sleep</div>${sleep ? `<button class="big primary" data-act="sleep-stop">⏹ Woke up · asleep <span id="tick" data-since="${sleep.start}">${mmss((Date.now() - sleep.start) / 1000)}</span></button>` : '<button class="big" data-act="sleep-start">😴 Fell asleep</button>'}
+      ${day.length ? `<details class="mini-details"><summary>Today's log (${day.length})</summary>${day.slice().reverse().map(babyLogLine).join('')}</details>` : ''}
+    </section>
+    ${mom ? postpartumCard() : `<section class="card"><h3>🫶 Looking after ${esc(n.mom)}</h3><p>${esc(pick(C.POSTPARTUM_TIPS || [''], dayIndex()))}</p>
+        <details class="mini-details"><summary>${T('Call 911 if {m:they} {m:has|have}')}</summary><ul>${(C.POSTPARTUM_911 || []).map(t => `<li>${esc(t)}</li>`).join('')}</ul></details>
+        <details class="mini-details"><summary>Call the doctor for</summary><ul>${(C.POSTPARTUM_CALL || []).map(t => `<li>${esc(t)}</li>`).join('')}</ul></details></section>`}
+    <section class="card"><h3>💡 Newborn tip</h3><p>${esc(pick(C.NEWBORN_TIPS || [''], dayIndex()))}</p>
+      <details class="mini-details"><summary>🚨 When to call about the baby</summary><ul>${(C.NEWBORN_CALL || []).map(t => `<li>${esc(t)}</li>`).join('')}</ul></details></section>
+    ${fromPartnerCard()}`
+}
+function postpartumCard() {
+  return `<section class="card"><h3>🩹 Your recovery</h3><p>${esc(pick(C.POSTPARTUM_TIPS || [''], dayIndex()))}</p>
+    <details class="mini-details"><summary>🚨 Call 911 for</summary><ul>${(C.POSTPARTUM_911 || []).map(t => `<li>${esc(t)}</li>`).join('')}</ul></details>
+    <details class="mini-details"><summary>📞 Call your doctor for</summary><ul>${(C.POSTPARTUM_CALL || []).map(t => `<li>${esc(t)}</li>`).join('')}</ul></details>
+    <button class="big" data-tool="moodcheck">💭 How are you really doing? (1 minute)</button></section>`
+}
+// A gentle mood screen. Answers stay in memory only: never saved, never shared.
+let moodAns = {}
+function moodCheckTool() {
+  const qs = C.MOOD_CHECK || [], done = qs.every(([id]) => id in moodAns)
+  const crisis = moodAns.self_harm === true, any = Object.values(moodAns).some(Boolean)
+  return `<p class="fine">Just for you. Your answers aren't saved or shared.</p>
+    ${qs.map(([id, q]) => `<section class="card"><p>${esc(q)}</p><div class="sheet-row"><button class="big ${moodAns[id] === false ? 'primary' : ''}" data-mood-q="${id}" data-yes="0">No</button><button class="big ${moodAns[id] === true ? 'primary' : ''}" data-mood-q="${id}" data-yes="1">Yes</button></div></section>`).join('')}
+    ${crisis ? `<section class="card alert"><h3>Please reach out right now</h3><p>You deserve support, and it's available this minute.</p><a class="btn" href="tel:988">📞 Call 988</a> <a class="btn" href="sms:988">💬 Text 988</a> <a class="btn" href="tel:911">🚨 911</a></section>`
+      : done ? `<section class="card ${any ? 'alert' : 'soft'}"><h3>${any ? 'Worth talking to your provider about' : 'Thanks for checking in with yourself'}</h3><p>${any ? 'What you\'re feeling is common and treatable. Call your OB or midwife this week, or the Maternal Mental Health Hotline any time: call or text 1-833-852-6262.' : 'Check in again any time. Feelings can change quickly in the first weeks.'}</p>${any ? '<a class="btn" href="tel:18338526262">📞 1-833-TLC-MAMA</a>' : ''}</section>` : ''}
+    <p class="fine">${esc(C.MOOD_CHECK_NOTE || '')}</p>`
+}
+function babyHereCard() {
+  return `<section class="card soft"><b>👶 Has the baby arrived?</b><p class="fine">Switch Today to newborn mode: feeds, diapers, sleep, and recovery.</p><button class="ghost pill" data-act="baby-here">Baby is here!</button></section>`
+}
+
+// ── After a loss ────────────────────────────────────────────────────────────
+function lossToday() {
+  const L = C.LOSS_SUPPORT || {}, mom = me() === 'mom'
+  const list = a => `<ul>${(a || []).map(t => `<li>${esc(t)}</li>`).join('')}</ul>`
+  return `<section class="card"><h3>🤍</h3><p>${esc(L.intro || '')}</p></section>
+    ${mom ? `<section class="card"><h3>Your body</h3>${list(L.physical)}</section>` : `<section class="card"><h3>For you, ${esc(names().dad)}</h3>${list(L.partner)}</section>`}
+    <section class="card"><h3>Your feelings</h3>${list(L.emotional)}</section>
+    ${mom ? '' : `<details class="card fold"><summary>${T('What {m:name}\'s body is going through')}</summary>${list(L.physical)}</details>`}
+    <section class="card"><h3>Support</h3>${(L.resources || []).map(([nm, c, d]) => { const tel = /\d{3}.*\d{4}|^Call or text 988/.test(c) ? (c.includes('988') && !/\d{3}-\d{3}/.test(c) ? '988' : c.replace(/[^0-9]/g, '').slice(-10)) : ''; const web = !tel && /\.\w{2,}$/.test(c) ? 'https://' + c : ''; return `<div class="mile"><b>${esc(nm)}</b><span>${tel ? `<a href="tel:${tel}">${esc(c)}</a>` : web ? `<a href="${esc(web)}" target="_blank" rel="noopener">${esc(c)}</a>` : esc(c)}</span></div><p class="fine">${esc(d)}</p>` }).join('')}</section>
+    ${fromPartnerCard()}
+    <p class="fine center">Daily tips and check-in reminders are paused. You can turn things back on in Settings whenever you're ready.</p>`
 }
 
 // ── Events ──────────────────────────────────────────────────────────────────
@@ -1636,7 +2007,129 @@ app.addEventListener('click', async ev => {
     render(); return
   }
 
+  // ── tools ──
+  if (d.tool) { sheet = null; toolView = d.tool; photoOpen = null; if (d.tool === 'moodcheck') moodAns = {}; tab = 'tool'; render(); scrollTo(0, 0); return }
+  if (d.vote) { await S.addEntry('namevote', { name: d.vote, like: d.like === '1' }); if (d.like === '1' && nameVotes(other()).get(d.vote) === true) toast(`💞 It's a match: ${d.vote}`); return }
+  if (d.unvote) { await S.addEntry('namevote', { name: d.unvote, like: false }); return }
+  if (d.nameview) { nameView = d.nameview; render(); return }
+  if (d.namesex) { nameSex = d.namesex; render(); return }
+  if (d.check) {
+    const e = entries('check').find(x => x.id === d.check); if (!e) return
+    S.updateEntry(e.id, e.data.done ? { done: false, doneBy: null } : { done: true, doneBy: me() }); return
+  }
+  if (d.checkMore) { checkOpen = checkOpen === d.checkMore ? null : d.checkMore; render(); return }
+  if (d.qidea) { await S.addEntry('check', { list: 'q', text: d.qidea, done: false }); toast('Added to your questions'); return }
+  if (d.bp) {
+    const cur = birthPlan()[d.bp] || [], next = cur.includes(d.opt) ? cur.filter(x => x !== d.opt) : [...cur, d.opt]
+    const y = scrollY; await S.addEntry('birthplan', { [d.bp]: next }); scrollTo(0, y); return
+  }
+  if (d.photo) {
+    photoOpen = d.photo; render(); scrollTo(0, 0)
+    const e = entries('bump').find(x => x.id === d.photo)
+    if (e?.data.path && !fullUrls[e.id] && S.isPaired()) S.photoUrl(e.data.path).then(u => { fullUrls[e.id] = u; const img = $('#fullPhoto'); if (img && photoOpen === e.id) img.src = u }).catch(() => {})
+    return
+  }
+  if (d.feed) { const e = await S.addEntry('feed', { type: d.feed }); undoToast('Feed logged', () => S.removeEntry(e.id)); return }
+  if (d.diaper) { const e = await S.addEntry('diaper', { type: d.diaper }); undoToast('Diaper logged', () => S.removeEntry(e.id)); return }
+  if (d.moodQ) { moodAns = { ...moodAns, [d.moodQ]: d.yes === '1' }; const y = scrollY; render(); scrollTo(0, y); return }
+
   switch (d.act) {
+    case 'kick-start': setToolState({ kick: { start: Date.now(), count: 0 } }); render(); return
+    case 'kick-tap': {
+      const k = toolState().kick; if (!k) return
+      navigator.vibrate?.(25)
+      const count = k.count + 1
+      if (count < 10) { setToolState({ kick: { ...k, count } }); render(); return }
+      await saveKicks({ ...k, count }); toast(`10 movements in ${Math.max(1, Math.round((Date.now() - k.start) / 60000))} min 👣`); return
+    }
+    case 'kick-done': { const k = toolState().kick; if (k) await saveKicks(k); return }
+    case 'kick-cancel': setToolState({ kick: null }); render(); return
+    case 'ctx-start': setToolState({ contraction: { start: Date.now() } }); render(); return
+    case 'ctx-stop': {
+      const c = toolState().contraction; if (!c) return
+      setToolState({ contraction: null })
+      const was = contractionStats(contractionSession()).fiveOneOne
+      await S.addEntry('contraction', { start: c.start, end: Date.now() })
+      const st = contractionStats(contractionSession())
+      if (st.fiveOneOne && !was) notifyPartner('checkin', '', { title: '⏱️ Contractions about 5 minutes apart', body: `${st.count} in the last hour, about ${mmss(st.dur)} long. Time to call the provider?` })
+      return
+    }
+    case 'ctx-undo': {
+      const last = contractionSession().at(-1); if (!last) return
+      if (last.author_role === me()) { const gone = S.removeEntry(last.id); undoToast('Removed', () => S.restoreEntry(gone)) } else S.updateEntry(last.id, { removed: true })
+      return
+    }
+    case 'ctx-clear': if (await ask({ title: 'Start a new session?', text: 'The list starts fresh on this phone. Nothing is deleted.', ok: 'New session' })) { setToolState({ ctxSince: Date.now(), contraction: null }); render() } return
+    case 'sleep-start': setToolState({ sleep: { start: Date.now() } }); render(); return
+    case 'sleep-stop': { const z = toolState().sleep; setToolState({ sleep: null }); if (z) await S.addEntry('sleep', { start: z.start, end: Date.now() }); return }
+    case 'photo-close': photoOpen = null; render(); return
+    case 'photo-del': {
+      const e = entries('bump').find(x => x.id === d.id); if (!e) return
+      if (!await ask({ title: 'Delete this photo?', text: 'It\'s removed from both phones.', ok: 'Delete', danger: true })) return
+      photoOpen = null; S.removeEntry(e.id); if (e.data.path) S.removePhoto(e.data.path).catch(() => {})
+      toast('Photo deleted'); return
+    }
+    case 'name-add': {
+      const nm = ($('#nameAdd')?.value || '').trim().replace(/\s+/g, ' ').slice(0, 30)
+      if (!nm) return toast('Type a name first')
+      await S.addEntry('name', { name: nm, sex: d.sex })
+      await S.addEntry('namevote', { name: nm, like: true })
+      delete formState.nameAdd; toast(`Added ${nm} ❤️`); return
+    }
+    case 'check-add': {
+      const t = ($('#checkAdd')?.value || '').trim().slice(0, 200); if (!t) return
+      await S.addEntry('check', { list: d.list, text: t, done: false, section: d.list === 'bag' ? 'Added by us' : '' })
+      delete formState.checkAdd; const el = $('#checkAdd'); if (el) el.value = ''; return
+    }
+    case 'bag-starter': {
+      if (live('check').some(e => e.data.list === 'bag') || startingList) return
+      startingList = true; b.disabled = true
+      for (const [section, text] of C.BAG_LIST || []) await S.addEntry('check', { list: 'bag', text, section, done: false })
+      startingList = false; toast('Packing list added. Edit anything.'); return
+    }
+    case 'check-note': {
+      const e = entries('check').find(x => x.id === d.id); if (!e) return
+      const t = await ask({ title: e.data.list === 'q' ? 'What did they say?' : 'Note', text: e.data.text, input: true, max: 300, value: e.data.answer || '', ok: 'Save' })
+      if (t) { S.updateEntry(e.id, { answer: t, ...(e.data.list === 'q' ? { done: true, doneBy: me() } : {}) }); checkOpen = null }
+      return
+    }
+    case 'check-remove': { S.updateEntry(d.id, { removed: true }); checkOpen = null; const id = d.id; undoToast('Removed', () => S.updateEntry(id, { removed: false })); return }
+    case 'bp-copy': navigator.clipboard?.writeText(birthPlanText()).then(() => toast('Birth plan copied'), () => toast('Couldn\'t copy on this phone')); return
+    case 'bp-share': if (navigator.share) navigator.share({ text: birthPlanText() }).catch(() => {}); else navigator.clipboard?.writeText(birthPlanText()).then(() => toast('Birth plan copied')); return
+    case 'vitals-save': {
+      const w = parseFloat(($('#vWeight')?.value || '').replace(',', '.')), m = ($('#vBp')?.value || '').match(/(\d{2,3})\D+(\d{2,3})/)
+      const data = {}
+      if (w >= 60 && w <= 600) data.weight = String(Math.round(w * 10) / 10)
+      if (m && +m[1] >= 60 && +m[1] <= 260 && +m[2] >= 30 && +m[2] <= 180 && +m[1] > +m[2]) { data.sys = +m[1]; data.dia = +m[2] }
+      if (!data.weight && !data.sys) return toast('Add a weight (lb) or a blood pressure like 118/76')
+      const e = await S.addEntry('vitals', data)
+      for (const k of ['vWeight', 'vBp']) { delete formState[k]; const el = $('#' + k); if (el) el.value = '' }
+      const lv = data.sys ? bpLevel(data.sys, data.dia) : null
+      if (lv && lv.level !== 'ok') { notifyPartner('checkin', '', { title: `⚠️ ${nameOf(me())}'s blood pressure: ${data.sys}/${data.dia}`, body: lv.text }, e.id); toast('Saved. Please read the note about this reading.') } else toast('Saved')
+      render(); return
+    }
+    case 'vitals-setup': {
+      const pre = parseFloat($('#vPre')?.value), h = parseFloat($('#vHeight')?.value)
+      if (!(pre >= 60 && pre <= 600) || !(h >= 48 && h <= 84)) return toast('Weight in lb (like 140) and height in inches (5 ft 5 in = 65)')
+      await S.addEntry('profile', { preWeight: String(pre), heightIn: String(h) }); delete formState.vPre; delete formState.vHeight; return
+    }
+    case 'baby-here': {
+      const nm = await ask({ title: '👶 Congratulations!', text: 'What\'s the baby\'s name? (You can change it later.)', input: true, max: 30, value: profile().babyName || '', placeholder: 'Name', ok: 'Next' })
+      if (!nm) return
+      const born = await ask({ title: 'Born on', text: 'Type the date as YYYY-MM-DD, or leave today\'s.', input: true, max: 10, value: bornDate() ? profile().born : isoDate(new Date()), ok: 'Turn on newborn mode' })
+      if (!born) return
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(born) || parseDate(born) > new Date()) return toast('Use a date like 2027-05-14')
+      const fresh = !bornDate()
+      const e = await S.addEntry('profile', { born, babyName: nm })
+      tab = 'today'; render(); scrollTo(0, 0)
+      if (fresh) notifyPartner('checkin', '', { title: `👶 Welcome, ${nm}!`, body: 'Together is in newborn mode now: feeds, diapers, sleep and recovery.' }, e.id)
+      return
+    }
+    case 'baby-undo': if (await ask({ title: 'Turn off newborn mode?', text: 'Today goes back to the pregnancy view on both phones. Baby logs are kept.', ok: 'Turn off' })) await S.addEntry('profile', { born: 'none' }); return
+    case 'loss-on':
+      if (!await ask({ title: 'Pause pregnancy updates?', text: 'Both phones will stop showing weekly updates and daily tips, and show support instead. Nothing is deleted, and you can turn it back on any time.', ok: 'Pause updates' })) return
+      await S.addEntry('profile', { mode: 'loss' }); tab = 'today'; render(); scrollTo(0, 0); return
+    case 'loss-off': if (await ask({ title: 'Turn pregnancy updates back on?', ok: 'Turn on' })) await S.addEntry('profile', { mode: 'normal' }); return
     case 'save-dates': {
       const val = id => ($('#' + id)?.value || '').trim()
       const due = val('due'), lmp = due ? '' : val('lmp')
@@ -1894,6 +2387,8 @@ app.addEventListener('change', async ev => {
     setReminders(list); remindersChanged(); return
   }
   if (ev.target.id === 'private') readDraftInputs()
+  if (t.id === 'bumpFile' && t.files[0]) { try { await addBumpPhoto(t.files[0]); delete formState.bumpNote } catch (e) { toast(e.message || 'Couldn\'t add that photo') } t.value = ''; return }
+  if (t.dataset.bpnote) { await S.addEntry('birthplan', { [t.dataset.bpnote + '_note']: t.value.trim().slice(0, 300) }); return }
   if (ev.target.id === 'importFile') {
     const f = ev.target.files[0]; if (!f) return
     try {

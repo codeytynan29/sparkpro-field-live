@@ -353,6 +353,30 @@ export async function switchRole(role) {
   if (error) throw error
 }
 
+// Bump photos: the full image goes to private storage (only this couple can
+// read it); the entry keeps a small thumbnail so the timeline works offline.
+export async function uploadPhoto(path, blob) {
+  if (!state.coupleId) throw new Error('Pair your phones first')
+  const c = await client()
+  const { error } = await c.storage.from('tg-photos').upload(`${state.coupleId}/${path}`, blob, { contentType: blob.type || 'image/jpeg', upsert: true })
+  if (error) throw error
+  return `${state.coupleId}/${path}`
+}
+const urlCache = new Map()
+export async function photoUrl(path) {
+  const hit = urlCache.get(path)
+  if (hit && hit.until > Date.now()) return hit.url
+  const c = await client()
+  const { data, error } = await c.storage.from('tg-photos').createSignedUrl(path, 3600)
+  if (error) throw error
+  urlCache.set(path, { url: data.signedUrl, until: Date.now() + 3500e3 })
+  return data.signedUrl
+}
+export async function removePhoto(path) {
+  const c = await client()
+  await c.storage.from('tg-photos').remove([path])
+}
+
 // A new couple code. Paired phones stay paired; old invite links stop working.
 export async function rotateCode() {
   const c = await client()

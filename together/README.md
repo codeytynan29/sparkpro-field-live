@@ -53,3 +53,10 @@ The sync library (`vendor/supabase-js-2.45.4/`) ships with the app, so nothing l
 | `supabase/schema.sql` | Tables, RLS policies, pairing functions |
 
 *Educational information, not medical advice. In an emergency call 911.*
+
+## Tools, newborn mode, loss mode
+
+- **Plan → Tools:** kick counter, contraction timer (5-1-1 alert, either phone can time), bump photos (private `tg-photos` storage bucket, thumbnails kept in the entry), baby names (each of you votes; only shared likes show as matches), a shared hospital bag list, questions for the OB, birth plan, and a weight & blood pressure log. Open questions and readings go into the OB summary.
+- **Newborn mode** (Settings, or Today from 36 weeks): feeds, diapers and sleep, recovery warning signs, and a private mood check that is never saved.
+- **If the pregnancy has ended** (Settings): both phones show support instead of weekly updates, and the server stops sending tips and check-in reminders.
+- **Illustrations:** see `img/weeks/README.md`.

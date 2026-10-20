@@ -292,6 +292,9 @@ Deno.serve(async req => {
         due.forEach(r => done.add(`${now.date} ${r.time}`))
         // mark first so an overlapping run can't double-send
         await sb.from('tg_push_subs').update({ sent_keys: [...done], last_sent: now.date }).eq('endpoint', s.endpoint)
+        // pregnancy tips and check-in nudges stop after a loss, and once the baby is born
+        const prof = await profileFor(s.couple_id)
+        if (prof.mode === 'loss' || /^\d{4}-\d{2}-\d{2}$/.test(prof.born || '')) continue
         for (const r of due) {
           const msg = r.kind === 'checkin' ? await checkinReminder(s, toMin(r.time)) : await tipFor(s)
           if (msg && await send(s, { ...msg, tag: r.kind })) sent++

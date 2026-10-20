@@ -878,3 +878,400 @@ export const SOURCES = 'ACOG (American College of Obstetricians and Gynecologist
 export const INFO_UPDATED = 'October 2026'
 export const REVIEWED = false
 export const DISCLAIMER_SHORT = 'Not medical advice. Compiled by an AI assistant from public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'
+
+// ── Tools, after-birth mode and loss support (kick counter, contractions,
+// names, lists, birth plan, health log, newborn, postpartum, loss) ─────────
+// Reference content for Together: names, checklists, birth plan, guidance notes.
+
+export const BABY_NAMES = [
+  // Girls
+  ['Olivia', 'g'], ['Emma', 'g'], ['Charlotte', 'g'], ['Amelia', 'g'], ['Sophia', 'g'], ['Mia', 'g'],
+  ['Isabella', 'g'], ['Ava', 'g'], ['Evelyn', 'g'], ['Luna', 'g'], ['Harper', 'g'], ['Sofia', 'g'],
+  ['Camila', 'g'], ['Eleanor', 'g'], ['Elizabeth', 'g'], ['Violet', 'g'], ['Scarlett', 'g'], ['Emily', 'g'],
+  ['Hazel', 'g'], ['Lily', 'g'], ['Gianna', 'g'], ['Aurora', 'g'], ['Penelope', 'g'], ['Aria', 'g'],
+  ['Nora', 'g'], ['Chloe', 'g'], ['Ellie', 'g'], ['Mila', 'g'], ['Layla', 'g'], ['Abigail', 'g'],
+  ['Ella', 'g'], ['Isla', 'g'], ['Eliana', 'g'], ['Nova', 'g'], ['Madison', 'g'], ['Zoe', 'g'],
+  ['Ivy', 'g'], ['Grace', 'g'], ['Lucy', 'g'], ['Willow', 'g'], ['Emilia', 'g'], ['Naomi', 'g'],
+  ['Victoria', 'g'], ['Stella', 'g'], ['Elena', 'g'], ['Hannah', 'g'], ['Valentina', 'g'], ['Maya', 'g'],
+  ['Delilah', 'g'], ['Leah', 'g'], ['Lillian', 'g'], ['Paisley', 'g'], ['Genesis', 'g'], ['Madelyn', 'g'],
+  ['Sadie', 'g'], ['Sophie', 'g'], ['Leilani', 'g'], ['Addison', 'g'], ['Natalie', 'g'], ['Josephine', 'g'],
+  ['Alice', 'g'], ['Ruby', 'g'], ['Claire', 'g'], ['Kinsley', 'g'], ['Everly', 'g'], ['Adeline', 'g'],
+  ['Eloise', 'g'], ['Lydia', 'g'], ['Jade', 'g'], ['Iris', 'g'], ['Ximena', 'g'], ['Daisy', 'g'],
+  ['Athena', 'g'], ['Freya', 'g'], ['Margaret', 'g'], ['Clara', 'g'], ['Vivian', 'g'], ['Juniper', 'g'],
+  ['Maeve', 'g'], ['Rose', 'g'], ['Julia', 'g'], ['Sienna', 'g'], ['Esther', 'g'], ['Aaliyah', 'g'],
+  ['Amara', 'g'], ['Priya', 'g'], ['Anaya', 'g'], ['Mei', 'g'], ['Yara', 'g'], ['Imani', 'g'],
+  ['Zara', 'g'], ['Fatima', 'g'], ['Leila', 'g'], ['Ananya', 'g'], ['Aisha', 'g'], ['Esperanza', 'g'],
+  ['Lucia', 'g'], ['Mariana', 'g'], ['Gabriela', 'g'], ['Isabel', 'g'], ['Catalina', 'g'], ['Beatrice', 'g'],
+  ['Florence', 'g'], ['Matilda', 'g'], ['Evangeline', 'g'], ['Ophelia', 'g'], ['Poppy', 'g'], ['Magnolia', 'g'],
+  ['Georgia', 'g'], ['Harriet', 'g'], ['Mabel', 'g'], ['Ada', 'g'], ['Thea', 'g'], ['Cora', 'g'],
+  ['Lena', 'g'], ['Nadia', 'g'], ['Ingrid', 'g'], ['Saoirse', 'g'], ['Anna', 'g'], ['Sarah', 'g'],
+  ['Rachel', 'g'], ['Rebecca', 'g'], ['Katherine', 'g'], ['Mary', 'g'], ['Jasmine', 'g'], ['Gemma', 'g'],
+  ['Hallie', 'g'], ['Kaia', 'g'], ['Nyla', 'g'], ['Kiara', 'g'], ['Malia', 'g'], ['Talia', 'g'],
+  ['Mira', 'g'], ['Sloane', 'g'], ['Lainey', 'g'], ['Kennedy', 'g'],
+  // Boys
+  ['Liam', 'b'], ['Noah', 'b'], ['Oliver', 'b'], ['James', 'b'], ['Elijah', 'b'], ['Mateo', 'b'],
+  ['Theodore', 'b'], ['Henry', 'b'], ['Lucas', 'b'], ['William', 'b'], ['Benjamin', 'b'], ['Levi', 'b'],
+  ['Sebastian', 'b'], ['Jack', 'b'], ['Ezra', 'b'], ['Michael', 'b'], ['Daniel', 'b'], ['Leo', 'b'],
+  ['Owen', 'b'], ['Samuel', 'b'], ['Hudson', 'b'], ['Alexander', 'b'], ['Asher', 'b'], ['Luca', 'b'],
+  ['Ethan', 'b'], ['John', 'b'], ['David', 'b'], ['Jackson', 'b'], ['Joseph', 'b'], ['Mason', 'b'],
+  ['Luke', 'b'], ['Matthew', 'b'], ['Julian', 'b'], ['Dylan', 'b'], ['Elias', 'b'], ['Jacob', 'b'],
+  ['Maverick', 'b'], ['Gabriel', 'b'], ['Logan', 'b'], ['Aiden', 'b'], ['Thomas', 'b'], ['Isaac', 'b'],
+  ['Miles', 'b'], ['Grayson', 'b'], ['Santiago', 'b'], ['Anthony', 'b'], ['Wyatt', 'b'], ['Carter', 'b'],
+  ['Jayden', 'b'], ['Ezekiel', 'b'], ['Caleb', 'b'], ['Cooper', 'b'], ['Josiah', 'b'], ['Charles', 'b'],
+  ['Christopher', 'b'], ['Isaiah', 'b'], ['Nolan', 'b'], ['Nathan', 'b'], ['Joshua', 'b'], ['Waylon', 'b'],
+  ['Angel', 'b'], ['Lincoln', 'b'], ['Andrew', 'b'], ['Roman', 'b'], ['Adrian', 'b'], ['Jaxon', 'b'],
+  ['Jonathan', 'b'], ['Silas', 'b'], ['Atlas', 'b'], ['Arthur', 'b'], ['Jeremiah', 'b'], ['Beau', 'b'],
+  ['Xavier', 'b'], ['Axel', 'b'], ['Everett', 'b'], ['Declan', 'b'], ['Felix', 'b'], ['Hugo', 'b'],
+  ['Oscar', 'b'], ['Jasper', 'b'], ['Milo', 'b'], ['August', 'b'], ['Gideon', 'b'], ['Archer', 'b'],
+  ['Bennett', 'b'], ['Brooks', 'b'], ['Calvin', 'b'], ['Emmett', 'b'], ['Finn', 'b'], ['Graham', 'b'],
+  ['Harrison', 'b'], ['Jonah', 'b'], ['Malcolm', 'b'], ['Omar', 'b'], ['Rafael', 'b'], ['Ravi', 'b'],
+  ['Arjun', 'b'], ['Kenji', 'b'], ['Hiroshi', 'b'], ['Muhammad', 'b'], ['Ali', 'b'], ['Yusuf', 'b'],
+  ['Amir', 'b'], ['Malik', 'b'], ['Jamal', 'b'], ['Darius', 'b'], ['Andre', 'b'], ['Marcus', 'b'],
+  ['Diego', 'b'], ['Javier', 'b'], ['Carlos', 'b'], ['Emiliano', 'b'], ['Alejandro', 'b'], ['Nico', 'b'],
+  ['Desmond', 'b'], ['Otis', 'b'], ['Walter', 'b'], ['George', 'b'], ['Edward', 'b'], ['Louis', 'b'],
+  ['Ronan', 'b'], ['Theo', 'b'], ['Dominic', 'b'], ['Vincent', 'b'], ['Patrick', 'b'], ['Peter', 'b'],
+  ['Simon', 'b'], ['Tobias', 'b'], ['Abel', 'b'], ['Moses', 'b'], ['Enzo', 'b'], ['Arlo', 'b'],
+  ['Hunter', 'b'], ['Micah', 'b'], ['Spencer', 'b'], ['Sawyer', 'b'],
+  // Neutral
+  ['Avery', 'n'], ['Riley', 'n'], ['Emery', 'n'], ['Rowan', 'n'], ['Wren', 'n'], ['Quinn', 'n'],
+  ['Jordan', 'n'], ['Taylor', 'n'], ['Morgan', 'n'], ['Parker', 'n'], ['Reese', 'n'], ['Sage', 'n'],
+  ['River', 'n'], ['Phoenix', 'n'], ['Skyler', 'n'], ['Hayden', 'n'], ['Dakota', 'n'], ['Charlie', 'n'],
+  ['Finley', 'n'], ['Jamie', 'n'], ['Alex', 'n'], ['Rory', 'n'], ['Remi', 'n'], ['Ellis', 'n'],
+  ['Blake', 'n'], ['Kendall', 'n'], ['Peyton', 'n'], ['Ari', 'n'], ['Arden', 'n'], ['Shiloh', 'n'],
+  ['Harley', 'n'], ['Oakley', 'n'], ['Marlowe', 'n'], ['Briar', 'n'], ['Elliot', 'n'], ['Emerson', 'n'],
+  ['Hollis', 'n'], ['Indigo', 'n'], ['Jules', 'n'], ['Kai', 'n'], ['Lennon', 'n'], ['Lennox', 'n'],
+  ['Ocean', 'n'], ['Salem', 'n'], ['Shay', 'n'], ['Sutton', 'n'], ['Tatum', 'n'], ['Winter', 'n'],
+  ['Zion', 'n'], ['Bellamy', 'n'], ['Blair', 'n'], ['Cameron', 'n'], ['Casey', 'n'], ['Drew', 'n'],
+  ['Eden', 'n'], ['Frankie', 'n'], ['Gray', 'n'], ['Jessie', 'n'], ['Kit', 'n'], ['Lane', 'n'],
+  ['Marley', 'n'], ['Noel', 'n'], ['Robin', 'n'], ['Sasha', 'n'], ['Haven', 'n'], ['Rio', 'n'],
+  ['Sol', 'n'], ['Ashton', 'n'], ['Justice', 'n'], ['Teagan', 'n'],
+];
+
+export const BAG_LIST = [
+  ['For labor', 'Birth plan copies (2–3) for the care team'],
+  ['For labor', 'Comfy robe or your own gown'],
+  ['For labor', 'Non-slip socks or slippers'],
+  ['For labor', 'Lip balm (hospital air is dry)'],
+  ['For labor', 'Hair ties, headband, or clips'],
+  ['For labor', 'Glasses, plus contact case and solution'],
+  ['For labor', 'Massage tool or tennis ball for back pressure'],
+  ['For labor', 'Playlist and a small speaker or headphones'],
+  ['For labor', 'Light snacks and drinks (check what\'s allowed)'],
+  ['For labor', 'Your own pillow in a bright pillowcase'],
+  ['For after birth', 'Nursing bras or soft bras (2–3)'],
+  ['For after birth', 'Nursing pads'],
+  ['For after birth', 'Nipple cream'],
+  ['For after birth', 'High-waisted, roomy underwear (or disposable)'],
+  ['For after birth', 'Extra-absorbent maxi pads'],
+  ['For after birth', 'Toiletries: toothbrush, toothpaste, deodorant, shampoo'],
+  ['For after birth', 'Face wipes and moisturizer'],
+  ['For after birth', 'Loose, comfy going-home outfit (still maternity size)'],
+  ['For after birth', 'Shower flip-flops'],
+  ['For after birth', 'Water bottle with a straw'],
+  ['For after birth', 'Any daily medications you take'],
+  ['For the baby', 'Rear-facing infant car seat, installed and checked'],
+  ['For the baby', 'Going-home outfit (newborn and 0–3 month sizes)'],
+  ['For the baby', 'Hat and socks or footed sleeper'],
+  ['For the baby', 'Swaddle or receiving blanket'],
+  ['For the baby', 'Weather-appropriate car-seat cover or blanket (over the straps, not under)'],
+  ['For the baby', 'A few newborn diapers and wipes (hospitals usually supply)'],
+  ['For the baby', 'Burp cloths'],
+  ['For the baby', 'Formula and bottles if you plan to formula-feed (ask what\'s provided)'],
+  ['For the partner', 'Change of clothes and a warm layer'],
+  ['For the partner', 'Toiletries and any medications'],
+  ['For the partner', 'Pillow and a light blanket'],
+  ['For the partner', 'Plenty of snacks and a refillable water bottle'],
+  ['For the partner', 'Swimsuit if you may join a labor tub or shower'],
+  ['For the partner', 'Cash or card for parking, vending machines, and cafeteria'],
+  ['For the partner', 'List of people to update and how'],
+  ['For the partner', 'Book, tablet, or something for downtime'],
+  ['Documents & tech', 'Photo ID'],
+  ['Documents & tech', 'Insurance card'],
+  ['Documents & tech', 'Hospital pre-registration paperwork'],
+  ['Documents & tech', 'Pediatrician\'s name and phone number'],
+  ['Documents & tech', 'Phone chargers with an extra-long cable'],
+  ['Documents & tech', 'Portable battery pack'],
+  ['Documents & tech', 'Camera and memory card, if you use one'],
+  ['Documents & tech', 'Cord blood banking kit, if you\'ve signed up'],
+];
+
+export const BIRTH_PLAN_INTRO = 'These are your preferences, not guarantees. Go over them with your provider before labor, and remember that plans can change for good reasons, and that\'s OK.';
+
+export const BIRTH_PLAN = [
+  {
+    id: 'support',
+    title: 'Who\'s with you',
+    options: [
+      ['partner', 'Partner'],
+      ['doula', 'Doula'],
+      ['family', 'A family member or friend'],
+      ['students', 'OK to have students or trainees present'],
+      ['no_students', 'Prefer no students or trainees'],
+      ['limit_visitors', 'Limit visitors until we\'re ready'],
+    ],
+    note: 'Hospitals set limits on how many support people can be in the room, so check the policy ahead of time.',
+  },
+  {
+    id: 'environment',
+    title: 'Environment',
+    options: [
+      ['dim_lights', 'Dim lights'],
+      ['music', 'Our own music'],
+      ['quiet', 'Quiet room, minimal talking'],
+      ['photos', 'Photos allowed'],
+      ['video', 'Video allowed (where the hospital permits)'],
+      ['own_clothes', 'Wear my own clothes'],
+    ],
+    note: 'Many hospitals limit photos or video during the birth itself, so ask what\'s allowed.',
+  },
+  {
+    id: 'pain',
+    title: 'Pain relief',
+    options: [
+      ['unmedicated', 'Hope to go unmedicated'],
+      ['nonmed', 'Non-medical comfort first (breathing, massage, water, heat)'],
+      ['nitrous', 'Nitrous oxide, if available'],
+      ['iv_meds', 'IV pain medication'],
+      ['epidural', 'Epidural when I ask for it'],
+      ['decide', 'Decide in the moment'],
+      ['dont_offer', 'Please don\'t offer; I\'ll ask'],
+    ],
+    note: 'Epidurals are safe and effective for most people, and it\'s fine to change your mind about pain relief at any point.',
+  },
+  {
+    id: 'labor',
+    title: 'Labor',
+    options: [
+      ['move', 'Freedom to walk and change positions'],
+      ['eat_drink', 'Eat and drink lightly, per hospital policy'],
+      ['intermittent', 'Intermittent fetal monitoring if low-risk'],
+      ['wireless', 'Wireless monitoring if continuous is needed'],
+      ['saline_lock', 'Saline lock instead of continuous IV, if possible'],
+      ['ball', 'Birth ball or peanut ball'],
+      ['tub', 'Shower or tub for comfort'],
+      ['explain', 'Explain any interventions before they happen'],
+    ],
+    note: 'Intermittent monitoring is an option for many low-risk labors; continuous monitoring is recommended for some medical situations.',
+  },
+  {
+    id: 'pushing',
+    title: 'Pushing & delivery',
+    options: [
+      ['positions', 'Try different pushing positions'],
+      ['own_pace', 'Push with my urges when possible'],
+      ['coached', 'Coached pushing'],
+      ['perineal', 'Warm compresses and perineal support'],
+      ['mirror', 'A mirror to see the baby crown'],
+      ['touch_head', 'Touch the baby\'s head as it crowns'],
+      ['partner_announce', 'Partner announces the sex'],
+      ['partner_cord', 'Partner cuts the cord'],
+    ],
+    note: 'Warm compresses and perineal massage during pushing can lower the chance of a severe tear.',
+  },
+  {
+    id: 'after',
+    title: 'Right after birth',
+    options: [
+      ['skin', 'Immediate skin-to-skin'],
+      ['delayed_clamp', 'Delayed cord clamping'],
+      ['cord_blood', 'Cord blood banking or donation'],
+      ['partner_skin', 'Partner does skin-to-skin if I can\'t'],
+      ['placenta', 'See or keep the placenta'],
+      ['golden_hour', 'Uninterrupted first hour, with exams done on my chest'],
+    ],
+    note: 'Delayed cord clamping (at least 30–60 seconds) is recommended for most healthy babies.',
+  },
+  {
+    id: 'baby_care',
+    title: 'Baby care',
+    options: [
+      ['vitamin_k', 'Vitamin K shot'],
+      ['eye', 'Eye ointment'],
+      ['hep_b', 'Hepatitis B vaccine'],
+      ['delay_bath', 'Delay the first bath at least 24 hours'],
+      ['rooming_in', 'Rooming-in with baby'],
+      ['nursery', 'Some nursery time so I can rest'],
+      ['no_pacifier', 'No pacifier unless we OK it'],
+      ['circumcision', 'Circumcision (if applicable)'],
+    ],
+    note: 'The AAP recommends vitamin K, eye ointment, and the hepatitis B vaccine for all newborns; ask your provider about any concerns.',
+  },
+  {
+    id: 'feeding',
+    title: 'Feeding',
+    options: [
+      ['breast', 'Breastfeed / chestfeed'],
+      ['formula', 'Formula'],
+      ['combo', 'Combination feeding'],
+      ['lactation', 'See a lactation consultant'],
+      ['no_formula', 'No formula without asking us first'],
+      ['undecided', 'Still deciding'],
+    ],
+    note: 'Fed is best: any choice is valid, and lactation consultants can help whichever way you feed.',
+  },
+];
+
+export const QUESTION_IDEAS = [
+  [4, 'Which medications I already take are OK to keep?'],
+  [4, 'Which prenatal vitamin do you recommend?'],
+  [6, 'Who do we call after hours, and when should we?'],
+  [6, 'Which foods and drinks should be avoided?'],
+  [8, 'Is the exercise routine I do now still OK?'],
+  [8, 'What can help with nausea, and when is it too much?'],
+  [10, 'Which genetic screening tests do you offer, and what do they tell us?'],
+  [12, 'Which vaccines are recommended during pregnancy?'],
+  [12, 'Is my weight gain on track for my starting BMI?'],
+  [16, 'Is it safe to travel, and until what week?'],
+  [20, 'What do the anatomy scan results mean for us?'],
+  [20, 'When should we start counting kicks?'],
+  [22, 'Should we sign up for childbirth or breastfeeding classes?'],
+  [24, 'When is the glucose test, and how do I prepare?'],
+  [26, 'What are the signs of preterm labor?'],
+  [28, 'Do I need the Rh immune globulin shot?'],
+  [28, 'Should I be checking my blood pressure at home?'],
+  [30, 'Can we go over our birth plan together?'],
+  [30, 'Who will deliver the baby if you\'re not on call?'],
+  [32, 'What\'s your rule for when to come in once labor starts?'],
+  [32, 'How often do you perform C-sections or inductions, and why?'],
+  [34, 'Which hospital entrance and floor do we go to?'],
+  [36, 'When will you test for group B strep?'],
+  [37, 'What happens if I go past my due date?'],
+  [38, 'What should postpartum recovery look like, and when do we follow up?'],
+];
+
+export const WEIGHT_GAIN = [
+  { id: 'under', label: 'Underweight', bmiMin: 0, bmiMax: 18.5, totalLb: [28, 40], weeklyLb2nd3rd: [1.0, 1.3] },
+  { id: 'normal', label: 'Normal weight', bmiMin: 18.5, bmiMax: 25, totalLb: [25, 35], weeklyLb2nd3rd: [0.8, 1.0] },
+  { id: 'over', label: 'Overweight', bmiMin: 25, bmiMax: 30, totalLb: [15, 25], weeklyLb2nd3rd: [0.5, 0.7] },
+  { id: 'obese', label: 'Obese', bmiMin: 30, bmiMax: Infinity, totalLb: [11, 20], weeklyLb2nd3rd: [0.4, 0.6] },
+];
+
+export const FIRST_TRI_GAIN = [1.1, 4.4];
+
+export const WEIGHT_NOTE = 'Weight is just one data point, and these ranges are guides for a single baby. Never diet during pregnancy without talking to your OB, and call right away for sudden rapid gain with swelling or a headache.';
+
+export const BP_RULES = [
+  { sys: 160, dia: 110, level: 'urgent', text: 'Severe-range blood pressure. Call labor & delivery now or go in right away.' },
+  { sys: 140, dia: 90, level: 'call', text: 'High for pregnancy. Rest 15 minutes and recheck, and call your OB today; it can be a sign of preeclampsia or gestational hypertension.' },
+  { sys: 0, dia: 0, level: 'ok', text: 'In the normal range. Keep logging as your provider recommends.' },
+];
+
+export const BP_NOTE = 'Sit with your back supported and feet flat, rest 5 minutes first, and keep your arm at heart level. Use a cuff that fits your upper arm, and avoid caffeine or exercise 30 minutes before.';
+
+export const NEWBORN_TIPS = [
+  'Feed on early cues like rooting, lip-smacking, and hands to mouth; crying is a late cue.',
+  'Expect 8–12 feeds in 24 hours at first, including overnight.',
+  'Wet diapers rise day by day, to at least 6 a day by day 5–6.',
+  'Stools change from black, sticky meconium to yellow or green by about day 4–5.',
+  'Always place baby on their back to sleep, alone, on a firm, flat surface with no blankets, pillows, or bumpers.',
+  'Room-share without bed-sharing, ideally for at least the first 6 months.',
+  'Skin-to-skin helps with warmth, bonding, and feeding, and both parents can do it.',
+  'Keep the umbilical cord stump clean and dry; it usually falls off in 1–3 weeks.',
+  'Most babies get a jaundice check before leaving the hospital and again at the first visit, around 3–5 days old.',
+  'Burp baby partway through and after each feed.',
+  'Crying often peaks around 6–8 weeks; if it\'s too much, put baby down safely and step away. Never shake a baby.',
+  'Use a rear-facing car seat for every ride, with snug straps and no bulky coats.',
+  'Sponge bathe until the cord falls off, and don\'t bathe every day.',
+];
+
+export const NEWBORN_CALL = [
+  'Call 911 for trouble breathing, blue or gray lips or skin, or if baby is limp or won\'t wake.',
+  'Call 911 for a seizure or any pause in breathing of 20 seconds or more.',
+  'Rectal temperature of 100.4°F or higher under 3 months old: call the pediatrician right away.',
+  'Temperature below 97.5°F that doesn\'t improve with warming.',
+  'Fewer wet diapers than expected, or no wet diaper in 6–8 hours after the first few days.',
+  'Not feeding well, refusing several feeds, or too sleepy to finish feeds.',
+  'Very sleepy, floppy, or hard to wake.',
+  'Yellow skin or eyes that spread to the belly or legs, or that appear in the first 24 hours.',
+  'Forceful or green vomiting, or repeated vomiting.',
+  'Redness, swelling, pus, or a bad smell around the cord stump.',
+  'Inconsolable crying that\'s different from usual, or a weak, high-pitched cry.',
+  'Blood in the stool, or no stool in the first 2 days.',
+];
+
+export const FEED_TYPES = [['breast_l', '🤱 Left'], ['breast_r', '🤱 Right'], ['bottle', '🍼 Bottle'], ['pump', '🥛 Pump']];
+
+export const DIAPER_TYPES = [['wet', '💧 Wet'], ['dirty', '💩 Dirty'], ['both', '💧💩 Both']];
+
+export const POSTPARTUM_911 = [
+  'Chest pain or a racing heartbeat with trouble breathing',
+  'Trouble breathing or shortness of breath',
+  'A seizure',
+  'Thoughts of harming yourself or the baby',
+];
+
+export const POSTPARTUM_CALL = [
+  'Headache that won\'t go away or gets worse over time',
+  'Dizziness or fainting',
+  'Changes in vision, like blurriness, spots, or flashing lights',
+  'Fever of 100.4°F or higher',
+  'Extreme swelling of the hands or face',
+  'Fast or pounding heartbeat',
+  'Severe belly pain that doesn\'t go away',
+  'Severe nausea and vomiting',
+  'Bleeding that soaks a pad in an hour or less, or clots bigger than an egg',
+  'Swelling, redness, or pain in one leg',
+  'Overwhelming tiredness',
+  'Foul-smelling discharge, or redness or oozing at an incision',
+];
+
+export const POSTPARTUM_TIPS = [
+  'These warning signs matter for up to a year after birth, so say "I recently had a baby" when you call.',
+  'Rest whenever you can, and say yes to help with meals, chores, and visitors.',
+  'Use a peri bottle with warm water when you pee, and pat dry front to back.',
+  'Bleeding (lochia) is normal for up to 6 weeks and should slowly get lighter.',
+  'Wait for your provider\'s OK before sex, tampons, or hard exercise.',
+  'Gentle pelvic floor exercises can help, and a pelvic floor physical therapist can help more.',
+  'Check in with your provider within 3 weeks of birth, with a full postpartum visit by 12 weeks.',
+  'Baby blues (weepy, moody) are common and fade by about 2 weeks; feelings that last longer or feel heavy may be postpartum depression, which is treatable.',
+  'Partners can get postpartum depression too, so check in on each other.',
+  'National Maternal Mental Health Hotline: call or text 1-833-TLC-MAMA (1-833-852-6262), free and 24/7.',
+  'Postpartum Support International helpline: 1-800-944-4773 (call or text).',
+];
+
+export const MOOD_CHECK = [
+  ['low_mood', 'In the past two weeks, have you often felt down, sad, or hopeless?'],
+  ['interest', 'Have you lost interest or pleasure in things you usually enjoy?'],
+  ['anxiety', 'Have you felt anxious, panicky, or unable to stop worrying, or had trouble sleeping even when the baby sleeps?'],
+  ['self_harm', 'Have you had thoughts of harming yourself or the baby?'],
+];
+
+export const MOOD_CHECK_NOTE = 'This is a gentle check-in, not a diagnosis. If any answer is yes, talk to your provider; if you\'re thinking of harming yourself or the baby, call or text 988 now, or call 911.';
+
+export const LOSS_SUPPORT = {
+  intro: 'We\'re so sorry for your loss; whatever you\'re feeling right now is valid, and you can take this one moment at a time.',
+  physical: [
+    'Bleeding and cramping are common for days to a couple of weeks, depending on how far along the pregnancy was.',
+    'Call right away for bleeding that soaks 2 pads an hour for 2 hours in a row, or for dizziness or fainting.',
+    'Call for a fever of 100.4°F or higher, severe pain, or foul-smelling discharge.',
+    'Breast milk may come in after a later loss; ask your provider how to ease the discomfort.',
+    'Schedule a follow-up visit to check your recovery and ask any questions.',
+    'If your blood type is Rh-negative, ask whether you need Rh immune globulin.',
+  ],
+  emotional: [
+    'Grief after a pregnancy loss is real and normal, whenever the loss happened.',
+    'Partners may grieve differently or on different timelines, and both ways are OK.',
+    'There\'s no right timeline for feeling better, and anniversaries and due dates can be hard.',
+    'Most losses happen for reasons no one could have prevented; it\'s not your fault.',
+    'Let people know what you need, including if you\'d rather not talk.',
+    'Talk to your provider about counseling or support groups, and reach out fast if you feel hopeless.',
+  ],
+  partner: [
+    'Be present for {m:them}; you don\'t need the right words, just stay close.',
+    'Say the baby\'s name if you chose one, and let {m:them} talk about the baby.',
+    'Handle logistics like calls, appointments, and meals.',
+    'Offer to tell family and friends, if {m:they} would like that.',
+    'Take care of your own grief too; your loss matters as well.',
+  ],
+  resources: [
+    ['Postpartum Support International', '1-800-944-4773', 'Helpline and support groups, including for pregnancy and infant loss.'],
+    ['Share Pregnancy & Infant Loss Support', 'nationalshare.org', 'Support for families after pregnancy loss, stillbirth, or infant death.'],
+    ['March of Dimes', 'marchofdimes.org', 'Bereavement resources and information after a loss.'],
+    ['988 Suicide & Crisis Lifeline', 'Call or text 988', 'Free, confidential support 24/7 if you\'re in crisis.'],
+    ['National Maternal Mental Health Hotline', '1-833-TLC-MAMA (1-833-852-6262)', 'Free, 24/7 call or text support before and after pregnancy, including after a loss.'],
+  ],
+};
+
+export const CONTRACTION_NOTE = 'Time contractions from the start of one to the start of the next. Many providers use a "5-1-1" rule for first babies (5 minutes apart, 1 minute long, for 1 hour), but follow your own provider\'s instructions. Go in right away if your water breaks, you\'re bleeding, the baby is moving less, or you have severe, constant pain.';
+
+export const KICK_NOTE = 'From about 28 weeks, pick a time the baby is usually active and count until you feel 10 movements. Most babies reach 10 well within 2 hours. If movements are fewer or feel different from usual, call labor & delivery right away; don\'t wait.';

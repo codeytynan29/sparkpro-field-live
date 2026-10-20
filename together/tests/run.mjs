@@ -264,6 +264,103 @@ await test('public registry page renders safely and claims', async page => {
   ok((await page.locator('.item.taken').count()) === 1, 'claim did not mark the item taken')
 })
 
+const stored = page => page.evaluate(() => JSON.parse(localStorage.getItem('together.v1')))
+const openTool = async (page, id) => { await page.click('[data-tab=plan]'); await page.click('[data-pv=tools]'); await page.click(`[data-tool=${id}]`) }
+
+await test('tools: kick counter counts to 10 and saves; contractions time and list', async page => {
+  await seed(page, 'mom')
+  await openTool(page, 'kicks')
+  ok((await page.innerText('.title')) === 'Kick counter', 'tool title missing')
+  await page.click('[data-act=kick-start]')
+  for (let i = 0; i < 10; i++) await page.click('[data-act=kick-tap]')
+  let st = await stored(page)
+  ok(st.entries.some(e => e.kind === 'kicks' && e.data.count === 10), 'kick session not saved')
+  ok((await text(page)).includes('10 movements in'), 'recent counts not listed')
+  await page.click('text=‹ All tools'); await page.click('[data-tool=contractions]')
+  await page.click('[data-act=ctx-start]'); await page.waitForTimeout(1100)
+  ok(/0:0[1-9]/.test(await page.innerText('#tick')), 'timer does not tick')
+  await page.click('[data-act=ctx-stop]')
+  st = await stored(page)
+  ok(st.entries.filter(e => e.kind === 'contraction').length === 1, 'contraction not saved')
+  ok((await text(page)).includes('in the last hour'), 'contraction stats missing')
+})
+
+await test('tools: 5-1-1 contractions show the call card', async page => {
+  const now = Date.now(), list = Array.from({ length: 10 }, (_, i) => { const start = now - (50 - i * 5) * 60000; return { id: 'c' + i, kind: 'contraction', author_role: 'dad', created_at: new Date(start + 60000).toISOString(), synced: true, data: { start, end: start + 62000 } } })
+  await seed(page, 'mom', list)
+  await openTool(page, 'contractions')
+  ok((await text(page)).includes('About 5 minutes apart'), '5-1-1 alert missing')
+})
+
+await test('tools: baby names only show a match when you both like it', async page => {
+  await seed(page, 'mom', [{ id: 'v1', kind: 'namevote', author_role: 'dad', created_at: at(1), synced: true, data: { name: 'Juniper', like: true } }])
+  await openTool(page, 'names')
+  await page.fill('#nameAdd', 'Juniper'); await page.click('[data-act=name-add][data-sex=g]')
+  await page.click('[data-nameview=matches]')
+  ok((await page.innerText('main')).includes('💞 Juniper'), 'match not shown')
+  await page.click('[data-nameview=swipe]')
+  const before = (await stored(page)).entries.filter(e => e.kind === 'namevote').length
+  await page.click('[data-vote][data-like="0"]')
+  ok((await stored(page)).entries.filter(e => e.kind === 'namevote').length === before + 1, 'pass not saved')
+})
+
+await test('tools: hospital bag starter list, tick, and OB questions reach the summary', async page => {
+  await seed(page, 'mom', [momCI(1, { mood: 4 })])
+  await openTool(page, 'bag')
+  await page.click('[data-act=bag-starter]'); await page.waitForTimeout(300)
+  const n = (await stored(page)).entries.filter(e => e.kind === 'check' && e.data.list === 'bag').length
+  ok(n > 20, 'starter list not added: ' + n)
+  await page.locator('[data-check]').first().click()
+  ok((await page.innerText('main')).includes('Packed (1)'), 'tick did not move it to packed')
+  await page.click('text=‹ All tools'); await page.click('[data-tool=questions]')
+  await page.fill('#checkAdd', 'Is my iron OK?'); await page.click('[data-act=check-add]')
+  await page.click('text=‹ All tools'); await page.click('[data-tool=health]')
+  await page.fill('#vBp', '150/95'); await page.fill('#vWeight', '150'); await page.click('[data-act=vitals-save]')
+  ok((await text(page)).includes('BP 150/95'), 'vitals not listed')
+  await page.click('[data-tab=today]')
+  ok((await page.innerText('main')).includes('Blood pressure 150/95'), 'high BP not flagged on Today')
+  await page.click('[data-tab=timeline]')
+  await page.click('.seg [data-us=history]')
+  await page.click('[data-act=ob-copy]')
+  const clip = await page.evaluate(() => navigator.clipboard.readText())
+  ok(clip.includes('Is my iron OK?') && clip.includes('BP 150/95'), 'OB summary missing questions or BP: ' + clip.slice(0, 200))
+})
+
+await test('tools: birth plan choices save and copy as text', async page => {
+  await seed(page, 'mom')
+  await openTool(page, 'birthplan')
+  await page.locator('[data-bp]').first().click()
+  ok(await page.locator('[data-bp].on').count() === 1, 'choice not highlighted')
+  await page.click('[data-act=bp-copy]')
+  const clip = await page.evaluate(() => navigator.clipboard.readText())
+  ok(clip.startsWith('Birth preferences') && clip.includes('•'), 'birth plan text wrong: ' + clip.slice(0, 120))
+})
+
+await test('newborn mode: baby is here → feeds and diapers; mood check offers 988', async page => {
+  await seed(page, 'mom')
+  await page.click('[data-tab=settings]'); await page.click('[data-act=baby-here]')
+  await page.fill('dialog.sheet input', 'Ava'); await page.click('dialog.sheet [data-r="1"]')
+  await page.click('dialog.sheet [data-r="1"]')
+  ok((await page.innerText('main')).includes('Ava') && (await text(page)).includes('born today'), 'newborn Today missing')
+  await page.click('[data-feed=bottle]'); await page.click('[data-diaper=both]')
+  const stat = await page.innerText('.stat-row')
+  ok(stat.includes('1\nfeeds') || /1\s*feeds/.test(stat), 'feed not counted: ' + stat)
+  await page.click('[data-tool=moodcheck]')
+  await page.click('[data-mood-q=self_harm][data-yes="1"]')
+  ok(await page.locator('a[href="tel:988"]').count() === 1, '988 not offered')
+  ok(!(await stored(page)).entries.some(e => e.kind === 'moodcheck'), 'mood answers were saved')
+})
+
+await test('loss mode: Today shows support on both phones, and can be turned back', async page => {
+  await seed(page, 'dad', [{ id: 'pl', kind: 'profile', author_role: 'mom', created_at: at(0), synced: true, data: { mode: 'loss' } }])
+  const t = await page.innerText('main')
+  ok(t.includes('For you, Codey') && !t.includes('Week '), 'loss Today wrong')
+  ok(!(await page.locator('.tabs .badge').count()), 'check-in badge still nags')
+  await page.click('[data-tab=settings]'); await page.click('[data-act=loss-off]'); await page.click('dialog.sheet [data-r="1"]')
+  await page.click('[data-tab=today]')
+  ok((await page.locator('.baby .wk').count()) === 1, 'pregnancy view did not come back')
+})
+
 await browser.close()
 server.close()
 for (const [mark, name] of results) console.log(mark, name)

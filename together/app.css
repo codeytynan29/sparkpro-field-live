@@ -450,3 +450,30 @@ details summary { padding: 10px 0; margin-top: 0; }
 .week-dots button.on { background: var(--accent); transform: scale(1.25); }
 .week-hero { text-align: center; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--card)), color-mix(in srgb, var(--accent-2) 10%, var(--card))); }
 .big-fruit { font-size: 5rem; line-height: 1.2; }
+
+/* ── Tools: kicks, contractions, photos, names, lists, health; newborn mode ── */
+.tool-hero { padding: 22px 18px; }
+.tool-hero h3 { margin-top: 4px; }
+.big-round { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 168px; height: 168px; margin: 16px auto; border: 0; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font: inherit; box-shadow: 0 8px 24px rgba(201, 120, 155, .35); touch-action: manipulation; }
+.big-round:active { transform: scale(.96); }
+.big-round b { font-size: 2.6rem; line-height: 1; }
+.big-round small { opacity: .85; margin-top: 4px; }
+.big-round.stop { background: var(--avoid); color: #fff; box-shadow: 0 8px 24px rgba(178, 58, 58, .3); }
+.timer { font-size: 2.4rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+#tick { font-variant-numeric: tabular-nums; }
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 10px; text-align: center; }
+.stat-row > div { background: var(--soft); border-radius: 12px; padding: 10px 4px; min-width: 0; }
+.stat-row b { display: block; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.stat-row span { font-size: .78rem; color: var(--muted); }
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 16px 16px; }
+.photo { position: relative; padding: 0; border: 0; border-radius: 14px; overflow: hidden; aspect-ratio: 3 / 4; background: var(--soft); }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo span { position: absolute; left: 6px; bottom: 6px; padding: 2px 8px; border-radius: 999px; background: rgba(0, 0, 0, .55); color: #fff; font-size: .75rem; font-weight: 600; }
+.photo-full img { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 12px; background: var(--soft); display: block; }
+.file-pill { display: inline-flex; align-items: center; cursor: pointer; white-space: nowrap; }
+.name-card { padding: 24px 18px; }
+.name-big { font-size: 2.4rem; font-weight: 700; letter-spacing: -.02em; margin: 6px 0 14px; overflow-wrap: anywhere; }
+.row-actions { margin: -2px 0 8px 44px; }
+.fruit, .big-fruit { position: relative; }
+.fruit .art, .big-fruit .art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: var(--card); border-radius: 12px; }
+a.btn + a.btn { margin-left: 6px; }
