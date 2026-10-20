@@ -165,7 +165,7 @@ await test('week by week: this week on Today, and flip through every week like t
   await page.click('.baby [data-week]')
   ok((await page.innerText('.week-nav')).includes('Week 5') && (await page.innerText('.week-nav')).includes('this week'), 'week view not on this week')
   await page.click('.week-nav [aria-label="Next week"]')
-  ok((await page.innerText('.week-nav')).includes('Week 6') && (await page.innerText('main')).includes('lentil'), 'next week did not open')
+  ok((await page.innerText('.week-nav')).includes('Week 6') && (await page.innerText('main')).includes('sweet pea'), 'next week did not open')
   await page.click('.week-dots [aria-label="Week 40"]')
   ok((await page.innerText('main')).includes('Due date week'), 'jumping to week 40 failed')
 })

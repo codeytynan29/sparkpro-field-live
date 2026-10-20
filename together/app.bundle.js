@@ -29,19 +29,23 @@ const RAW = (() => {
 // (LMP), so "week 5" is roughly three weeks after conception. Due date is
 // LMP + 280 days (Naegele's rule) — the same number an OB's wheel gives.
 
+// Every food here has an emoji that actually shows that food. The two seeds
+// have none, so they're small drawings instead.
+const POPPY = '<svg viewBox="0 0 40 40" width="1em" height="1em" aria-hidden="true"><circle cx="20" cy="20" r="5" fill="#5a5370" stroke="#9a92ab" stroke-width="1"/><circle cx="18.5" cy="18.5" r="1.4" fill="#8a8398"/></svg>'
+const SESAME = '<svg viewBox="0 0 40 40" width="1em" height="1em" aria-hidden="true"><path d="M20 7c7 6 8.5 18 0 26-8.5-8-7-20 0-26z" fill="#f3e3bf" stroke="#c9a565" stroke-width="1.6" transform="rotate(25 20 20)"/></svg>'
 const BABY_SIZE = {
-  4: ['poppy seed', '🌱', '~1 mm'], 5: ['sesame seed', '🌰', '~2 mm'], 6: ['lentil', '🫘', '~5 mm'],
-  7: ['blueberry', '🫐', '~1 cm'], 8: ['raspberry', '🍓', '~1.6 cm'], 9: ['cherry', '🍒', '~2.3 cm'],
-  10: ['strawberry', '🍓', '~3 cm'], 11: ['fig', '🟣', '~4 cm'], 12: ['lime', '🍋‍🟩', '~5 cm'],
+  4: ['poppy seed', POPPY, '~1 mm'], 5: ['sesame seed', SESAME, '~2 mm'], 6: ['sweet pea', '🫛', '~5 mm'],
+  7: ['blueberry', '🫐', '~1 cm'], 8: ['kidney bean', '🫘', '~1.6 cm'], 9: ['cherry', '🍒', '~2.3 cm'],
+  10: ['strawberry', '🍓', '~3 cm'], 11: ['kiwi', '🥝', '~4 cm'], 12: ['lime', '🍋‍🟩', '~5 cm'],
   13: ['lemon', '🍋', '~7 cm'], 14: ['peach', '🍑', '~8.5 cm'], 15: ['apple', '🍎', '~10 cm'],
   16: ['avocado', '🥑', '~11.5 cm'], 17: ['pear', '🍐', '~13 cm'], 18: ['bell pepper', '🫑', '~14 cm'],
   19: ['mango', '🥭', '~15 cm'], 20: ['banana', '🍌', '~16.5 cm (head to bottom)'], 21: ['carrot', '🥕', '~27 cm (head to toe)'],
-  22: ['papaya', '🍈', '~28 cm'], 23: ['grapefruit', '🍊', '~29 cm'], 24: ['ear of corn', '🌽', '~30 cm'],
-  25: ['cauliflower', '🥦', '~34 cm'], 26: ['head of lettuce', '🥬', '~36 cm'], 27: ['rutabaga', '🥔', '~37 cm'],
-  28: ['eggplant', '🍆', '~38 cm'], 29: ['butternut squash', '🎃', '~39 cm'], 30: ['cabbage', '🥬', '~40 cm'],
-  31: ['coconut', '🥥', '~41 cm'], 32: ['jicama', '🥔', '~42 cm'], 33: ['pineapple', '🍍', '~44 cm'],
-  34: ['cantaloupe', '🍈', '~45 cm'], 35: ['honeydew melon', '🍈', '~46 cm'], 36: ['romaine lettuce', '🥬', '~47 cm'],
-  37: ['swiss chard bunch', '🥬', '~48 cm'], 38: ['leek', '🧅', '~49 cm'], 39: ['mini watermelon', '🍉', '~50 cm'],
+  22: ['bunch of grapes', '🍇', '~28 cm'], 23: ['big sweet potato', '🍠', '~29 cm'], 24: ['ear of corn', '🌽', '~30 cm'],
+  25: ['head of broccoli', '🥦', '~34 cm'], 26: ['long cucumber', '🥒', '~36 cm'], 27: ['eggplant', '🍆', '~37 cm'],
+  28: ['large eggplant', '🍆', '~38 cm'], 29: ['small pumpkin', '🎃', '~39 cm'], 30: ['coconut', '🥥', '~40 cm'],
+  31: ['large coconut', '🥥', '~41 cm'], 32: ['pineapple', '🍍', '~42 cm'], 33: ['large pineapple', '🍍', '~44 cm'],
+  34: ['cantaloupe', '🍈', '~45 cm'], 35: ['honeydew melon', '🍈', '~46 cm'], 36: ['pumpkin', '🎃', '~47 cm'],
+  37: ['small watermelon', '🍉', '~48 cm'], 38: ['small watermelon', '🍉', '~49 cm'], 39: ['watermelon', '🍉', '~50 cm'],
   40: ['watermelon', '🍉', '~51 cm'], 41: ['watermelon', '🍉', '~51 cm'], 42: ['watermelon', '🍉', '~51 cm'],
 }
 
