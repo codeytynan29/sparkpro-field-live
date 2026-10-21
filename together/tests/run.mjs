@@ -403,6 +403,21 @@ await test('newborn mode: month card, next checkup, month by month', async page 
   ok((await page.innerText('main')).includes('Checkups this month'), 'month 2 checkups missing')
 })
 
+await test('bump photos: add one for an earlier week, then move it to another week', async page => {
+  await seed(page, 'mom')
+  await openTool(page, 'bump')
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAADCAIAAAA2iEnWAAAAFklEQVR4nGP4z8Dwn4GBiYGBgYGBAQAvBwMC1o9zpAAAAABJRU5ErkJggg==', 'base64')
+  const now = +(await page.locator('#bumpWeekSel option').first().getAttribute('value'))
+  await page.selectOption('#bumpWeekSel', String(now - 1))
+  await page.setInputFiles('#bumpFile', { name: 'b.png', mimeType: 'image/png', buffer: png }); await page.waitForTimeout(500)
+  let b = (await stored(page)).entries.filter(e => e.kind === 'bump')
+  ok(b.length === 1 && b[0].data.week === now - 1, 'photo not filed under the earlier week: ' + (b[0] && b[0].data.week))
+  await page.click('[data-photo]')
+  await page.selectOption('#photoWeek', String(now))
+  b = (await stored(page)).entries.filter(e => e.kind === 'bump')
+  ok(b[0].data.week === now, 'week change not saved')
+})
+
 await browser.close()
 server.close()
 for (const [mark, name] of results) console.log(mark, name)

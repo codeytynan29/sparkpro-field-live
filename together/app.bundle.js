@@ -1719,7 +1719,152 @@ const JOURNAL_PROMPTS = [
   'Write a letter to your baby to read on their 18th birthday.',
 ];
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get WEEKS() { return WEEKS }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT }, get BABY_NAMES() { return BABY_NAMES }, get BAG_LIST() { return BAG_LIST }, get BIRTH_PLAN_INTRO() { return BIRTH_PLAN_INTRO }, get BIRTH_PLAN() { return BIRTH_PLAN }, get QUESTION_IDEAS() { return QUESTION_IDEAS }, get WEIGHT_GAIN() { return WEIGHT_GAIN }, get FIRST_TRI_GAIN() { return FIRST_TRI_GAIN }, get WEIGHT_NOTE() { return WEIGHT_NOTE }, get BP_RULES() { return BP_RULES }, get BP_NOTE() { return BP_NOTE }, get NEWBORN_TIPS() { return NEWBORN_TIPS }, get NEWBORN_CALL() { return NEWBORN_CALL }, get FEED_TYPES() { return FEED_TYPES }, get DIAPER_TYPES() { return DIAPER_TYPES }, get POSTPARTUM_911() { return POSTPARTUM_911 }, get POSTPARTUM_CALL() { return POSTPARTUM_CALL }, get POSTPARTUM_TIPS() { return POSTPARTUM_TIPS }, get MOOD_CHECK() { return MOOD_CHECK }, get MOOD_CHECK_NOTE() { return MOOD_CHECK_NOTE }, get LOSS_SUPPORT() { return LOSS_SUPPORT }, get CONTRACTION_NOTE() { return CONTRACTION_NOTE }, get KICK_NOTE() { return KICK_NOTE }, get BABY_MONTH_NOTE() { return BABY_MONTH_NOTE }, get BABY_MONTHS() { return BABY_MONTHS }, get WELL_VISITS() { return WELL_VISITS }, get VACCINE_NOTE() { return VACCINE_NOTE }, get WEEK_TODOS() { return WEEK_TODOS }, get GUIDES() { return GUIDES }, get JOURNAL_PROMPTS() { return JOURNAL_PROMPTS } }
+const WEEK_TODO_HELP = {
+  4: [
+    'Pick up the vitamins and set a daily reminder you both see, maybe taking yours at the same time.',
+    'Offer to make the call or put the visit in both your calendars, and plan to go with {m:them}.',
+  ],
+  5: [
+    'Go alcohol- and smoke-free with {m:them}, and help find support if {m:they} {m:wants|want} it.',
+    'Gather {m:their} medicine list and offer to come along to ask the pharmacist together.',
+  ],
+  6: [
+    'Stock the nightstand with crackers and water, and refill them before {m:they} {m:runs|run} out.',
+    'Ask {m:them} who {m:they} {m:wants|want} to tell and when, and follow {m:their} lead on timing.',
+  ],
+  7: [
+    'Start a shared list and add your own questions so you both feel ready for the visit.',
+    'Call the insurer or dig into the plan details yourself, and share a short summary.',
+  ],
+  8: [
+    'Reach out to your own relatives for your side of the health history and write it down.',
+    'Add this to your shared question list and ask if you can be in the room for the scan.',
+  ],
+  9: [
+    'Learn the safe fish list and cook a salmon, shrimp or cod dinner this week.',
+    'Try cutting back with {m:them} and keep good decaf or herbal tea stocked at home.',
+  ],
+  10: [
+    'Read up on the screening options with {m:them} and talk through what you both want to know.',
+    'Offer to book the cleaning and handle the reminder so it does not slip.',
+  ],
+  11: [
+    'Learn what NIPT checks for and help {m:them} decide, then go to the blood draw together.',
+    'Ask when the NT scan is and clear your schedule so you can be there with {m:them}.',
+  ],
+  12: [
+    'Create the shared note and add a few names of your own to get it going.',
+    'Grab the camera, find good light and make the monthly photo your job.',
+  ],
+  13: [
+    'Pull together your recent spending and set up a time to sketch the budget side by side.',
+    'Ask how {m:they} {m:wants|want} to tell work and help {m:them} rehearse the conversation.',
+  ],
+  14: [
+    'Check if it is flu season, book shots for you both and go together.',
+    'Find a nearby class, sign {m:them} up if {m:they} {m:wants|want}, and handle the drive.',
+  ],
+  15: [
+    'Read about the AFP or quad screen with {m:them} so you can decide together.',
+    'Lace up and suggest a short walk after dinner, and keep the habit going most days.',
+  ],
+  16: [
+    'Read your own company leave policy too, so you both know what time off you each have.',
+    'Look up your state paid family leave rules and note what applies to each of you.',
+  ],
+  17: [
+    'Offer to shop with {m:them} or order the basics {m:they} {m:picks|pick} so {m:they} {m:is|are} comfy.',
+    'Order a body pillow and make room for it in bed without complaint.',
+  ],
+  18: [
+    'Help pick a date that works for you both and block the time to be at the scan.',
+    'Talk it through with {m:them}, share how you feel and agree on a plan together.',
+  ],
+  19: [
+    'Set up the registry account and research a few big items so {m:they} {m:has|have} less to do.',
+  ],
+  20: [
+    'Plan and book the date night yourself, from the reservation to the sitter if needed.',
+    'Research easy, low-stress trip ideas and handle the bookings if {m:they} {m:wants|want} to go.',
+  ],
+  21: [
+    'Take the lead on calling daycares or sitters and get both of you on the waitlists.',
+  ],
+  22: [
+    'Find a class that fits both your schedules, sign up together and plan to attend every session.',
+    'Ask to join the feeding class too so you can support {m:them} after the baby comes.',
+  ],
+  23: [
+    'Come with a concrete offer of which nights and chores you will own, and ask what {m:they} {m:needs|need}.',
+  ],
+  24: [
+    'Help book the glucose test and offer to drive and keep {m:them} company while {m:they} {m:waits|wait}.',
+    'Learn the preterm labor signs yourself and save the provider number in your phone.',
+  ],
+  25: [
+    'Research cord blood banking and donation costs, then share what you find with {m:them}.',
+    'Ask how you can help {m:them} remember, like a shared daily reminder.',
+  ],
+  26: [
+    'Do the pediatrician research, read reviews and set up the meet-and-greet calls.',
+  ],
+  27: [
+    'Get your own Tdap shot too, since anyone close to the baby should be up to date.',
+    'Add this question to the visit list and help {m:them} keep track of any follow-up shots.',
+  ],
+  28: [
+    'Sit with {m:them} during kick counts, keep a log, and learn when to call the provider.',
+    'Add the new visit schedule to your calendar and try to make as many as you can.',
+  ],
+  29: [
+    'Book the tour, plan to go together and note parking and the entrance to use.',
+  ],
+  30: [
+    'Ask {m:them} what matters most and offer to draft and print the sheet together.',
+    'File your own leave paperwork too and check that both of you have HR confirmations.',
+  ],
+  31: [
+    'Offer to fill out the pre-registration forms and keep the confirmation handy.',
+  ],
+  32: [
+    'Ask the provider whether the RSV vaccine fits {m:their} timing and help book it.',
+    'Learn safe sleep basics yourself and set up the crib with nothing else in it.',
+  ],
+  33: [
+    'Call the chosen pediatrician to confirm and send the name to the hospital for {m:them}.',
+    'Look up the enrollment deadline and set a reminder so the baby gets added on time.',
+  ],
+  34: [
+    'Plan a cooking afternoon and do most of the chopping, cooking and labeling yourself.',
+    'Do the practice drives yourself and note the fastest route and where to park.',
+  ],
+  35: [
+    'Install the car seat yourself and book a check with a certified technician.',
+    'Pack your own bag and help {m:them} finish {m:their} bag so both are ready by the door.',
+  ],
+  36: [
+    'Put the GBS swab date in your calendar and ask {m:them} what it means for labor.',
+    'Take over the laundry and fold and put away the baby clothes and swaddles.',
+  ],
+  37: [
+    'Assemble the station yourself so diapers, wipes and feeding gear are within easy reach.',
+    'Save the number in both phones right now and confirm {m:they} {m:has|have} it too.',
+  ],
+  38: [
+    'Line up a sitter or a friend for pets and kids, and share a backup plan with {m:them}.',
+    'Open the contraction timer with {m:them} and practice so you can run it during labor.',
+  ],
+  39: [
+    'Set up your own out-of-office and handoff too so you can step away the moment labor starts.',
+    'Plan a cozy, low-key day for the two of you and take care of the details.',
+  ],
+  40: [
+    'Go to the visit with {m:them} and ask about the plan if the baby is late.',
+    'Organize a schedule of family and friends for meals and help, and be the point person.',
+  ],
+};
+
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get WEEKS() { return WEEKS }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT }, get BABY_NAMES() { return BABY_NAMES }, get BAG_LIST() { return BAG_LIST }, get BIRTH_PLAN_INTRO() { return BIRTH_PLAN_INTRO }, get BIRTH_PLAN() { return BIRTH_PLAN }, get QUESTION_IDEAS() { return QUESTION_IDEAS }, get WEIGHT_GAIN() { return WEIGHT_GAIN }, get FIRST_TRI_GAIN() { return FIRST_TRI_GAIN }, get WEIGHT_NOTE() { return WEIGHT_NOTE }, get BP_RULES() { return BP_RULES }, get BP_NOTE() { return BP_NOTE }, get NEWBORN_TIPS() { return NEWBORN_TIPS }, get NEWBORN_CALL() { return NEWBORN_CALL }, get FEED_TYPES() { return FEED_TYPES }, get DIAPER_TYPES() { return DIAPER_TYPES }, get POSTPARTUM_911() { return POSTPARTUM_911 }, get POSTPARTUM_CALL() { return POSTPARTUM_CALL }, get POSTPARTUM_TIPS() { return POSTPARTUM_TIPS }, get MOOD_CHECK() { return MOOD_CHECK }, get MOOD_CHECK_NOTE() { return MOOD_CHECK_NOTE }, get LOSS_SUPPORT() { return LOSS_SUPPORT }, get CONTRACTION_NOTE() { return CONTRACTION_NOTE }, get KICK_NOTE() { return KICK_NOTE }, get BABY_MONTH_NOTE() { return BABY_MONTH_NOTE }, get BABY_MONTHS() { return BABY_MONTHS }, get WELL_VISITS() { return WELL_VISITS }, get VACCINE_NOTE() { return VACCINE_NOTE }, get WEEK_TODOS() { return WEEK_TODOS }, get GUIDES() { return GUIDES }, get JOURNAL_PROMPTS() { return JOURNAL_PROMPTS }, get WEEK_TODO_HELP() { return WEEK_TODO_HELP } }
 })()
 
 const S = (() => {
@@ -3811,18 +3956,26 @@ function contractionsTool() {
 // ── Bump photos ──
 let photoOpen = null
 const fullUrls = {}
+// the week a new photo goes under: this week unless an earlier one is picked
+let bumpWeek = null
+const weekOptions = (top, sel, label = () => '') => Array.from({ length: Math.max(0, top - 3) }, (_, i) => top - i).map(w => `<option value="${w}" ${w === sel ? 'selected' : ''}>Week ${w}${label(w)}</option>`).join('')
 function bumpTool() {
-  const g = gest(), wk = g ? g.week : 0
+  const g = gest(), now = g ? Math.max(4, Math.min(42, g.week)) : 4
+  const wk = Math.min(now, bumpWeek || now)
   const list = live('bump').slice().sort((a, b) => b.data.week - a.data.week || b.created_at.localeCompare(a.created_at))
-  const has = list.some(e => e.data.week === wk)
+  const have = new Set(list.map(e => e.data.week))
+  const has = have.has(wk)
+  const missing = Array.from({ length: Math.max(0, now - 4) }, (_, i) => now - 1 - i).filter(w => !have.has(w))
   const open = photoOpen ? list.find(e => e.id === photoOpen) : null
   return `${open ? `<section class="card photo-full"><img id="fullPhoto" src="${esc(fullUrls[open.id] || open.data.thumb)}" alt="Week ${num(open.data.week, 0, 45)} bump photo">
-        <p><b>Week ${num(open.data.week, 0, 45)}</b> · ${esc(fmtDate(new Date(open.created_at)))}</p>${open.data.note ? `<p>${esc(open.data.note)}</p>` : ''}
+        ${open.author_role === me() ? `<label class="field">Week <select id="photoWeek" data-id="${open.id}">${weekOptions(Math.max(now, open.data.week), open.data.week)}</select></label>` : `<p><b>Week ${num(open.data.week, 0, 45)}</b></p>`}<p class="fine">Added ${esc(fmtDate(new Date(open.created_at)))}</p>${open.data.note ? `<p>${esc(open.data.note)}</p>` : ''}
         <div class="sheet-row"><button class="big" data-act="photo-close">Close</button>${open.author_role === me() ? `<button class="big danger-btn" data-act="photo-del" data-id="${open.id}">Delete</button>` : '<span></span>'}</div></section>` : ''}
     <section class="card">
-      <div class="card-head"><div><b>${has ? `Week ${wk} ✓` : `Week ${wk} photo`}</b><div class="fine">${has ? 'Add another, or come back next week.' : 'Same spot, same pose each week makes a great timeline.'}</div></div>
+      <div class="card-head"><div><b>${has ? `Week ${wk} ✓` : `Week ${wk} photo`}</b><div class="fine">${has ? 'Add another, or pick a different week.' : 'Same spot, same pose each week makes a great timeline.'}</div></div>
         <label class="primary pill file-pill">＋ Photo<input type="file" id="bumpFile" accept="image/*" hidden></label></div>
-      <label class="field">Note for this week (optional) <input id="bumpNote" placeholder="How you're feeling, cravings, firsts…"></label>
+      <label class="field">Which week is this photo from? <select id="bumpWeekSel">${weekOptions(now, wk, w => w === now ? ' (this week)' : have.has(w) ? ' ✓' : '')}</select></label>
+      ${missing.length ? `<div class="fine">Missing earlier weeks, tap one to add it:</div><div class="chips">${missing.slice(0, 12).map(w => `<button class="chip ${w === wk ? 'on' : ''}" data-bumpweek="${w}">Wk ${w}</button>`).join('')}</div>` : ''}
+      <label class="field">Note for week ${wk} (optional) <input id="bumpNote" placeholder="How you were feeling, cravings, firsts…"></label>
     </section>
     ${list.length ? `<div class="photo-grid">${list.map(e => `<button class="photo" data-photo="${e.id}"><img src="${esc(e.data.thumb)}" alt="Week ${num(e.data.week, 0, 45)}"><span>Wk ${num(e.data.week, 0, 45)}</span></button>`).join('')}</div>`
       : '<p class="fine center">Your bump timeline will show up here.</p>'}`
@@ -3843,7 +3996,7 @@ function shrink(file, max, q) {
   })
 }
 async function addBumpPhoto(file) {
-  const wk = gest()?.week ?? 0, note = ($('#bumpNote')?.value || '').trim().slice(0, 300)
+  const now = gest()?.week ?? 0, wk = Math.min(now, bumpWeek || now), note = ($('#bumpNote')?.value || '').trim().slice(0, 300)
   toast('Saving photo…')
   const thumb = await shrink(file, 360, 0.72)
   const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
@@ -3852,7 +4005,7 @@ async function addBumpPhoto(file) {
     try { const full = await shrink(file, 1600, 0.85); path = await S.uploadPhoto(`${id}.jpg`, full.blob) } catch (e) { console.warn('full photo upload failed', e) }
   }
   await S.addEntry('bump', { week: wk, thumb: thumb.dataUrl, path, note })
-  toast(path ? 'Photo saved 📸' : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
+  toast(path ? `Week ${wk} photo saved 📸` : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
 }
 
 async function saveKicks(k) {
@@ -4257,7 +4410,7 @@ app.addEventListener('click', async ev => {
   if (d.todo != null && d.todo) { const cur = todoState().get(d.todo); await S.addEntry('todo', { key: d.todo, done: !cur?.done, by: me() }); return }
   if (d.month != null && d.month !== '') { monthShown = +d.month; const fresh = tab !== 'months'; tab = 'months'; sheet = null; render(); if (fresh) scrollTo(0, 0); return }
   if (d.guide != null) { guideOpen = d.guide || null; lookupTab = d.guide ? 'guide' : 'home'; lookupQuery = ''; render(); scrollTo(0, 0); return }
-  if (d.tool) { sheet = null; toolView = d.tool; photoOpen = null; if (d.tool === 'moodcheck') moodAns = {}; tab = 'tool'; render(); scrollTo(0, 0); return }
+  if (d.tool) { sheet = null; toolView = d.tool; photoOpen = null; bumpWeek = null; if (d.tool === 'moodcheck') moodAns = {}; tab = 'tool'; render(); scrollTo(0, 0); return }
   if (d.vote) { await S.addEntry('namevote', { name: d.vote, like: d.like === '1' }); if (d.like === '1' && nameVotes(other()).get(d.vote) === true) toast(`💞 It's a match: ${d.vote}`); return }
   if (d.unvote) { await S.addEntry('namevote', { name: d.unvote, like: false }); return }
   if (d.nameview) { nameView = d.nameview; render(); return }
@@ -4272,6 +4425,7 @@ app.addEventListener('click', async ev => {
     const cur = birthPlan()[d.bp] || [], next = cur.includes(d.opt) ? cur.filter(x => x !== d.opt) : [...cur, d.opt]
     const y = scrollY; await S.addEntry('birthplan', { [d.bp]: next }); scrollTo(0, y); return
   }
+  if (d.bumpweek) { bumpWeek = +d.bumpweek; render(); return }
   if (d.photo) {
     photoOpen = d.photo; render(); scrollTo(0, 0)
     const e = entries('bump').find(x => x.id === d.photo)
@@ -4642,6 +4796,8 @@ app.addEventListener('change', async ev => {
     setReminders(list); remindersChanged(); return
   }
   if (ev.target.id === 'private') readDraftInputs()
+  if (t.id === 'bumpWeekSel') { bumpWeek = +t.value; render(); return }
+  if (t.id === 'photoWeek') { S.updateEntry(t.dataset.id, { week: +t.value }); toast(`Moved to week ${t.value}`); return }
   if (t.id === 'bumpFile' && t.files[0]) { try { await addBumpPhoto(t.files[0]); delete formState.bumpNote } catch (e) { toast(e.message || 'Couldn\'t add that photo') } t.value = ''; return }
   if (t.dataset.bpnote) { await S.addEntry('birthplan', { [t.dataset.bpnote + '_note']: t.value.trim().slice(0, 300) }); return }
   if (ev.target.id === 'importFile') {

@@ -1681,18 +1681,26 @@ function contractionsTool() {
 // ── Bump photos ──
 let photoOpen = null
 const fullUrls = {}
+// the week a new photo goes under: this week unless an earlier one is picked
+let bumpWeek = null
+const weekOptions = (top, sel, label = () => '') => Array.from({ length: Math.max(0, top - 3) }, (_, i) => top - i).map(w => `<option value="${w}" ${w === sel ? 'selected' : ''}>Week ${w}${label(w)}</option>`).join('')
 function bumpTool() {
-  const g = gest(), wk = g ? g.week : 0
+  const g = gest(), now = g ? Math.max(4, Math.min(42, g.week)) : 4
+  const wk = Math.min(now, bumpWeek || now)
   const list = live('bump').slice().sort((a, b) => b.data.week - a.data.week || b.created_at.localeCompare(a.created_at))
-  const has = list.some(e => e.data.week === wk)
+  const have = new Set(list.map(e => e.data.week))
+  const has = have.has(wk)
+  const missing = Array.from({ length: Math.max(0, now - 4) }, (_, i) => now - 1 - i).filter(w => !have.has(w))
   const open = photoOpen ? list.find(e => e.id === photoOpen) : null
   return `${open ? `<section class="card photo-full"><img id="fullPhoto" src="${esc(fullUrls[open.id] || open.data.thumb)}" alt="Week ${num(open.data.week, 0, 45)} bump photo">
-        <p><b>Week ${num(open.data.week, 0, 45)}</b> · ${esc(fmtDate(new Date(open.created_at)))}</p>${open.data.note ? `<p>${esc(open.data.note)}</p>` : ''}
+        ${open.author_role === me() ? `<label class="field">Week <select id="photoWeek" data-id="${open.id}">${weekOptions(Math.max(now, open.data.week), open.data.week)}</select></label>` : `<p><b>Week ${num(open.data.week, 0, 45)}</b></p>`}<p class="fine">Added ${esc(fmtDate(new Date(open.created_at)))}</p>${open.data.note ? `<p>${esc(open.data.note)}</p>` : ''}
         <div class="sheet-row"><button class="big" data-act="photo-close">Close</button>${open.author_role === me() ? `<button class="big danger-btn" data-act="photo-del" data-id="${open.id}">Delete</button>` : '<span></span>'}</div></section>` : ''}
     <section class="card">
-      <div class="card-head"><div><b>${has ? `Week ${wk} ✓` : `Week ${wk} photo`}</b><div class="fine">${has ? 'Add another, or come back next week.' : 'Same spot, same pose each week makes a great timeline.'}</div></div>
+      <div class="card-head"><div><b>${has ? `Week ${wk} ✓` : `Week ${wk} photo`}</b><div class="fine">${has ? 'Add another, or pick a different week.' : 'Same spot, same pose each week makes a great timeline.'}</div></div>
         <label class="primary pill file-pill">＋ Photo<input type="file" id="bumpFile" accept="image/*" hidden></label></div>
-      <label class="field">Note for this week (optional) <input id="bumpNote" placeholder="How you're feeling, cravings, firsts…"></label>
+      <label class="field">Which week is this photo from? <select id="bumpWeekSel">${weekOptions(now, wk, w => w === now ? ' (this week)' : have.has(w) ? ' ✓' : '')}</select></label>
+      ${missing.length ? `<div class="fine">Missing earlier weeks, tap one to add it:</div><div class="chips">${missing.slice(0, 12).map(w => `<button class="chip ${w === wk ? 'on' : ''}" data-bumpweek="${w}">Wk ${w}</button>`).join('')}</div>` : ''}
+      <label class="field">Note for week ${wk} (optional) <input id="bumpNote" placeholder="How you were feeling, cravings, firsts…"></label>
     </section>
     ${list.length ? `<div class="photo-grid">${list.map(e => `<button class="photo" data-photo="${e.id}"><img src="${esc(e.data.thumb)}" alt="Week ${num(e.data.week, 0, 45)}"><span>Wk ${num(e.data.week, 0, 45)}</span></button>`).join('')}</div>`
       : '<p class="fine center">Your bump timeline will show up here.</p>'}`
@@ -1713,7 +1721,7 @@ function shrink(file, max, q) {
   })
 }
 async function addBumpPhoto(file) {
-  const wk = gest()?.week ?? 0, note = ($('#bumpNote')?.value || '').trim().slice(0, 300)
+  const now = gest()?.week ?? 0, wk = Math.min(now, bumpWeek || now), note = ($('#bumpNote')?.value || '').trim().slice(0, 300)
   toast('Saving photo…')
   const thumb = await shrink(file, 360, 0.72)
   const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
@@ -1722,7 +1730,7 @@ async function addBumpPhoto(file) {
     try { const full = await shrink(file, 1600, 0.85); path = await S.uploadPhoto(`${id}.jpg`, full.blob) } catch (e) { console.warn('full photo upload failed', e) }
   }
   await S.addEntry('bump', { week: wk, thumb: thumb.dataUrl, path, note })
-  toast(path ? 'Photo saved 📸' : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
+  toast(path ? `Week ${wk} photo saved 📸` : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
 }
 
 async function saveKicks(k) {
@@ -2127,7 +2135,7 @@ app.addEventListener('click', async ev => {
   if (d.todo != null && d.todo) { const cur = todoState().get(d.todo); await S.addEntry('todo', { key: d.todo, done: !cur?.done, by: me() }); return }
   if (d.month != null && d.month !== '') { monthShown = +d.month; const fresh = tab !== 'months'; tab = 'months'; sheet = null; render(); if (fresh) scrollTo(0, 0); return }
   if (d.guide != null) { guideOpen = d.guide || null; lookupTab = d.guide ? 'guide' : 'home'; lookupQuery = ''; render(); scrollTo(0, 0); return }
-  if (d.tool) { sheet = null; toolView = d.tool; photoOpen = null; if (d.tool === 'moodcheck') moodAns = {}; tab = 'tool'; render(); scrollTo(0, 0); return }
+  if (d.tool) { sheet = null; toolView = d.tool; photoOpen = null; bumpWeek = null; if (d.tool === 'moodcheck') moodAns = {}; tab = 'tool'; render(); scrollTo(0, 0); return }
   if (d.vote) { await S.addEntry('namevote', { name: d.vote, like: d.like === '1' }); if (d.like === '1' && nameVotes(other()).get(d.vote) === true) toast(`💞 It's a match: ${d.vote}`); return }
   if (d.unvote) { await S.addEntry('namevote', { name: d.unvote, like: false }); return }
   if (d.nameview) { nameView = d.nameview; render(); return }
@@ -2142,6 +2150,7 @@ app.addEventListener('click', async ev => {
     const cur = birthPlan()[d.bp] || [], next = cur.includes(d.opt) ? cur.filter(x => x !== d.opt) : [...cur, d.opt]
     const y = scrollY; await S.addEntry('birthplan', { [d.bp]: next }); scrollTo(0, y); return
   }
+  if (d.bumpweek) { bumpWeek = +d.bumpweek; render(); return }
   if (d.photo) {
     photoOpen = d.photo; render(); scrollTo(0, 0)
     const e = entries('bump').find(x => x.id === d.photo)
@@ -2512,6 +2521,8 @@ app.addEventListener('change', async ev => {
     setReminders(list); remindersChanged(); return
   }
   if (ev.target.id === 'private') readDraftInputs()
+  if (t.id === 'bumpWeekSel') { bumpWeek = +t.value; render(); return }
+  if (t.id === 'photoWeek') { S.updateEntry(t.dataset.id, { week: +t.value }); toast(`Moved to week ${t.value}`); return }
   if (t.id === 'bumpFile' && t.files[0]) { try { await addBumpPhoto(t.files[0]); delete formState.bumpNote } catch (e) { toast(e.message || 'Couldn\'t add that photo') } t.value = ''; return }
   if (t.dataset.bpnote) { await S.addEntry('birthplan', { [t.dataset.bpnote + '_note']: t.value.trim().slice(0, 300) }); return }
   if (ev.target.id === 'importFile') {
