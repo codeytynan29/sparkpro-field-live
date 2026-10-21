@@ -1846,3 +1846,37 @@ export const WEEK_TODO_HELP = {
     'Organize a schedule of family and friends for meals and help, and be the point person.',
   ],
 };
+
+// ── Expert review checklist (Settings → Expert review) ──
+// Fill REVIEWS as sign-offs come in: { sectionId: { by: 'Name, credential', field: 'Specialty', date: 'Nov 2026', checkedBy: 'Name, credential' } }
+export const REVIEWS = {}
+export const REVIEW_SECTIONS = [
+  { id: 'redflags', title: 'When to call / warning signs', what: 'Bleeding, pain, fever, reduced movement, preeclampsia signs', signoff: 'OB or labor & delivery nurse', size: '24 signs', time: '30 min', pri: 1 },
+  { id: 'meds', title: 'Medicines', what: 'Pain relievers, cold and allergy meds, antibiotics, what to ask about', signoff: 'Pharmacist (or OB)', size: '42 items', time: '60 min', pri: 1 },
+  { id: 'alerts', title: 'Kick, contraction & blood pressure alerts', what: '10 movements in 2 hours; 5-1-1; BP 140/90 and 160/110', signoff: 'Labor & delivery nurse or OB', size: '3 alerts', time: '20 min', pri: 1 },
+  { id: 'postpartum', title: 'Postpartum & newborn warning signs', what: 'Call-911 and call-the-doctor lists, mood check, crisis lines', signoff: 'Postpartum or pediatric nurse', size: '28 signs', time: '30 min', pri: 1 },
+  { id: 'foods', title: 'Food & drink safety', what: 'Listeria, mercury, caffeine, raw foods, herbal teas', signoff: 'Registered dietitian or OB nurse', size: '105 foods, 14 rules', time: '60 min', pri: 2 },
+  { id: 'symptoms', title: 'Symptoms', what: 'What\'s normal, how the partner can help, when to call', signoff: 'OB or labor & delivery nurse', size: '25 symptoms', time: '45 min', pri: 2 },
+  { id: 'weeks', title: 'Week by week & stages', what: 'Baby, body and partner notes for weeks 4 to 42, stages, milestones', signoff: 'OB nurse or midwife', size: '39 weeks', time: '60 min', pri: 2 },
+  { id: 'labor', title: 'Labor guides & birth plan', what: 'Signs of labor, stages of labor, birth plan options', signoff: 'Labor & delivery nurse or midwife', size: '2 guides, 8 topics', time: '30 min', pri: 2 },
+  { id: 'baby', title: 'Baby\'s first year', what: 'Month-by-month skills, checkups, vaccine schedule, newborn tips', signoff: 'Pediatrician or pediatric nurse', size: '13 months, 8 visits', time: '45 min', pri: 2 },
+  { id: 'movement', title: 'Movement, sleep & recovery', what: 'Exercise, sleep positions, back pain, recovery after birth', signoff: 'Physical or occupational therapist (pelvic floor: a pelvic-floor specialist)', size: '3 guides', time: '30 min', pri: 3 },
+  { id: 'guides', title: 'Other guides', what: 'Eating well, sex, travel, work rights, for partners', signoff: 'OB nurse or midwife', size: '5 guides', time: '40 min', pri: 3 },
+  { id: 'todos', title: 'Weekly to-dos & checklists', what: 'To-dos for weeks 4 to 40, hospital bag, questions for the OB', signoff: 'OB nurse or midwife', size: '68 to-dos, 45 items', time: '30 min', pri: 3 },
+  { id: 'loss', title: 'After a loss', what: 'Physical recovery, grief, partner support, resources', signoff: 'OB, midwife or bereavement nurse', size: '17 items', time: '15 min', pri: 3 },
+]
+export const REVIEW_STEPS = [
+  ['Source check first', 'Anyone with clinical training compares each item to the official page it\'s based on (ACOG, CDC, AAP, FDA) and flags anything that doesn\'t match, is out of date, or reads unclearly.'],
+  ['Then a specialist signs off', 'Someone who works in that field reads the checked section and gives the final OK. Their name, credential and the date go on the section.'],
+  ['Fix, confirm, credit', 'Every requested change gets made, the reviewer confirms the final wording, and only then does their name appear here.'],
+  ['Re-check yearly', 'Guidance changes, vaccines most often. Each section gets a quick re-check once a year.'],
+]
+export const REVIEW_WHERE = [
+  ['Your own OB or midwife', 'Ask at a visit whether they\'d look over the warning signs and medicines lists. Many will.'],
+  ['A pharmacist', 'Local independent pharmacists are often happy to look over a medicines list when the counter is quiet.'],
+  ['Hospital nurses', 'Labor & delivery, postpartum and pediatric units. A short, polite email to the unit educator works better than a cold visit.'],
+  ['Residency programs and nursing schools', 'OB-GYN and pediatric residents and nursing or midwifery students often need review or quality projects.'],
+  ['Introductions', 'Ask anyone in health care: "Do you know someone in labor & delivery, a pharmacist or an OB who might give 30 minutes?"'],
+  ['Paid review, if it goes public', 'Freelance clinicians run about $150 to $400 an hour; a full review is roughly 40 to 80 hours.'],
+]
+export const REVIEW_ASK = 'Hi! We built a pregnancy app for couples called Together, and before sharing it more widely we want the health information checked by people who work in the field.\n\nWould you be willing to review one section that matches your work? It takes about 30 to 60 minutes. You\'d mark each item as right, needs a change, or not sure, and your name only goes on it if you approve the final wording.\n\nThe sections that need someone most are the warning signs, medicines, labor alerts, and postpartum and newborn warning signs. Thank you!'

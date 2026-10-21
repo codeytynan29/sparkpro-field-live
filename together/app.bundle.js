@@ -1864,7 +1864,41 @@ const WEEK_TODO_HELP = {
   ],
 };
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get WEEKS() { return WEEKS }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT }, get BABY_NAMES() { return BABY_NAMES }, get BAG_LIST() { return BAG_LIST }, get BIRTH_PLAN_INTRO() { return BIRTH_PLAN_INTRO }, get BIRTH_PLAN() { return BIRTH_PLAN }, get QUESTION_IDEAS() { return QUESTION_IDEAS }, get WEIGHT_GAIN() { return WEIGHT_GAIN }, get FIRST_TRI_GAIN() { return FIRST_TRI_GAIN }, get WEIGHT_NOTE() { return WEIGHT_NOTE }, get BP_RULES() { return BP_RULES }, get BP_NOTE() { return BP_NOTE }, get NEWBORN_TIPS() { return NEWBORN_TIPS }, get NEWBORN_CALL() { return NEWBORN_CALL }, get FEED_TYPES() { return FEED_TYPES }, get DIAPER_TYPES() { return DIAPER_TYPES }, get POSTPARTUM_911() { return POSTPARTUM_911 }, get POSTPARTUM_CALL() { return POSTPARTUM_CALL }, get POSTPARTUM_TIPS() { return POSTPARTUM_TIPS }, get MOOD_CHECK() { return MOOD_CHECK }, get MOOD_CHECK_NOTE() { return MOOD_CHECK_NOTE }, get LOSS_SUPPORT() { return LOSS_SUPPORT }, get CONTRACTION_NOTE() { return CONTRACTION_NOTE }, get KICK_NOTE() { return KICK_NOTE }, get BABY_MONTH_NOTE() { return BABY_MONTH_NOTE }, get BABY_MONTHS() { return BABY_MONTHS }, get WELL_VISITS() { return WELL_VISITS }, get VACCINE_NOTE() { return VACCINE_NOTE }, get WEEK_TODOS() { return WEEK_TODOS }, get GUIDES() { return GUIDES }, get JOURNAL_PROMPTS() { return JOURNAL_PROMPTS }, get WEEK_TODO_HELP() { return WEEK_TODO_HELP } }
+// ── Expert review checklist (Settings → Expert review) ──
+// Fill REVIEWS as sign-offs come in: { sectionId: { by: 'Name, credential', field: 'Specialty', date: 'Nov 2026', checkedBy: 'Name, credential' } }
+const REVIEWS = {}
+const REVIEW_SECTIONS = [
+  { id: 'redflags', title: 'When to call / warning signs', what: 'Bleeding, pain, fever, reduced movement, preeclampsia signs', signoff: 'OB or labor & delivery nurse', size: '24 signs', time: '30 min', pri: 1 },
+  { id: 'meds', title: 'Medicines', what: 'Pain relievers, cold and allergy meds, antibiotics, what to ask about', signoff: 'Pharmacist (or OB)', size: '42 items', time: '60 min', pri: 1 },
+  { id: 'alerts', title: 'Kick, contraction & blood pressure alerts', what: '10 movements in 2 hours; 5-1-1; BP 140/90 and 160/110', signoff: 'Labor & delivery nurse or OB', size: '3 alerts', time: '20 min', pri: 1 },
+  { id: 'postpartum', title: 'Postpartum & newborn warning signs', what: 'Call-911 and call-the-doctor lists, mood check, crisis lines', signoff: 'Postpartum or pediatric nurse', size: '28 signs', time: '30 min', pri: 1 },
+  { id: 'foods', title: 'Food & drink safety', what: 'Listeria, mercury, caffeine, raw foods, herbal teas', signoff: 'Registered dietitian or OB nurse', size: '105 foods, 14 rules', time: '60 min', pri: 2 },
+  { id: 'symptoms', title: 'Symptoms', what: 'What\'s normal, how the partner can help, when to call', signoff: 'OB or labor & delivery nurse', size: '25 symptoms', time: '45 min', pri: 2 },
+  { id: 'weeks', title: 'Week by week & stages', what: 'Baby, body and partner notes for weeks 4 to 42, stages, milestones', signoff: 'OB nurse or midwife', size: '39 weeks', time: '60 min', pri: 2 },
+  { id: 'labor', title: 'Labor guides & birth plan', what: 'Signs of labor, stages of labor, birth plan options', signoff: 'Labor & delivery nurse or midwife', size: '2 guides, 8 topics', time: '30 min', pri: 2 },
+  { id: 'baby', title: 'Baby\'s first year', what: 'Month-by-month skills, checkups, vaccine schedule, newborn tips', signoff: 'Pediatrician or pediatric nurse', size: '13 months, 8 visits', time: '45 min', pri: 2 },
+  { id: 'movement', title: 'Movement, sleep & recovery', what: 'Exercise, sleep positions, back pain, recovery after birth', signoff: 'Physical or occupational therapist (pelvic floor: a pelvic-floor specialist)', size: '3 guides', time: '30 min', pri: 3 },
+  { id: 'guides', title: 'Other guides', what: 'Eating well, sex, travel, work rights, for partners', signoff: 'OB nurse or midwife', size: '5 guides', time: '40 min', pri: 3 },
+  { id: 'todos', title: 'Weekly to-dos & checklists', what: 'To-dos for weeks 4 to 40, hospital bag, questions for the OB', signoff: 'OB nurse or midwife', size: '68 to-dos, 45 items', time: '30 min', pri: 3 },
+  { id: 'loss', title: 'After a loss', what: 'Physical recovery, grief, partner support, resources', signoff: 'OB, midwife or bereavement nurse', size: '17 items', time: '15 min', pri: 3 },
+]
+const REVIEW_STEPS = [
+  ['Source check first', 'Anyone with clinical training compares each item to the official page it\'s based on (ACOG, CDC, AAP, FDA) and flags anything that doesn\'t match, is out of date, or reads unclearly.'],
+  ['Then a specialist signs off', 'Someone who works in that field reads the checked section and gives the final OK. Their name, credential and the date go on the section.'],
+  ['Fix, confirm, credit', 'Every requested change gets made, the reviewer confirms the final wording, and only then does their name appear here.'],
+  ['Re-check yearly', 'Guidance changes, vaccines most often. Each section gets a quick re-check once a year.'],
+]
+const REVIEW_WHERE = [
+  ['Your own OB or midwife', 'Ask at a visit whether they\'d look over the warning signs and medicines lists. Many will.'],
+  ['A pharmacist', 'Local independent pharmacists are often happy to look over a medicines list when the counter is quiet.'],
+  ['Hospital nurses', 'Labor & delivery, postpartum and pediatric units. A short, polite email to the unit educator works better than a cold visit.'],
+  ['Residency programs and nursing schools', 'OB-GYN and pediatric residents and nursing or midwifery students often need review or quality projects.'],
+  ['Introductions', 'Ask anyone in health care: "Do you know someone in labor & delivery, a pharmacist or an OB who might give 30 minutes?"'],
+  ['Paid review, if it goes public', 'Freelance clinicians run about $150 to $400 an hour; a full review is roughly 40 to 80 hours.'],
+]
+const REVIEW_ASK = 'Hi! We built a pregnancy app for couples called Together, and before sharing it more widely we want the health information checked by people who work in the field.\n\nWould you be willing to review one section that matches your work? It takes about 30 to 60 minutes. You\'d mark each item as right, needs a change, or not sure, and your name only goes on it if you approve the final wording.\n\nThe sections that need someone most are the warning signs, medicines, labor alerts, and postpartum and newborn warning signs. Thank you!'
+
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get WEEKS() { return WEEKS }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT }, get BABY_NAMES() { return BABY_NAMES }, get BAG_LIST() { return BAG_LIST }, get BIRTH_PLAN_INTRO() { return BIRTH_PLAN_INTRO }, get BIRTH_PLAN() { return BIRTH_PLAN }, get QUESTION_IDEAS() { return QUESTION_IDEAS }, get WEIGHT_GAIN() { return WEIGHT_GAIN }, get FIRST_TRI_GAIN() { return FIRST_TRI_GAIN }, get WEIGHT_NOTE() { return WEIGHT_NOTE }, get BP_RULES() { return BP_RULES }, get BP_NOTE() { return BP_NOTE }, get NEWBORN_TIPS() { return NEWBORN_TIPS }, get NEWBORN_CALL() { return NEWBORN_CALL }, get FEED_TYPES() { return FEED_TYPES }, get DIAPER_TYPES() { return DIAPER_TYPES }, get POSTPARTUM_911() { return POSTPARTUM_911 }, get POSTPARTUM_CALL() { return POSTPARTUM_CALL }, get POSTPARTUM_TIPS() { return POSTPARTUM_TIPS }, get MOOD_CHECK() { return MOOD_CHECK }, get MOOD_CHECK_NOTE() { return MOOD_CHECK_NOTE }, get LOSS_SUPPORT() { return LOSS_SUPPORT }, get CONTRACTION_NOTE() { return CONTRACTION_NOTE }, get KICK_NOTE() { return KICK_NOTE }, get BABY_MONTH_NOTE() { return BABY_MONTH_NOTE }, get BABY_MONTHS() { return BABY_MONTHS }, get WELL_VISITS() { return WELL_VISITS }, get VACCINE_NOTE() { return VACCINE_NOTE }, get WEEK_TODOS() { return WEEK_TODOS }, get GUIDES() { return GUIDES }, get JOURNAL_PROMPTS() { return JOURNAL_PROMPTS }, get WEEK_TODO_HELP() { return WEEK_TODO_HELP }, get REVIEWS() { return REVIEWS }, get REVIEW_SECTIONS() { return REVIEW_SECTIONS }, get REVIEW_STEPS() { return REVIEW_STEPS }, get REVIEW_WHERE() { return REVIEW_WHERE }, get REVIEW_ASK() { return REVIEW_ASK } }
 })()
 
 const S = (() => {
@@ -2596,8 +2630,8 @@ function renderScreen() {
   if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
 }
 const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
-const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Safe? & guides', plan: 'Plan', settings: 'Settings', weeks: 'Week by week', tool: 'Tools', months: 'Month by month' }
-const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView(), tool: () => toolScreen(), months: () => monthsView() }
+const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Safe? & guides', plan: 'Plan', settings: 'Settings', weeks: 'Week by week', tool: 'Tools', months: 'Month by month', review: 'Expert review' }
+const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView(), tool: () => toolScreen(), months: () => monthsView(), review: () => reviewView() }
 
 // ── Sheets: forms slide up over the current screen ──────────────────────────
 // Drawn as part of the screen (so a live update redraws them too, and typed
@@ -3835,7 +3869,29 @@ function settings() {
       <button class="ghost danger" data-act="reset">Erase everything on this phone</button>
     </details>
     ${lossMode() ? '' : `<details class="card fold"><summary>🤍 If the pregnancy has ended</summary><p class="fine">We're so sorry. This pauses the weekly updates and daily tips on both phones and shows support instead. Your entries stay, and you can turn it back any time.</p><button class="ghost" data-act="loss-on">Pause pregnancy updates</button></details>`}
-    ${disclaimerCard()}`
+    ${disclaimerCard()}
+    <button class="linkish tiny center-link" data-tab="review">🩺 Expert review checklist ›</button>`
+}
+
+// ── Expert review checklist: which part needs which expert's sign-off ──────
+function reviewView() {
+  const R = C.REVIEWS || {}, list = C.REVIEW_SECTIONS || []
+  const done = list.filter(x => R[x.id]).length
+  const pri = { 1: ['First', 'p1'], 2: ['Next', 'p2'], 3: ['Then', 'p3'] }
+  return `<button class="linkish" data-tab="settings">‹ Settings</button>
+    <section class="card"><div class="card-head"><b>${done} of ${list.length} sections signed off</b></div>
+      <div class="bar"><i style="width:${list.length ? done / list.length * 100 : 0}%"></i></div>
+      <p class="fine">Each section of health information needs a sign-off from someone who works in that field. Start with the ones marked First: they're where a mistake could change what someone does in an emergency.</p></section>
+    ${[1, 2, 3].map(p => `<div class="lhead">${pri[p][0]}</div>${list.filter(x => x.pri === p).map(x => { const r = R[x.id]; return `<section class="card review-row">
+        <div class="card-head"><b>${esc(x.title)}</b><span class="pill-s ${r ? 'ok' : pri[p][1]}">${r ? '✓ Signed off' : 'Needs review'}</span></div>
+        <p class="fine">${esc(x.what)} · ${esc(x.size)} · about ${esc(x.time)}</p>
+        <p><b>Sign-off:</b> ${esc(x.signoff)}</p>
+        ${r ? `<p class="fine">Reviewed by ${esc(r.by)}${r.field ? `, ${esc(r.field)}` : ''} · ${esc(r.date || '')}${r.checkedBy ? ` · source check: ${esc(r.checkedBy)}` : ''}</p>` : ''}
+      </section>` }).join('')}`).join('')}
+    <section class="card"><h3>How a review works</h3>${(C.REVIEW_STEPS || []).map(([h, t]) => `<p><b>${esc(h)}.</b> ${esc(t)}</p>`).join('')}</section>
+    <section class="card"><h3>Where to find reviewers</h3>${(C.REVIEW_WHERE || []).map(([h, t]) => `<p><b>${esc(h)}:</b> ${esc(t)}</p>`).join('')}</section>
+    <section class="card"><h3>Message to send a reviewer</h3><p class="fine review-ask">${esc(C.REVIEW_ASK || '')}</p>
+      <div class="sheet-row"><button class="big" data-act="review-copy">📋 Copy</button><button class="big primary" data-act="review-share">Share</button></div></section>`
 }
 
 const fmtTime = t => { const [h, m] = t.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) }
@@ -4503,6 +4559,8 @@ app.addEventListener('click', async ev => {
       return
     }
     case 'check-remove': { S.updateEntry(d.id, { removed: true }); checkOpen = null; const id = d.id; undoToast('Removed', () => S.updateEntry(id, { removed: false })); return }
+    case 'review-copy': navigator.clipboard?.writeText(C.REVIEW_ASK).then(() => toast('Message copied'), () => toast('Couldn\'t copy on this phone')); return
+    case 'review-share': if (navigator.share) navigator.share({ text: C.REVIEW_ASK }).catch(() => {}); else navigator.clipboard?.writeText(C.REVIEW_ASK).then(() => toast('Message copied')); return
     case 'bp-copy': navigator.clipboard?.writeText(birthPlanText()).then(() => toast('Birth plan copied'), () => toast('Couldn\'t copy on this phone')); return
     case 'bp-share': if (navigator.share) navigator.share({ text: birthPlanText() }).catch(() => {}); else navigator.clipboard?.writeText(birthPlanText()).then(() => toast('Birth plan copied')); return
     case 'vitals-save': {

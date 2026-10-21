@@ -321,8 +321,8 @@ function renderScreen() {
   if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
 }
 const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
-const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Safe? & guides', plan: 'Plan', settings: 'Settings', weeks: 'Week by week', tool: 'Tools', months: 'Month by month' }
-const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView(), tool: () => toolScreen(), months: () => monthsView() }
+const TITLES = { today: 'Today', timeline: 'Us', lookup: 'Safe? & guides', plan: 'Plan', settings: 'Settings', weeks: 'Week by week', tool: 'Tools', months: 'Month by month', review: 'Expert review' }
+const SCREENS = { today: () => today(), timeline: () => timeline(), lookup: () => lookup(), plan: () => plan(), settings: () => settings(), weeks: () => weeksView(), tool: () => toolScreen(), months: () => monthsView(), review: () => reviewView() }
 
 // ── Sheets: forms slide up over the current screen ──────────────────────────
 // Drawn as part of the screen (so a live update redraws them too, and typed
@@ -1560,7 +1560,29 @@ function settings() {
       <button class="ghost danger" data-act="reset">Erase everything on this phone</button>
     </details>
     ${lossMode() ? '' : `<details class="card fold"><summary>🤍 If the pregnancy has ended</summary><p class="fine">We're so sorry. This pauses the weekly updates and daily tips on both phones and shows support instead. Your entries stay, and you can turn it back any time.</p><button class="ghost" data-act="loss-on">Pause pregnancy updates</button></details>`}
-    ${disclaimerCard()}`
+    ${disclaimerCard()}
+    <button class="linkish tiny center-link" data-tab="review">🩺 Expert review checklist ›</button>`
+}
+
+// ── Expert review checklist: which part needs which expert's sign-off ──────
+function reviewView() {
+  const R = C.REVIEWS || {}, list = C.REVIEW_SECTIONS || []
+  const done = list.filter(x => R[x.id]).length
+  const pri = { 1: ['First', 'p1'], 2: ['Next', 'p2'], 3: ['Then', 'p3'] }
+  return `<button class="linkish" data-tab="settings">‹ Settings</button>
+    <section class="card"><div class="card-head"><b>${done} of ${list.length} sections signed off</b></div>
+      <div class="bar"><i style="width:${list.length ? done / list.length * 100 : 0}%"></i></div>
+      <p class="fine">Each section of health information needs a sign-off from someone who works in that field. Start with the ones marked First: they're where a mistake could change what someone does in an emergency.</p></section>
+    ${[1, 2, 3].map(p => `<div class="lhead">${pri[p][0]}</div>${list.filter(x => x.pri === p).map(x => { const r = R[x.id]; return `<section class="card review-row">
+        <div class="card-head"><b>${esc(x.title)}</b><span class="pill-s ${r ? 'ok' : pri[p][1]}">${r ? '✓ Signed off' : 'Needs review'}</span></div>
+        <p class="fine">${esc(x.what)} · ${esc(x.size)} · about ${esc(x.time)}</p>
+        <p><b>Sign-off:</b> ${esc(x.signoff)}</p>
+        ${r ? `<p class="fine">Reviewed by ${esc(r.by)}${r.field ? `, ${esc(r.field)}` : ''} · ${esc(r.date || '')}${r.checkedBy ? ` · source check: ${esc(r.checkedBy)}` : ''}</p>` : ''}
+      </section>` }).join('')}`).join('')}
+    <section class="card"><h3>How a review works</h3>${(C.REVIEW_STEPS || []).map(([h, t]) => `<p><b>${esc(h)}.</b> ${esc(t)}</p>`).join('')}</section>
+    <section class="card"><h3>Where to find reviewers</h3>${(C.REVIEW_WHERE || []).map(([h, t]) => `<p><b>${esc(h)}:</b> ${esc(t)}</p>`).join('')}</section>
+    <section class="card"><h3>Message to send a reviewer</h3><p class="fine review-ask">${esc(C.REVIEW_ASK || '')}</p>
+      <div class="sheet-row"><button class="big" data-act="review-copy">📋 Copy</button><button class="big primary" data-act="review-share">Share</button></div></section>`
 }
 
 const fmtTime = t => { const [h, m] = t.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) }
@@ -2228,6 +2250,8 @@ app.addEventListener('click', async ev => {
       return
     }
     case 'check-remove': { S.updateEntry(d.id, { removed: true }); checkOpen = null; const id = d.id; undoToast('Removed', () => S.updateEntry(id, { removed: false })); return }
+    case 'review-copy': navigator.clipboard?.writeText(C.REVIEW_ASK).then(() => toast('Message copied'), () => toast('Couldn\'t copy on this phone')); return
+    case 'review-share': if (navigator.share) navigator.share({ text: C.REVIEW_ASK }).catch(() => {}); else navigator.clipboard?.writeText(C.REVIEW_ASK).then(() => toast('Message copied')); return
     case 'bp-copy': navigator.clipboard?.writeText(birthPlanText()).then(() => toast('Birth plan copied'), () => toast('Couldn\'t copy on this phone')); return
     case 'bp-share': if (navigator.share) navigator.share({ text: birthPlanText() }).catch(() => {}); else navigator.clipboard?.writeText(birthPlanText()).then(() => toast('Birth plan copied')); return
     case 'vitals-save': {

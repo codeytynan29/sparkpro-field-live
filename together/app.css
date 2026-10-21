@@ -482,3 +482,11 @@ a.btn + a.btn { margin-left: 6px; }
 .journal-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 #jText { width: 100%; margin: 8px 0; }
 .todo-help { margin: 4px 0 0; font-size: .9rem; }
+.center-link { display: block; margin: 4px auto 12px; text-align: center; }
+.pill-s { font-size: .75rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.pill-s.p1 { color: var(--avoid); background: var(--avoid-bg); }
+.pill-s.p2 { color: var(--ask); background: var(--ask-bg); }
+.pill-s.p3 { color: var(--muted); background: var(--soft); }
+.pill-s.ok { color: var(--ok); background: var(--ok-bg); }
+.review-row .card-head { align-items: flex-start; gap: 10px; }
+.review-ask { white-space: pre-wrap; }

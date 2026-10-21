@@ -418,6 +418,16 @@ await test('bump photos: add one for an earlier week, then move it to another we
   ok(b[0].data.week === now, 'week change not saved')
 })
 
+await test('expert review checklist: tucked at the end of Settings, lists every section and how to get sign-offs', async page => {
+  await seed(page, 'dad')
+  await page.click('[data-tab=settings]'); await page.click('[data-tab=review]')
+  const t = await page.innerText('main')
+  ok((await page.innerText('.title')) === 'Expert review', 'title wrong')
+  ok(/0 of 13 sections signed off/.test(t) && t.includes('Pharmacist') && t.includes('Where to find reviewers'), 'checklist content missing')
+  await page.click('[data-act=review-copy]')
+  ok((await page.evaluate(() => navigator.clipboard.readText())).includes('Together'), 'message not copied')
+})
+
 await browser.close()
 server.close()
 for (const [mark, name] of results) console.log(mark, name)
