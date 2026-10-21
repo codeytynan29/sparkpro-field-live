@@ -3201,7 +3201,7 @@ function timeline() {
       : `<div class="big-emoji">–</div><div>Not yet today</div><div class="fine">${lastSeen(hisAll)}</div>`}
     </button>
   </div>
-  <div class="seg eq">${[['her', esc(n.mom)], ['him', esc(n.dad)], ['feed', 'Notes'], ['history', 'History']].map(([id, l]) => `<button data-us="${id}" class="${usView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+  <div class="seg eq two">${[['feed', '💬 Notes'], ['history', '📊 History']].map(([id, l]) => `<button data-us="${id}" class="${usView === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
   return strip + (usView === 'her' ? herSide() : usView === 'him' ? hisSide() : usView === 'history' ? historyView() : feed())
 }
 
