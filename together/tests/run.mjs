@@ -361,16 +361,20 @@ await test('loss mode: Today shows support on both phones, and can be turned bac
   ok((await page.locator('.baby .wk').count()) === 1, 'pregnancy view did not come back')
 })
 
-await test('weekly to-dos: tick on Today, shared, and shown in week by week', async page => {
-  await seed(page, 'dad', [], { prefs: { lmp: new Date(Date.now() - 12 * 7 * 864e5).toISOString().slice(0, 10), momName: 'Sarah' }, entries: [] })
-  ok((await page.innerText('main')).includes("This week's to-dos"), 'to-do card missing')
-  const before = await page.locator('[data-todo]').count()
+await test('weekly to-dos: she ticks them; his phone shows her progress and how to help', async page => {
+  const lmp = new Date(Date.now() - 12 * 7 * 864e5).toISOString().slice(0, 10)
+  await seed(page, 'mom', [], { prefs: { lmp, momName: 'Sarah' }, entries: [] })
+  ok((await page.innerText('main')).includes("This week's to-dos"), 'to-do card missing on her phone')
   await page.locator('[data-todo]').last().click()
-  const st = await stored(page)
-  ok(st.entries.some(e => e.kind === 'todo' && e.data.done && e.data.by === 'dad'), 'tick not saved')
-  ok((await page.innerText('main')).includes('done by '), 'done-by missing')
+  const todos = (await stored(page)).entries.filter(e => e.kind === 'todo')
+  ok(todos.length === 1 && todos[0].data.done && todos[0].data.by === 'mom', 'tick not saved')
+  await seed(page, 'dad', [], { prefs: { lmp, momName: 'Sarah' }, entries: todos })
+  const t = await page.innerText('main')
+  ok(t.includes("Sarah's to-dos this week") && t.includes('how you can help') && /1 of \d+ done/.test(t), 'partner to-do view wrong')
+  ok(await page.locator('[data-todo]').count() === 0, 'partner can tick her to-dos')
+  ok(await page.locator('.todo-help').count() >= 1, 'no help tips for the partner')
   await page.click('.baby [data-week]')
-  ok((await page.innerText('main')).includes('To-dos for week 12'), 'week view to-dos missing')
+  ok((await page.innerText('main')).includes("Sarah's to-dos for week 12"), 'week view to-dos missing')
 })
 
 await test('guides open from Safe?, and the journal keeps private entries on this phone', async page => {

@@ -2852,7 +2852,7 @@ function weeksView() {
     <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
     ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}
     ${help ? `<section class="card"><h3>🫶 For ${me() === 'dad' ? 'you' : esc(names().dad)} this week</h3><p>${esc(help)}</p></section>` : ''}
-    ${(C.WEEK_TODOS || {})[w] ? `<section class="card"><h3>✅ To-dos for week ${w}</h3>${todoRows(w, todoState())}</section>` : ''}
+    ${(C.WEEK_TODOS || {})[w] ? `<section class="card"><h3>✅ ${me() === 'dad' ? `${esc(names().mom)}'s to-dos` : 'To-dos'} for week ${w}</h3>${me() === 'dad' ? partnerTodoRows(w, todoState()) : todoRows(w, todoState())}</section>` : ''}
     ${miles.length ? `<section class="card"><h3>📅 This week's milestones</h3>${miles.map(m => `<p><b>${esc(m.title)}</b><br><span class="fine">${esc(m.detail)}</span></p>`).join('')}</section>` : ''}
     ${st ? `<p class="fine center">Part of: ${st.emoji} ${esc(st.title)} (weeks ${st.from || 4}–${Math.min(st.to, 42)})</p>` : ''}
     ${w !== now ? `<button class="big" data-week="${now}">Back to this week</button>` : ''}
@@ -4072,8 +4072,29 @@ function todoRows(w, st, leftover) {
       <div class="lrow-main"><div class="lrow-name">${esc(t)}</div>${done && s.by ? `<div class="fine">done by ${esc(nameOf(s.by))}</div>` : leftover ? `<div class="fine">from week ${w}</div>` : ''}</div></div>`
   }).join('')
 }
+// The partner's phone shows the same list read-only: what {m:they} {m:has|have} done,
+// and for each item how the partner can help with it.
+const todoText = key => { const [, w, i] = /^w(\d+):(\d+)$/.exec(key) || []; return w ? ((C.WEEK_TODOS || {})[w] || [])[i] || '' : '' }
+function partnerTodoRows(w, st, leftover) {
+  return ((C.WEEK_TODOS || {})[w] || []).map((t, i) => {
+    const s = st.get(`w${w}:${i}`), done = !!s?.done, help = ((C.WEEK_TODO_HELP || {})[w] || [])[i]
+    if (leftover && done) return ''
+    return `<div class="lrow ${done ? 'got' : ''}"><span class="tick">${done ? '✅' : '⏳'}</span>
+      <div class="lrow-main"><div class="lrow-name">${esc(t)}</div>
+        <div class="fine">${done ? `Done${s.by && s.by !== 'mom' ? ` by ${esc(nameOf(s.by))}` : ''}` : leftover ? `Not done yet · from week ${w}` : 'Not done yet'}</div>
+        ${help && !done ? `<p class="todo-help">🫶 ${esc(help)}</p>` : ''}</div></div>`
+  }).join('')
+}
 function todoCard(wk) {
   const st = todoState()
+  if (me() === 'dad') {
+    const items = (C.WEEK_TODOS || {})[wk] || []
+    const left = [wk - 2, wk - 1].filter(w => w >= 4).map(w => partnerTodoRows(w, st, true)).join('')
+    if (!items.length && !left) return ''
+    const done = items.filter((_, i) => st.get(`w${wk}:${i}`)?.done).length
+    return `<section class="card"><div class="card-head"><b>🧭 ${esc(names().mom)}'s to-dos this week</b><span class="fine">${done} of ${items.length} done</span></div>
+      <p class="fine">${T('{M:they} {m:ticks|tick} these off on {m:their} phone. Here\'s how you can help with each one.')}</p>${left}${partnerTodoRows(wk, st)}</section>`
+  }
   // anything left over from the last two weeks comes along, so nothing slips
   const left = [wk - 2, wk - 1].filter(w => w >= 4).map(w => todoRows(w, st, true)).join('')
   const now = todoRows(wk, st)
@@ -4655,7 +4676,7 @@ S.onChange(evt => {
   if (evt.type === 'remote' && evt.added?.length) {
     const e = evt.added.at(-1)
     const who = nameOf(e.author_role)
-    const msg = e.kind === 'checkin' ? (me() === 'dad' && e.author_role === 'mom' ? `${nudgeFor(e).title}. ${nudgeFor(e).body}` : `${who} just checked in`) : e.kind === 'note' ? `💌 ${who}: ${e.data.text}` : e.kind === 'reaction' ? `${who} sent ${e.data.emoji}` : e.kind === 'appointment' ? `${who} added ${e.data.title}` : e.kind === 'registry' ? `🎁 ${who} added ${e.data.name} to the registry` : e.kind === 'wish' && me() === 'dad' ? `🎀 ${who} added ${e.data.name} to the wishlist` : ''
+    const msg = e.kind === 'checkin' ? (me() === 'dad' && e.author_role === 'mom' ? `${nudgeFor(e).title}. ${nudgeFor(e).body}` : `${who} just checked in`) : e.kind === 'note' ? `💌 ${who}: ${e.data.text}` : e.kind === 'reaction' ? `${who} sent ${e.data.emoji}` : e.kind === 'appointment' ? `${who} added ${e.data.title}` : e.kind === 'registry' ? `🎁 ${who} added ${e.data.name} to the registry` : e.kind === 'wish' && me() === 'dad' ? `🎀 ${who} added ${e.data.name} to the wishlist` : e.kind === 'todo' && e.data.done && me() === 'dad' && todoText(e.data.key) ? `✅ ${who} did: ${todoText(e.data.key)}` : ''
     if (msg) { toast(msg); navigator.vibrate?.(60) }
   }
   // don't redraw under someone mid-typing; their form is restored on the next render anyway

@@ -483,3 +483,4 @@ a.btn + a.btn { margin-left: 6px; }
 .guide-row:last-child { border-bottom: 0; }
 .journal-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 #jText { width: 100%; margin: 8px 0; }
+.todo-help { margin: 4px 0 0; font-size: .9rem; }
