@@ -682,6 +682,7 @@ function babyCard(g, wk) {
           <div>About the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
         </div>
       </div>
+      ${babyPic(wk)}
       <p class="wk-line">👶 ${esc(C.WEEK_NOTES[wk] || '')}</p>
       ${body ? `<p class="wk-line">${face('mom')} <b>${mom ? 'Your body' : esc(names().mom) + '\'s body'} this week:</b> ${esc(body)}</p>` : ''}
       ${help && !mom ? `<p class="wk-line">🫶 <b>Your move this week:</b> ${esc(help)}</p>` : ''}
@@ -695,6 +696,11 @@ function babyCard(g, wk) {
 // index.html and it covers the emoji. A missing file is only asked for once.
 const noArt = new Set()
 window.tgNoArt = el => { noArt.add(el.dataset.w); el.remove() }
+// What baby looks like that week (illustrations in img/baby/4.webp … 40.webp),
+// shown under the fruit. A week without a picture just shows the fruit.
+const noPic = new Set()
+window.tgNoPic = el => { noPic.add(el.dataset.w); el.closest('.baby-pic')?.remove() }
+const babyPic = w => { w = Math.min(40, w); return noPic.has(String(w)) ? '' : `<figure class="baby-pic"><img src="img/baby/${w}.webp" alt="Illustration of baby at ${w} weeks" data-w="${w}" loading="lazy" onerror="tgNoPic(this)"><figcaption>What baby looks like at ${w} weeks · illustration</figcaption></figure>` }
 const art = w => noArt.has(String(w)) ? '' : `<img class="art" src="img/weeks/${w}.webp" alt="" data-w="${w}" onerror="tgNoArt(this)">`
 
 // ── Week by week: flip through every week, like the book ────────────────────
@@ -718,6 +724,7 @@ function weeksView() {
     <section class="card week-hero">
       <div class="big-fruit">${fe}${art(w)}</div>
       <p class="center">About the size of a <b>${esc(fruit)}</b><br><span class="fine">${esc(len)}</span></p>
+      ${babyPic(w)}
     </section>
     <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
     ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}

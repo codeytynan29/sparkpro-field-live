@@ -490,3 +490,6 @@ a.btn + a.btn { margin-left: 6px; }
 .pill-s.ok { color: var(--ok); background: var(--ok-bg); }
 .review-row .card-head { align-items: flex-start; gap: 10px; }
 .review-ask { white-space: pre-wrap; }
+.baby-pic { margin: 12px 0 4px; display: grid; gap: 6px; }
+.baby-pic img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; background: var(--soft); display: block; }
+.baby-pic figcaption { font-size: .78rem; color: var(--muted); text-align: center; }

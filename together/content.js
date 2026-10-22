@@ -1863,6 +1863,7 @@ export const REVIEW_SECTIONS = [
   { id: 'movement', title: 'Movement, sleep & recovery', what: 'Exercise, sleep positions, back pain, recovery after birth', signoff: 'Physical or occupational therapist (pelvic floor: a pelvic-floor specialist)', size: '3 guides', time: '30 min', pri: 3 },
   { id: 'guides', title: 'Other guides', what: 'Eating well, sex, travel, work rights, for partners', signoff: 'OB nurse or midwife', size: '5 guides', time: '40 min', pri: 3 },
   { id: 'todos', title: 'Weekly to-dos & checklists', what: 'To-dos for weeks 4 to 40, hospital bag, questions for the OB', signoff: 'OB nurse or midwife', size: '68 to-dos, 45 items', time: '30 min', pri: 3 },
+  { id: 'babypics', title: 'Baby illustrations', what: 'What baby looks like each week, 4 to 40 (illustrations, not photos)', signoff: 'OB, sonographer or embryology instructor', size: '37 pictures', time: '20 min', pri: 2 },
   { id: 'loss', title: 'After a loss', what: 'Physical recovery, grief, partner support, resources', signoff: 'OB, midwife or bereavement nurse', size: '17 items', time: '15 min', pri: 3 },
 ]
 export const REVIEW_STEPS = [
