@@ -318,6 +318,7 @@ function renderScreen() {
     ${sheet ? sheetHtml() : ''}`
   document.body.classList.toggle('noscroll', !!sheet)
   if ($('#circle')) bindBreath()
+  const sw = $('#sizeSwipe'); if (sw && sizeAt.i && sizeAt.w === +sw.dataset.w) sw.scrollLeft = sizeAt.i * sw.clientWidth
   if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
 }
 const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
@@ -331,10 +332,11 @@ let sheet = null // 'log' | 'appt' | 'reg' | 'wish'
 function openSheet(s) { sheet = s; render() }
 function closeSheet() { sheet = null; editReg = null; editAppt = null; editWish = null; render() }
 function sheetHtml() {
-  const body = sheet === 'log' ? checkin() : sheet === 'appt' ? apptForm() : sheet === 'reg' ? regForm() : sheet === 'wish' ? wishForm() : ''
+  const body = sheet === 'log' ? checkin() : sheet === 'appt' ? apptForm() : sheet === 'reg' ? regForm() : sheet === 'wish' ? wishForm() : sheet === 'scan' ? scanSheet() : ''
   const title = sheet === 'log' ? (draft?.editing ? 'Edit check-in' : me() === 'mom' ? 'Check in' : 'Your check-in')
     : sheet === 'appt' ? (editAppt ? 'Edit appointment' : 'Add an appointment')
     : sheet === 'reg' ? (editReg ? 'Edit item' : 'Add to the registry')
+    : sheet === 'scan' ? 'Ultrasound'
     : (editWish ? 'Edit wish' : 'Add a wish')
   return `<div class="overlay" data-close-sheet="1"><div class="sheet-panel" role="dialog" aria-label="${esc(title)}">
     <div class="sheet-head"><b>${esc(title)}</b><button class="mini" data-act="close-sheet" aria-label="Close">✕</button></div>
@@ -675,14 +677,8 @@ function babyCard(g, wk) {
   const [body, help] = C.WEEKS[wk] || []
   const mom = me() === 'mom'
   return `<section class="card baby">
-      <div class="baby-top">
-        <div class="fruit">${fe}${art(wk)}</div>
-        <div>
-          <div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> · day ${g.day + 1}</small>`}</div>
-          <div>About the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
-        </div>
-      </div>
-      ${babyPic(wk)}
+      <div class="baby-head"><div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> · day ${g.day + 1}</small>`}</div>${viewToggle()}</div>
+      ${sizeBlock(wk)}
       <p class="wk-line">👶 ${esc(C.WEEK_NOTES[wk] || '')}</p>
       ${body ? `<p class="wk-line">${face('mom')} <b>${mom ? 'Your body' : esc(names().mom) + '\'s body'} this week:</b> ${esc(body)}</p>` : ''}
       ${help && !mom ? `<p class="wk-line">🫶 <b>Your move this week:</b> ${esc(help)}</p>` : ''}
@@ -703,6 +699,50 @@ window.tgNoPic = el => { noPic.add(el.dataset.w); el.closest('.baby-pic')?.remov
 const babyPic = w => { w = Math.min(40, w); return noPic.has(String(w)) ? '' : `<figure class="baby-pic"><img src="img/baby/${w}.webp" alt="Illustration of baby at ${w} weeks" data-w="${w}" loading="lazy" onerror="tgNoPic(this)"><figcaption>What baby looks like at ${w} weeks · illustration</figcaption></figure>` }
 const art = w => noArt.has(String(w)) ? '' : `<img class="art" src="img/weeks/${w}.webp" alt="" data-w="${w}" onerror="tgNoArt(this)">`
 
+// ── Size comparisons (swipe) and real life ──────────────────────────────────
+// Size: the main fruit first, then other things about as big. Real life: this
+// couple's own ultrasound photos for that week, plus an illustration if one
+// exists in img/baby. The choice is remembered on this phone.
+let sizeAt = { w: 0, i: 0 }
+const babyView = () => (S.state.prefs || {}).babyView || 'size'
+const aOrAn = n => /^[aeiou]/i.test(n) ? 'an' : 'a'
+function sizeList(w) {
+  const [f, fe, len] = C.BABY_SIZE[w] || C.BABY_SIZE[4]
+  return { len, items: [[f, fe], ...((C.SIZE_ALTS || {})[w] || [])] }
+}
+function viewToggle() {
+  return `<div class="seg eq mini-seg">${[['size', '🍎 Size'], ['real', '👶 Real life']].map(([id, l]) => `<button data-babyview="${id}" class="${babyView() === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+}
+function sizeBlock(w, big) {
+  if (babyView() === 'real') return realLife(w)
+  const { len, items } = sizeList(w)
+  return `<div class="size-swipe ${big ? 'size-big' : ''}" id="sizeSwipe" data-w="${w}">${items.map(([n, e], i) => `<div class="size-slide">
+      <div class="fruit">${e}${i === 0 ? art(w) : ''}</div>
+      <div class="size-text">About the size of ${aOrAn(n)} <b>${esc(n)}</b><div class="fine">${esc(len)}</div></div></div>`).join('')}</div>
+    ${items.length > 1 ? `<div class="swipe-dots">${items.map(([n], i) => `<button data-size-i="${i}" class="${i === (sizeAt.w === w ? sizeAt.i : 0) ? 'on' : ''}" aria-label="${esc(n)}"></button>`).join('')}<span class="fine">swipe for more</span></div>` : ''}`
+}
+function realLife(w) {
+  const scans = live('scan').filter(e => e.data.week === w)
+  const pic = babyPic(w)
+  return `<div class="real-life">
+    ${scans.length ? `<div class="scan-row">${scans.map(e => `<button class="scan" data-scan="${e.id}"><img src="${esc(e.data.thumb)}" alt="Ultrasound from week ${w}"></button>`).join('')}</div><p class="fine center">Your ultrasound${scans.length > 1 ? 's' : ''} · week ${w}</p>` : ''}
+    ${pic}
+    ${!scans.length ? `<div class="real-empty"><div class="big-emoji">🩻</div><p class="fine center">Your own ultrasound photos show here, under the week they were taken.</p></div>` : ''}
+    <label class="ghost pill file-pill center-pill">＋ Add ultrasound · week ${w}<input type="file" id="scanFile" data-w="${w}" accept="image/*" hidden></label>
+  </div>`
+}
+// a full-size ultrasound in a sheet, with its week and a delete for whoever added it
+let scanOpen = null
+function scanSheet() {
+  const e = entries('scan').find(x => x.id === scanOpen)
+  if (!e) return '<p class="fine">That photo was removed.</p>'
+  const now = gest() ? Math.max(4, Math.min(42, gest().week)) : 42
+  return `<img id="fullScan" class="scan-full" src="${esc(fullUrls[e.id] || e.data.thumb)}" alt="Ultrasound from week ${num(e.data.week, 0, 45)}">
+    ${e.author_role === me() ? `<label class="field">Week <select id="scanWeek" data-id="${e.id}">${weekOptions(Math.max(now, e.data.week), e.data.week)}</select></label>` : `<p><b>Week ${num(e.data.week, 0, 45)}</b></p>`}
+    <p class="fine">Added by ${esc(nameOf(e.author_role))} · ${esc(fmtDate(new Date(e.created_at)))}</p>
+    ${e.author_role === me() ? `<div class="sheet-foot"><button class="ghost danger" data-act="scan-del" data-id="${e.id}">Delete photo</button></div>` : ''}`
+}
+
 // ── Week by week: flip through every week, like the book ────────────────────
 let weekShown = null
 function weeksView() {
@@ -722,9 +762,8 @@ function weeksView() {
     </div>
     <div class="week-dots">${Array.from({ length: 39 }, (_, i) => i + 4).map(x => `<button data-week="${x}" class="${x === w ? 'on' : ''} ${x === now ? 'now' : ''}" aria-label="Week ${x}"></button>`).join('')}</div>
     <section class="card week-hero">
-      <div class="big-fruit">${fe}${art(w)}</div>
-      <p class="center">About the size of a <b>${esc(fruit)}</b><br><span class="fine">${esc(len)}</span></p>
-      ${babyPic(w)}
+      <div class="baby-head center-head">${viewToggle()}</div>
+      ${sizeBlock(w, true)}
     </section>
     <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
     ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}
@@ -1751,6 +1790,11 @@ function shrink(file, max, q) {
 }
 async function addBumpPhoto(file) {
   const now = gest()?.week ?? 0, wk = Math.min(now, bumpWeek || now), note = ($('#bumpNote')?.value || '').trim().slice(0, 300)
+  const path = await addPhoto('bump', file, { week: wk, note })
+  toast(path ? `Week ${wk} photo saved 📸` : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
+}
+// shrink, upload the full size (when paired) and save the entry with a thumbnail
+async function addPhoto(kind, file, data) {
   toast('Saving photo…')
   const thumb = await shrink(file, 360, 0.72)
   const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
@@ -1758,8 +1802,8 @@ async function addBumpPhoto(file) {
   if (S.isPaired()) {
     try { const full = await shrink(file, 1600, 0.85); path = await S.uploadPhoto(`${id}.jpg`, full.blob) } catch (e) { console.warn('full photo upload failed', e) }
   }
-  await S.addEntry('bump', { week: wk, thumb: thumb.dataUrl, path, note })
-  toast(path ? `Week ${wk} photo saved 📸` : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
+  await S.addEntry(kind, { ...data, thumb: thumb.dataUrl, path })
+  return path
 }
 
 async function saveKicks(k) {
@@ -2179,6 +2223,14 @@ app.addEventListener('click', async ev => {
     const cur = birthPlan()[d.bp] || [], next = cur.includes(d.opt) ? cur.filter(x => x !== d.opt) : [...cur, d.opt]
     const y = scrollY; await S.addEntry('birthplan', { [d.bp]: next }); scrollTo(0, y); return
   }
+  if (d.babyview) { S.state.prefs = { ...S.state.prefs, babyView: d.babyview }; S.save(); render(); return }
+  if (d.sizeI != null) { const sw = $('#sizeSwipe'); if (sw) sw.scrollTo({ left: +d.sizeI * sw.clientWidth, behavior: 'smooth' }); return }
+  if (d.scan) {
+    scanOpen = d.scan; openSheet('scan')
+    const e = entries('scan').find(x => x.id === d.scan)
+    if (e?.data.path && !fullUrls[e.id] && S.isPaired()) S.photoUrl(e.data.path).then(u => { fullUrls[e.id] = u; const img = $('#fullScan'); if (img && scanOpen === e.id) img.src = u }).catch(() => {})
+    return
+  }
   if (d.bumpweek) { bumpWeek = +d.bumpweek; render(); return }
   if (d.photo) {
     photoOpen = d.photo; render(); scrollTo(0, 0)
@@ -2225,6 +2277,12 @@ app.addEventListener('click', async ev => {
     case 'ctx-clear': if (await ask({ title: 'Start a new session?', text: 'The list starts fresh on this phone. Nothing is deleted.', ok: 'New session' })) { setToolState({ ctxSince: Date.now(), contraction: null }); render() } return
     case 'sleep-start': setToolState({ sleep: { start: Date.now() } }); render(); return
     case 'sleep-stop': { const z = toolState().sleep; setToolState({ sleep: null }); if (z) await S.addEntry('sleep', { start: z.start, end: Date.now() }); return }
+    case 'scan-del': {
+      const e = entries('scan').find(x => x.id === d.id); if (!e) return
+      if (!await ask({ title: 'Delete this ultrasound photo?', text: 'It\'s removed from both phones.', ok: 'Delete', danger: true })) return
+      sheet = null; scanOpen = null; S.removeEntry(e.id); if (e.data.path) S.removePhoto(e.data.path).catch(() => {})
+      toast('Photo deleted'); return
+    }
     case 'photo-close': photoOpen = null; render(); return
     case 'photo-del': {
       const e = entries('bump').find(x => x.id === d.id); if (!e) return
@@ -2529,6 +2587,14 @@ app.addEventListener('click', async ev => {
   }
 })
 
+// remember which size comparison is showing, so a live redraw doesn't jump back
+app.addEventListener('scroll', ev => {
+  const sw = ev.target
+  if (!sw.classList?.contains('size-swipe') || !sw.clientWidth) return
+  const i = Math.round(sw.scrollLeft / sw.clientWidth)
+  sizeAt = { w: +sw.dataset.w, i }
+  sw.parentElement.querySelectorAll('.swipe-dots button').forEach((b, k) => b.classList.toggle('on', k === i))
+}, true)
 app.addEventListener('toggle', ev => { const k = ev.target.dataset?.keep; if (k) ev.target.open ? openDetails.add(k) : openDetails.delete(k) }, true)
 app.addEventListener('input', ev => {
   if (ev.target.id === 'q') {
@@ -2552,6 +2618,8 @@ app.addEventListener('change', async ev => {
     setReminders(list); remindersChanged(); return
   }
   if (ev.target.id === 'private') readDraftInputs()
+  if (t.id === 'scanFile' && t.files[0]) { const w = +t.dataset.w; try { const path = await addPhoto('scan', t.files[0], { week: w }); toast(path ? `Ultrasound saved to week ${w} 🩻` : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)') } catch (e) { toast(e.message || 'Couldn\'t add that photo') } t.value = ''; return }
+  if (t.id === 'scanWeek') { S.updateEntry(t.dataset.id, { week: +t.value }); toast(`Moved to week ${t.value}`); return }
   if (t.id === 'bumpWeekSel') { bumpWeek = +t.value; render(); return }
   if (t.id === 'photoWeek') { S.updateEntry(t.dataset.id, { week: +t.value }); toast(`Moved to week ${t.value}`); return }
   if (t.id === 'bumpFile' && t.files[0]) { try { await addBumpPhoto(t.files[0]); delete formState.bumpNote } catch (e) { toast(e.message || 'Couldn\'t add that photo') } t.value = ''; return }

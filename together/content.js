@@ -16,6 +16,17 @@
 // have none, so they're small drawings instead.
 const POPPY = '<svg viewBox="0 0 40 40" width="1em" height="1em" aria-hidden="true"><circle cx="20" cy="20" r="5" fill="#5a5370" stroke="#9a92ab" stroke-width="1"/><circle cx="18.5" cy="18.5" r="1.4" fill="#8a8398"/></svg>'
 const SESAME = '<svg viewBox="0 0 40 40" width="1em" height="1em" aria-hidden="true"><path d="M20 7c7 6 8.5 18 0 26-8.5-8-7-20 0-26z" fill="#f3e3bf" stroke="#c9a565" stroke-width="1.6" transform="rotate(25 20 20)"/></svg>'
+// Small drawings for same-size things that have no emoji
+const svg = body => `<svg viewBox="0 0 40 40" width="1em" height="1em" aria-hidden="true">${body}</svg>`
+const SALT = svg('<rect x="17" y="17" width="6" height="6" rx="1" fill="#f4f1ee" stroke="#aaa3ad" stroke-width="1" transform="rotate(12 20 20)"/>')
+const SAND = svg('<circle cx="20" cy="20" r="4" fill="#d8b77a" stroke="#a8874c" stroke-width="1"/>')
+const APPLE_SEED = svg('<path d="M20 9c6 5 7 15 0 22-7-7-6-17 0-22z" fill="#5b3420" stroke="#3a2012" stroke-width="1.2" transform="rotate(-20 20 20)"/><path d="M18 14c1 3 1 6 0 9" stroke="#8a5a3c" stroke-width="1.2" fill="none" transform="rotate(-20 20 20)"/>')
+const PEPPERCORN = svg('<circle cx="20" cy="20" r="7" fill="#3b2f2c" stroke="#1f1816" stroke-width="1"/><path d="M15 18c3-2 6-2 9 0M15 22c3 2 6 2 9 0" stroke="#5d4c47" stroke-width="1.2" fill="none"/>')
+const JELLY_BEAN = svg('<path d="M9 22c-2-8 6-14 13-11 4 2 5 4 9 3 4 0 4 7 0 10-6 5-20 6-22-2z" fill="#ee5a7a" stroke="#b83656" stroke-width="1.4"/><ellipse cx="17" cy="16" rx="4" ry="1.6" fill="#fff" opacity=".55" transform="rotate(-15 17 16)"/>')
+const RICE = svg('<ellipse cx="20" cy="20" rx="10" ry="4" fill="#f7f3ea" stroke="#c9c0ad" stroke-width="1.2" transform="rotate(-25 20 20)"/>')
+const COFFEE_BEAN = svg('<ellipse cx="20" cy="20" rx="10" ry="13" fill="#6b4226" stroke="#3e2414" stroke-width="1.2" transform="rotate(20 20 20)"/><path d="M17 9c5 6-1 16 5 23" stroke="#2c180c" stroke-width="1.8" fill="none" transform="rotate(20 20 20)"/>')
+const GUMBALL = svg('<circle cx="20" cy="20" r="13" fill="#4aa3df" stroke="#2a78ad" stroke-width="1.2"/><circle cx="15" cy="15" r="4" fill="#fff" opacity=".6"/>')
+
 export const BABY_SIZE = {
   4: ['poppy seed', POPPY, '~1 mm'], 5: ['sesame seed', SESAME, '~2 mm'], 6: ['sweet pea', '🫛', '~5 mm'],
   7: ['blueberry', '🫐', '~1 cm'], 8: ['kidney bean', '🫘', '~1.6 cm'], 9: ['cherry', '🍒', '~2.3 cm'],
@@ -1881,3 +1892,45 @@ export const REVIEW_WHERE = [
   ['Paid review, if it goes public', 'Freelance clinicians run about $150 to $400 an hour; a full review is roughly 40 to 80 hours.'],
 ]
 export const REVIEW_ASK = 'Hi! We built a pregnancy app for couples called Together, and before sharing it more widely we want the health information checked by people who work in the field.\n\nWould you be willing to review one section that matches your work? It takes about 30 to 60 minutes. You\'d mark each item as right, needs a change, or not sure, and your name only goes on it if you approve the final wording.\n\nThe sections that need someone most are the warning signs, medicines, labor alerts, and postpartum and newborn warning signs. Thank you!'
+
+// Other things about the same size, to swipe through after the main one.
+// Every picture shows exactly that thing.
+export const SIZE_ALTS = {
+  4: [['grain of salt', SALT], ['grain of sand', SAND]],
+  5: [['apple seed', APPLE_SEED], ['peppercorn', PEPPERCORN]],
+  6: [['jelly bean', JELLY_BEAN], ['grain of rice', RICE]],
+  7: [['coffee bean', COFFEE_BEAN], ['jelly bean', JELLY_BEAN]],
+  8: [['olive', '🫒'], ['gumball', GUMBALL]],
+  9: [['olive', '🫒'], ['peanut in its shell', '🥜']],
+  10: [['chestnut', '🌰'], ['peanut in its shell', '🥜']],
+  11: [['garlic bulb', '🧄'], ['large strawberry', '🍓']],
+  12: [['egg', '🥚'], ['garlic bulb', '🧄']],
+  13: [['tomato', '🍅'], ['egg', '🥚']],
+  14: [['orange', '🍊'], ['onion', '🧅']],
+  15: [['orange', '🍊'], ['potato', '🥔']],
+  16: [['softball', '🥎'], ['potato', '🥔']],
+  17: [['sweet potato', '🍠'], ['big potato', '🥔']],
+  18: [['sweet potato', '🍠'], ['mango', '🥭']],
+  19: [['bell pepper', '🫑'], ['sweet potato', '🍠']],
+  20: [['carrot', '🥕'], ['cucumber', '🥒']],
+  21: [['banana', '🍌'], ['baguette', '🥖']],
+  22: [['baguette', '🥖'], ['cucumber', '🥒']],
+  23: [['baguette', '🥖'], ['mango', '🥭']],
+  24: [['baguette', '🥖'], ['eggplant', '🍆']],
+  25: [['eggplant', '🍆'], ['loaf of bread', '🍞']],
+  26: [['loaf of bread', '🍞'], ['eggplant', '🍆']],
+  27: [['loaf of bread', '🍞'], ['coconut', '🥥']],
+  28: [['coconut', '🥥'], ['pineapple', '🍍']],
+  29: [['coconut', '🥥'], ['pineapple', '🍍']],
+  30: [['pineapple', '🍍'], ['football', '🏈']],
+  31: [['pineapple', '🍍'], ['cantaloupe', '🍈']],
+  32: [['cantaloupe', '🍈'], ['coconut', '🥥']],
+  33: [['cantaloupe', '🍈'], ['pumpkin', '🎃']],
+  34: [['pineapple', '🍍'], ['pumpkin', '🎃']],
+  35: [['cantaloupe', '🍈'], ['pumpkin', '🎃']],
+  36: [['honeydew melon', '🍈'], ['small watermelon', '🍉']],
+  37: [['pumpkin', '🎃'], ['honeydew melon', '🍈']],
+  38: [['pumpkin', '🎃'], ['honeydew melon', '🍈']],
+  39: [['pumpkin', '🎃']], 40: [['pumpkin', '🎃']], 41: [['pumpkin', '🎃']], 42: [['pumpkin', '🎃']],
+}
+export const SIZE_NOTE = 'Sizes are approximate: measured crown to rump until about 20 weeks, then head to toe. Every baby grows at their own pace.'

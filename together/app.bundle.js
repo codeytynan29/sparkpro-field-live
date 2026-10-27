@@ -33,6 +33,17 @@ const RAW = (() => {
 // have none, so they're small drawings instead.
 const POPPY = '<svg viewBox="0 0 40 40" width="1em" height="1em" aria-hidden="true"><circle cx="20" cy="20" r="5" fill="#5a5370" stroke="#9a92ab" stroke-width="1"/><circle cx="18.5" cy="18.5" r="1.4" fill="#8a8398"/></svg>'
 const SESAME = '<svg viewBox="0 0 40 40" width="1em" height="1em" aria-hidden="true"><path d="M20 7c7 6 8.5 18 0 26-8.5-8-7-20 0-26z" fill="#f3e3bf" stroke="#c9a565" stroke-width="1.6" transform="rotate(25 20 20)"/></svg>'
+// Small drawings for same-size things that have no emoji
+const svg = body => `<svg viewBox="0 0 40 40" width="1em" height="1em" aria-hidden="true">${body}</svg>`
+const SALT = svg('<rect x="17" y="17" width="6" height="6" rx="1" fill="#f4f1ee" stroke="#aaa3ad" stroke-width="1" transform="rotate(12 20 20)"/>')
+const SAND = svg('<circle cx="20" cy="20" r="4" fill="#d8b77a" stroke="#a8874c" stroke-width="1"/>')
+const APPLE_SEED = svg('<path d="M20 9c6 5 7 15 0 22-7-7-6-17 0-22z" fill="#5b3420" stroke="#3a2012" stroke-width="1.2" transform="rotate(-20 20 20)"/><path d="M18 14c1 3 1 6 0 9" stroke="#8a5a3c" stroke-width="1.2" fill="none" transform="rotate(-20 20 20)"/>')
+const PEPPERCORN = svg('<circle cx="20" cy="20" r="7" fill="#3b2f2c" stroke="#1f1816" stroke-width="1"/><path d="M15 18c3-2 6-2 9 0M15 22c3 2 6 2 9 0" stroke="#5d4c47" stroke-width="1.2" fill="none"/>')
+const JELLY_BEAN = svg('<path d="M9 22c-2-8 6-14 13-11 4 2 5 4 9 3 4 0 4 7 0 10-6 5-20 6-22-2z" fill="#ee5a7a" stroke="#b83656" stroke-width="1.4"/><ellipse cx="17" cy="16" rx="4" ry="1.6" fill="#fff" opacity=".55" transform="rotate(-15 17 16)"/>')
+const RICE = svg('<ellipse cx="20" cy="20" rx="10" ry="4" fill="#f7f3ea" stroke="#c9c0ad" stroke-width="1.2" transform="rotate(-25 20 20)"/>')
+const COFFEE_BEAN = svg('<ellipse cx="20" cy="20" rx="10" ry="13" fill="#6b4226" stroke="#3e2414" stroke-width="1.2" transform="rotate(20 20 20)"/><path d="M17 9c5 6-1 16 5 23" stroke="#2c180c" stroke-width="1.8" fill="none" transform="rotate(20 20 20)"/>')
+const GUMBALL = svg('<circle cx="20" cy="20" r="13" fill="#4aa3df" stroke="#2a78ad" stroke-width="1.2"/><circle cx="15" cy="15" r="4" fill="#fff" opacity=".6"/>')
+
 const BABY_SIZE = {
   4: ['poppy seed', POPPY, '~1 mm'], 5: ['sesame seed', SESAME, '~2 mm'], 6: ['sweet pea', '🫛', '~5 mm'],
   7: ['blueberry', '🫐', '~1 cm'], 8: ['kidney bean', '🫘', '~1.6 cm'], 9: ['cherry', '🍒', '~2.3 cm'],
@@ -1899,7 +1910,49 @@ const REVIEW_WHERE = [
 ]
 const REVIEW_ASK = 'Hi! We built a pregnancy app for couples called Together, and before sharing it more widely we want the health information checked by people who work in the field.\n\nWould you be willing to review one section that matches your work? It takes about 30 to 60 minutes. You\'d mark each item as right, needs a change, or not sure, and your name only goes on it if you approve the final wording.\n\nThe sections that need someone most are the warning signs, medicines, labor alerts, and postpartum and newborn warning signs. Thank you!'
 
-return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get WEEKS() { return WEEKS }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT }, get BABY_NAMES() { return BABY_NAMES }, get BAG_LIST() { return BAG_LIST }, get BIRTH_PLAN_INTRO() { return BIRTH_PLAN_INTRO }, get BIRTH_PLAN() { return BIRTH_PLAN }, get QUESTION_IDEAS() { return QUESTION_IDEAS }, get WEIGHT_GAIN() { return WEIGHT_GAIN }, get FIRST_TRI_GAIN() { return FIRST_TRI_GAIN }, get WEIGHT_NOTE() { return WEIGHT_NOTE }, get BP_RULES() { return BP_RULES }, get BP_NOTE() { return BP_NOTE }, get NEWBORN_TIPS() { return NEWBORN_TIPS }, get NEWBORN_CALL() { return NEWBORN_CALL }, get FEED_TYPES() { return FEED_TYPES }, get DIAPER_TYPES() { return DIAPER_TYPES }, get POSTPARTUM_911() { return POSTPARTUM_911 }, get POSTPARTUM_CALL() { return POSTPARTUM_CALL }, get POSTPARTUM_TIPS() { return POSTPARTUM_TIPS }, get MOOD_CHECK() { return MOOD_CHECK }, get MOOD_CHECK_NOTE() { return MOOD_CHECK_NOTE }, get LOSS_SUPPORT() { return LOSS_SUPPORT }, get CONTRACTION_NOTE() { return CONTRACTION_NOTE }, get KICK_NOTE() { return KICK_NOTE }, get BABY_MONTH_NOTE() { return BABY_MONTH_NOTE }, get BABY_MONTHS() { return BABY_MONTHS }, get WELL_VISITS() { return WELL_VISITS }, get VACCINE_NOTE() { return VACCINE_NOTE }, get WEEK_TODOS() { return WEEK_TODOS }, get GUIDES() { return GUIDES }, get JOURNAL_PROMPTS() { return JOURNAL_PROMPTS }, get WEEK_TODO_HELP() { return WEEK_TODO_HELP }, get REVIEWS() { return REVIEWS }, get REVIEW_SECTIONS() { return REVIEW_SECTIONS }, get REVIEW_STEPS() { return REVIEW_STEPS }, get REVIEW_WHERE() { return REVIEW_WHERE }, get REVIEW_ASK() { return REVIEW_ASK } }
+// Other things about the same size, to swipe through after the main one.
+// Every picture shows exactly that thing.
+const SIZE_ALTS = {
+  4: [['grain of salt', SALT], ['grain of sand', SAND]],
+  5: [['apple seed', APPLE_SEED], ['peppercorn', PEPPERCORN]],
+  6: [['jelly bean', JELLY_BEAN], ['grain of rice', RICE]],
+  7: [['coffee bean', COFFEE_BEAN], ['jelly bean', JELLY_BEAN]],
+  8: [['olive', '🫒'], ['gumball', GUMBALL]],
+  9: [['olive', '🫒'], ['peanut in its shell', '🥜']],
+  10: [['chestnut', '🌰'], ['peanut in its shell', '🥜']],
+  11: [['garlic bulb', '🧄'], ['large strawberry', '🍓']],
+  12: [['egg', '🥚'], ['garlic bulb', '🧄']],
+  13: [['tomato', '🍅'], ['egg', '🥚']],
+  14: [['orange', '🍊'], ['onion', '🧅']],
+  15: [['orange', '🍊'], ['potato', '🥔']],
+  16: [['softball', '🥎'], ['potato', '🥔']],
+  17: [['sweet potato', '🍠'], ['big potato', '🥔']],
+  18: [['sweet potato', '🍠'], ['mango', '🥭']],
+  19: [['bell pepper', '🫑'], ['sweet potato', '🍠']],
+  20: [['carrot', '🥕'], ['cucumber', '🥒']],
+  21: [['banana', '🍌'], ['baguette', '🥖']],
+  22: [['baguette', '🥖'], ['cucumber', '🥒']],
+  23: [['baguette', '🥖'], ['mango', '🥭']],
+  24: [['baguette', '🥖'], ['eggplant', '🍆']],
+  25: [['eggplant', '🍆'], ['loaf of bread', '🍞']],
+  26: [['loaf of bread', '🍞'], ['eggplant', '🍆']],
+  27: [['loaf of bread', '🍞'], ['coconut', '🥥']],
+  28: [['coconut', '🥥'], ['pineapple', '🍍']],
+  29: [['coconut', '🥥'], ['pineapple', '🍍']],
+  30: [['pineapple', '🍍'], ['football', '🏈']],
+  31: [['pineapple', '🍍'], ['cantaloupe', '🍈']],
+  32: [['cantaloupe', '🍈'], ['coconut', '🥥']],
+  33: [['cantaloupe', '🍈'], ['pumpkin', '🎃']],
+  34: [['pineapple', '🍍'], ['pumpkin', '🎃']],
+  35: [['cantaloupe', '🍈'], ['pumpkin', '🎃']],
+  36: [['honeydew melon', '🍈'], ['small watermelon', '🍉']],
+  37: [['pumpkin', '🎃'], ['honeydew melon', '🍈']],
+  38: [['pumpkin', '🎃'], ['honeydew melon', '🍈']],
+  39: [['pumpkin', '🎃']], 40: [['pumpkin', '🎃']], 41: [['pumpkin', '🎃']], 42: [['pumpkin', '🎃']],
+}
+const SIZE_NOTE = 'Sizes are approximate: measured crown to rump until about 20 weeks, then head to toe. Every baby grows at their own pace.'
+
+return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get WEEKS() { return WEEKS }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT }, get BABY_NAMES() { return BABY_NAMES }, get BAG_LIST() { return BAG_LIST }, get BIRTH_PLAN_INTRO() { return BIRTH_PLAN_INTRO }, get BIRTH_PLAN() { return BIRTH_PLAN }, get QUESTION_IDEAS() { return QUESTION_IDEAS }, get WEIGHT_GAIN() { return WEIGHT_GAIN }, get FIRST_TRI_GAIN() { return FIRST_TRI_GAIN }, get WEIGHT_NOTE() { return WEIGHT_NOTE }, get BP_RULES() { return BP_RULES }, get BP_NOTE() { return BP_NOTE }, get NEWBORN_TIPS() { return NEWBORN_TIPS }, get NEWBORN_CALL() { return NEWBORN_CALL }, get FEED_TYPES() { return FEED_TYPES }, get DIAPER_TYPES() { return DIAPER_TYPES }, get POSTPARTUM_911() { return POSTPARTUM_911 }, get POSTPARTUM_CALL() { return POSTPARTUM_CALL }, get POSTPARTUM_TIPS() { return POSTPARTUM_TIPS }, get MOOD_CHECK() { return MOOD_CHECK }, get MOOD_CHECK_NOTE() { return MOOD_CHECK_NOTE }, get LOSS_SUPPORT() { return LOSS_SUPPORT }, get CONTRACTION_NOTE() { return CONTRACTION_NOTE }, get KICK_NOTE() { return KICK_NOTE }, get BABY_MONTH_NOTE() { return BABY_MONTH_NOTE }, get BABY_MONTHS() { return BABY_MONTHS }, get WELL_VISITS() { return WELL_VISITS }, get VACCINE_NOTE() { return VACCINE_NOTE }, get WEEK_TODOS() { return WEEK_TODOS }, get GUIDES() { return GUIDES }, get JOURNAL_PROMPTS() { return JOURNAL_PROMPTS }, get WEEK_TODO_HELP() { return WEEK_TODO_HELP }, get REVIEWS() { return REVIEWS }, get REVIEW_SECTIONS() { return REVIEW_SECTIONS }, get REVIEW_STEPS() { return REVIEW_STEPS }, get REVIEW_WHERE() { return REVIEW_WHERE }, get REVIEW_ASK() { return REVIEW_ASK }, get SIZE_ALTS() { return SIZE_ALTS }, get SIZE_NOTE() { return SIZE_NOTE } }
 })()
 
 const S = (() => {
@@ -2628,6 +2681,7 @@ function renderScreen() {
     ${sheet ? sheetHtml() : ''}`
   document.body.classList.toggle('noscroll', !!sheet)
   if ($('#circle')) bindBreath()
+  const sw = $('#sizeSwipe'); if (sw && sizeAt.i && sizeAt.w === +sw.dataset.w) sw.scrollLeft = sizeAt.i * sw.clientWidth
   if (scrollFeed && tab === 'timeline' && usView === 'feed') { scrollFeed = false; requestAnimationFrame(() => scrollTo(0, document.body.scrollHeight)) }
 }
 const NAV = [['today', '🏡', 'Today'], ['timeline', '💞', 'Us'], ['checkin', '＋', 'Check in'], ['lookup', '🔎', 'Safe?'], ['plan', '🗓️', 'Plan']]
@@ -2641,10 +2695,11 @@ let sheet = null // 'log' | 'appt' | 'reg' | 'wish'
 function openSheet(s) { sheet = s; render() }
 function closeSheet() { sheet = null; editReg = null; editAppt = null; editWish = null; render() }
 function sheetHtml() {
-  const body = sheet === 'log' ? checkin() : sheet === 'appt' ? apptForm() : sheet === 'reg' ? regForm() : sheet === 'wish' ? wishForm() : ''
+  const body = sheet === 'log' ? checkin() : sheet === 'appt' ? apptForm() : sheet === 'reg' ? regForm() : sheet === 'wish' ? wishForm() : sheet === 'scan' ? scanSheet() : ''
   const title = sheet === 'log' ? (draft?.editing ? 'Edit check-in' : me() === 'mom' ? 'Check in' : 'Your check-in')
     : sheet === 'appt' ? (editAppt ? 'Edit appointment' : 'Add an appointment')
     : sheet === 'reg' ? (editReg ? 'Edit item' : 'Add to the registry')
+    : sheet === 'scan' ? 'Ultrasound'
     : (editWish ? 'Edit wish' : 'Add a wish')
   return `<div class="overlay" data-close-sheet="1"><div class="sheet-panel" role="dialog" aria-label="${esc(title)}">
     <div class="sheet-head"><b>${esc(title)}</b><button class="mini" data-act="close-sheet" aria-label="Close">✕</button></div>
@@ -2985,14 +3040,8 @@ function babyCard(g, wk) {
   const [body, help] = C.WEEKS[wk] || []
   const mom = me() === 'mom'
   return `<section class="card baby">
-      <div class="baby-top">
-        <div class="fruit">${fe}${art(wk)}</div>
-        <div>
-          <div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> · day ${g.day + 1}</small>`}</div>
-          <div>About the size of a <b>${esc(fruit)}</b> <span class="fine">(${len})</span></div>
-        </div>
-      </div>
-      ${babyPic(wk)}
+      <div class="baby-head"><div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> · day ${g.day + 1}</small>`}</div>${viewToggle()}</div>
+      ${sizeBlock(wk)}
       <p class="wk-line">👶 ${esc(C.WEEK_NOTES[wk] || '')}</p>
       ${body ? `<p class="wk-line">${face('mom')} <b>${mom ? 'Your body' : esc(names().mom) + '\'s body'} this week:</b> ${esc(body)}</p>` : ''}
       ${help && !mom ? `<p class="wk-line">🫶 <b>Your move this week:</b> ${esc(help)}</p>` : ''}
@@ -3013,6 +3062,50 @@ window.tgNoPic = el => { noPic.add(el.dataset.w); el.closest('.baby-pic')?.remov
 const babyPic = w => { w = Math.min(40, w); return noPic.has(String(w)) ? '' : `<figure class="baby-pic"><img src="img/baby/${w}.webp" alt="Illustration of baby at ${w} weeks" data-w="${w}" loading="lazy" onerror="tgNoPic(this)"><figcaption>What baby looks like at ${w} weeks · illustration</figcaption></figure>` }
 const art = w => noArt.has(String(w)) ? '' : `<img class="art" src="img/weeks/${w}.webp" alt="" data-w="${w}" onerror="tgNoArt(this)">`
 
+// ── Size comparisons (swipe) and real life ──────────────────────────────────
+// Size: the main fruit first, then other things about as big. Real life: this
+// couple's own ultrasound photos for that week, plus an illustration if one
+// exists in img/baby. The choice is remembered on this phone.
+let sizeAt = { w: 0, i: 0 }
+const babyView = () => (S.state.prefs || {}).babyView || 'size'
+const aOrAn = n => /^[aeiou]/i.test(n) ? 'an' : 'a'
+function sizeList(w) {
+  const [f, fe, len] = C.BABY_SIZE[w] || C.BABY_SIZE[4]
+  return { len, items: [[f, fe], ...((C.SIZE_ALTS || {})[w] || [])] }
+}
+function viewToggle() {
+  return `<div class="seg eq mini-seg">${[['size', '🍎 Size'], ['real', '👶 Real life']].map(([id, l]) => `<button data-babyview="${id}" class="${babyView() === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+}
+function sizeBlock(w, big) {
+  if (babyView() === 'real') return realLife(w)
+  const { len, items } = sizeList(w)
+  return `<div class="size-swipe ${big ? 'size-big' : ''}" id="sizeSwipe" data-w="${w}">${items.map(([n, e], i) => `<div class="size-slide">
+      <div class="fruit">${e}${i === 0 ? art(w) : ''}</div>
+      <div class="size-text">About the size of ${aOrAn(n)} <b>${esc(n)}</b><div class="fine">${esc(len)}</div></div></div>`).join('')}</div>
+    ${items.length > 1 ? `<div class="swipe-dots">${items.map(([n], i) => `<button data-size-i="${i}" class="${i === (sizeAt.w === w ? sizeAt.i : 0) ? 'on' : ''}" aria-label="${esc(n)}"></button>`).join('')}<span class="fine">swipe for more</span></div>` : ''}`
+}
+function realLife(w) {
+  const scans = live('scan').filter(e => e.data.week === w)
+  const pic = babyPic(w)
+  return `<div class="real-life">
+    ${scans.length ? `<div class="scan-row">${scans.map(e => `<button class="scan" data-scan="${e.id}"><img src="${esc(e.data.thumb)}" alt="Ultrasound from week ${w}"></button>`).join('')}</div><p class="fine center">Your ultrasound${scans.length > 1 ? 's' : ''} · week ${w}</p>` : ''}
+    ${pic}
+    ${!scans.length ? `<div class="real-empty"><div class="big-emoji">🩻</div><p class="fine center">Your own ultrasound photos show here, under the week they were taken.</p></div>` : ''}
+    <label class="ghost pill file-pill center-pill">＋ Add ultrasound · week ${w}<input type="file" id="scanFile" data-w="${w}" accept="image/*" hidden></label>
+  </div>`
+}
+// a full-size ultrasound in a sheet, with its week and a delete for whoever added it
+let scanOpen = null
+function scanSheet() {
+  const e = entries('scan').find(x => x.id === scanOpen)
+  if (!e) return '<p class="fine">That photo was removed.</p>'
+  const now = gest() ? Math.max(4, Math.min(42, gest().week)) : 42
+  return `<img id="fullScan" class="scan-full" src="${esc(fullUrls[e.id] || e.data.thumb)}" alt="Ultrasound from week ${num(e.data.week, 0, 45)}">
+    ${e.author_role === me() ? `<label class="field">Week <select id="scanWeek" data-id="${e.id}">${weekOptions(Math.max(now, e.data.week), e.data.week)}</select></label>` : `<p><b>Week ${num(e.data.week, 0, 45)}</b></p>`}
+    <p class="fine">Added by ${esc(nameOf(e.author_role))} · ${esc(fmtDate(new Date(e.created_at)))}</p>
+    ${e.author_role === me() ? `<div class="sheet-foot"><button class="ghost danger" data-act="scan-del" data-id="${e.id}">Delete photo</button></div>` : ''}`
+}
+
 // ── Week by week: flip through every week, like the book ────────────────────
 let weekShown = null
 function weeksView() {
@@ -3032,9 +3125,8 @@ function weeksView() {
     </div>
     <div class="week-dots">${Array.from({ length: 39 }, (_, i) => i + 4).map(x => `<button data-week="${x}" class="${x === w ? 'on' : ''} ${x === now ? 'now' : ''}" aria-label="Week ${x}"></button>`).join('')}</div>
     <section class="card week-hero">
-      <div class="big-fruit">${fe}${art(w)}</div>
-      <p class="center">About the size of a <b>${esc(fruit)}</b><br><span class="fine">${esc(len)}</span></p>
-      ${babyPic(w)}
+      <div class="baby-head center-head">${viewToggle()}</div>
+      ${sizeBlock(w, true)}
     </section>
     <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
     ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}
@@ -4061,6 +4153,11 @@ function shrink(file, max, q) {
 }
 async function addBumpPhoto(file) {
   const now = gest()?.week ?? 0, wk = Math.min(now, bumpWeek || now), note = ($('#bumpNote')?.value || '').trim().slice(0, 300)
+  const path = await addPhoto('bump', file, { week: wk, note })
+  toast(path ? `Week ${wk} photo saved 📸` : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
+}
+// shrink, upload the full size (when paired) and save the entry with a thumbnail
+async function addPhoto(kind, file, data) {
   toast('Saving photo…')
   const thumb = await shrink(file, 360, 0.72)
   const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
@@ -4068,8 +4165,8 @@ async function addBumpPhoto(file) {
   if (S.isPaired()) {
     try { const full = await shrink(file, 1600, 0.85); path = await S.uploadPhoto(`${id}.jpg`, full.blob) } catch (e) { console.warn('full photo upload failed', e) }
   }
-  await S.addEntry('bump', { week: wk, thumb: thumb.dataUrl, path, note })
-  toast(path ? `Week ${wk} photo saved 📸` : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)')
+  await S.addEntry(kind, { ...data, thumb: thumb.dataUrl, path })
+  return path
 }
 
 async function saveKicks(k) {
@@ -4489,6 +4586,14 @@ app.addEventListener('click', async ev => {
     const cur = birthPlan()[d.bp] || [], next = cur.includes(d.opt) ? cur.filter(x => x !== d.opt) : [...cur, d.opt]
     const y = scrollY; await S.addEntry('birthplan', { [d.bp]: next }); scrollTo(0, y); return
   }
+  if (d.babyview) { S.state.prefs = { ...S.state.prefs, babyView: d.babyview }; S.save(); render(); return }
+  if (d.sizeI != null) { const sw = $('#sizeSwipe'); if (sw) sw.scrollTo({ left: +d.sizeI * sw.clientWidth, behavior: 'smooth' }); return }
+  if (d.scan) {
+    scanOpen = d.scan; openSheet('scan')
+    const e = entries('scan').find(x => x.id === d.scan)
+    if (e?.data.path && !fullUrls[e.id] && S.isPaired()) S.photoUrl(e.data.path).then(u => { fullUrls[e.id] = u; const img = $('#fullScan'); if (img && scanOpen === e.id) img.src = u }).catch(() => {})
+    return
+  }
   if (d.bumpweek) { bumpWeek = +d.bumpweek; render(); return }
   if (d.photo) {
     photoOpen = d.photo; render(); scrollTo(0, 0)
@@ -4535,6 +4640,12 @@ app.addEventListener('click', async ev => {
     case 'ctx-clear': if (await ask({ title: 'Start a new session?', text: 'The list starts fresh on this phone. Nothing is deleted.', ok: 'New session' })) { setToolState({ ctxSince: Date.now(), contraction: null }); render() } return
     case 'sleep-start': setToolState({ sleep: { start: Date.now() } }); render(); return
     case 'sleep-stop': { const z = toolState().sleep; setToolState({ sleep: null }); if (z) await S.addEntry('sleep', { start: z.start, end: Date.now() }); return }
+    case 'scan-del': {
+      const e = entries('scan').find(x => x.id === d.id); if (!e) return
+      if (!await ask({ title: 'Delete this ultrasound photo?', text: 'It\'s removed from both phones.', ok: 'Delete', danger: true })) return
+      sheet = null; scanOpen = null; S.removeEntry(e.id); if (e.data.path) S.removePhoto(e.data.path).catch(() => {})
+      toast('Photo deleted'); return
+    }
     case 'photo-close': photoOpen = null; render(); return
     case 'photo-del': {
       const e = entries('bump').find(x => x.id === d.id); if (!e) return
@@ -4839,6 +4950,14 @@ app.addEventListener('click', async ev => {
   }
 })
 
+// remember which size comparison is showing, so a live redraw doesn't jump back
+app.addEventListener('scroll', ev => {
+  const sw = ev.target
+  if (!sw.classList?.contains('size-swipe') || !sw.clientWidth) return
+  const i = Math.round(sw.scrollLeft / sw.clientWidth)
+  sizeAt = { w: +sw.dataset.w, i }
+  sw.parentElement.querySelectorAll('.swipe-dots button').forEach((b, k) => b.classList.toggle('on', k === i))
+}, true)
 app.addEventListener('toggle', ev => { const k = ev.target.dataset?.keep; if (k) ev.target.open ? openDetails.add(k) : openDetails.delete(k) }, true)
 app.addEventListener('input', ev => {
   if (ev.target.id === 'q') {
@@ -4862,6 +4981,8 @@ app.addEventListener('change', async ev => {
     setReminders(list); remindersChanged(); return
   }
   if (ev.target.id === 'private') readDraftInputs()
+  if (t.id === 'scanFile' && t.files[0]) { const w = +t.dataset.w; try { const path = await addPhoto('scan', t.files[0], { week: w }); toast(path ? `Ultrasound saved to week ${w} 🩻` : 'Saved on this phone (the full-size copy uploads once you\'re paired and online)') } catch (e) { toast(e.message || 'Couldn\'t add that photo') } t.value = ''; return }
+  if (t.id === 'scanWeek') { S.updateEntry(t.dataset.id, { week: +t.value }); toast(`Moved to week ${t.value}`); return }
   if (t.id === 'bumpWeekSel') { bumpWeek = +t.value; render(); return }
   if (t.id === 'photoWeek') { S.updateEntry(t.dataset.id, { week: +t.value }); toast(`Moved to week ${t.value}`); return }
   if (t.id === 'bumpFile' && t.files[0]) { try { await addBumpPhoto(t.files[0]); delete formState.bumpNote } catch (e) { toast(e.message || 'Couldn\'t add that photo') } t.value = ''; return }

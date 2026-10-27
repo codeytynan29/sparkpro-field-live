@@ -493,3 +493,27 @@ a.btn + a.btn { margin-left: 6px; }
 .baby-pic { margin: 12px 0 4px; display: grid; gap: 6px; }
 .baby-pic img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; background: var(--soft); display: block; }
 .baby-pic figcaption { font-size: .78rem; color: var(--muted); text-align: center; }
+
+/* Week card: Size / Real life */
+.baby-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.baby-head.center-head { justify-content: center; }
+.seg.eq.mini-seg { padding: 3px; border-radius: 12px; min-width: 200px; }
+.seg.eq.mini-seg button { min-height: 32px; padding: 6px 8px; font-size: .82rem; }
+.size-swipe { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.size-swipe::-webkit-scrollbar { display: none; }
+.size-slide { flex: 0 0 100%; scroll-snap-align: start; display: flex; align-items: center; gap: 14px; min-width: 0; }
+.size-text { min-width: 0; }
+.size-swipe.size-big .size-slide { flex-direction: column; gap: 6px; text-align: center; padding: 8px 0; }
+.size-swipe.size-big .fruit { font-size: 5rem; line-height: 1.2; width: auto; height: auto; background: none; }
+.swipe-dots { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 6px 0 2px; }
+.swipe-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: var(--muted); opacity: .45; }
+.swipe-dots button.on { opacity: 1; }
+.swipe-dots button.on { background: var(--accent); }
+.swipe-dots .fine { margin-left: 4px; font-size: .75rem; }
+.real-life { display: grid; gap: 8px; }
+.real-empty { display: grid; justify-items: center; gap: 4px; padding: 6px 0; }
+.scan-row { display: flex; gap: 8px; overflow-x: auto; }
+.scan { flex: 0 0 auto; padding: 0; border: 0; border-radius: 14px; overflow: hidden; background: #000; }
+.scan img { display: block; height: 180px; width: auto; max-width: 100%; }
+.scan-full { width: 100%; border-radius: 12px; background: #000; display: block; margin-bottom: 8px; }
+.center-pill { justify-self: center; text-align: center; white-space: normal; max-width: 100%; }
