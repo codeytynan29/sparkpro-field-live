@@ -679,12 +679,12 @@ function babyCard(g, wk) {
   return `<section class="card baby">
       <div class="baby-head"><div class="wk">${g.week < 0 ? 'Not yet' : `Week ${g.week}<small> · day ${g.day + 1}</small>`}</div>${viewToggle()}</div>
       ${sizeBlock(wk)}
-      <p class="wk-line">👶 ${esc(C.WEEK_NOTES[wk] || '')}</p>
-      ${body ? `<p class="wk-line">${face('mom')} <b>${mom ? 'Your body' : esc(names().mom) + '\'s body'} this week:</b> ${esc(body)}</p>` : ''}
-      ${help && !mom ? `<p class="wk-line">🫶 <b>Your move this week:</b> ${esc(help)}</p>` : ''}
+      <p class="wk-line"><b>Baby this week:</b> ${esc(C.WEEK_NOTES[wk] || '')}</p>
+      ${body ? `<p class="wk-line"><b>${mom ? 'Your body' : esc(names().mom) + '\'s body'} this week:</b> ${esc(body)}</p>` : ''}
+      ${help && !mom ? `<p class="wk-line"><b>Your move this week:</b> ${esc(help)}</p>` : ''}
       <div class="bar"><i style="width:${g.pct}%"></i></div>
       <div class="due"><span>${['', '1st', '2nd', '3rd'][g.tri]} trimester</span><span>Due ${fmtDate(g.due)}${g.fromDoctor ? '' : ' (est.)'} · ${g.left > 0 ? `${g.left} days to go` : 'any day now'}</span></div>
-      <button class="linkish" data-week="${wk}">📖 Week by week ›</button>
+      <button class="linkish" data-week="${wk}">Week by week ›</button>
     </section>`
 }
 
@@ -704,6 +704,8 @@ const art = w => noArt.has(String(w)) ? '' : `<img class="art" src="img/weeks/${
 // couple's own ultrasound photos for that week, plus an illustration if one
 // exists in img/baby. The choice is remembered on this phone.
 let sizeAt = { w: 0, i: 0 }
+// a simple drawn ultrasound frame for the empty Real life view
+const SCAN_ART = '<svg class="scan-art" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 58 50a4 4 0 0 1-3.5 6h-45A4 4 0 0 1 6 50Z" fill="#2b2733"/><path d="M32 12 53 48H11Z" fill="#3a3544"/><path d="M27 34c0-6 6-9 10-6 3 2 2 6 5 7 3 2 1 7-3 7-5 0-12-2-12-8Z" fill="#a7a1b3" opacity=".85"/><circle cx="31" cy="31" r="3" fill="#c9c3d4"/></svg>'
 const babyView = () => (S.state.prefs || {}).babyView || 'size'
 const aOrAn = n => /^[aeiou]/i.test(n) ? 'an' : 'a'
 function sizeList(w) {
@@ -711,7 +713,7 @@ function sizeList(w) {
   return { len, items: [[f, fe], ...((C.SIZE_ALTS || {})[w] || [])] }
 }
 function viewToggle() {
-  return `<div class="seg eq mini-seg">${[['size', '🍎 Size'], ['real', '👶 Real life']].map(([id, l]) => `<button data-babyview="${id}" class="${babyView() === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
+  return `<div class="seg eq mini-seg">${[['size', 'Size'], ['real', 'Real life']].map(([id, l]) => `<button data-babyview="${id}" class="${babyView() === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
 }
 function sizeBlock(w, big) {
   if (babyView() === 'real') return realLife(w)
@@ -727,7 +729,7 @@ function realLife(w) {
   return `<div class="real-life">
     ${scans.length ? `<div class="scan-row">${scans.map(e => `<button class="scan" data-scan="${e.id}"><img src="${esc(e.data.thumb)}" alt="Ultrasound from week ${w}"></button>`).join('')}</div><p class="fine center">Your ultrasound${scans.length > 1 ? 's' : ''} · week ${w}</p>` : ''}
     ${pic}
-    ${!scans.length ? `<div class="real-empty"><div class="big-emoji">🩻</div><p class="fine center">Your own ultrasound photos show here, under the week they were taken.</p></div>` : ''}
+    ${!scans.length ? `<div class="real-empty">${SCAN_ART}<p class="fine center">Your own ultrasound photos show here, under the week they were taken.</p></div>` : ''}
     <label class="ghost pill file-pill center-pill">＋ Add ultrasound · week ${w}<input type="file" id="scanFile" data-w="${w}" accept="image/*" hidden></label>
   </div>`
 }

@@ -517,3 +517,4 @@ a.btn + a.btn { margin-left: 6px; }
 .scan img { display: block; height: 180px; width: auto; max-width: 100%; }
 .scan-full { width: 100%; border-radius: 12px; background: #000; display: block; margin-bottom: 8px; }
 .center-pill { justify-self: center; text-align: center; white-space: normal; max-width: 100%; }
+.scan-art { width: 64px; height: 64px; }
