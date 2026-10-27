@@ -708,9 +708,11 @@ let sizeAt = { w: 0, i: 0 }
 const SCAN_ART = '<svg class="scan-art" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 58 50a4 4 0 0 1-3.5 6h-45A4 4 0 0 1 6 50Z" fill="#2b2733"/><path d="M32 12 53 48H11Z" fill="#3a3544"/><path d="M27 34c0-6 6-9 10-6 3 2 2 6 5 7 3 2 1 7-3 7-5 0-12-2-12-8Z" fill="#a7a1b3" opacity=".85"/><circle cx="31" cy="31" r="3" fill="#c9c3d4"/></svg>'
 const babyView = () => (S.state.prefs || {}).babyView || 'size'
 const aOrAn = n => /^[aeiou]/i.test(n) ? 'an' : 'a'
+// original drawings for every comparison ("large eggplant" uses the eggplant)
+const sizeArt = n => { const A = C.SIZE_ART || {}; return A[n] || A[n.replace(/^(large|big|small|long) /, '')] || '' }
 function sizeList(w) {
-  const [f, fe, len] = C.BABY_SIZE[w] || C.BABY_SIZE[4]
-  return { len, items: [[f, fe], ...((C.SIZE_ALTS || {})[w] || [])] }
+  const [f, , len] = C.BABY_SIZE[w] || C.BABY_SIZE[4]
+  return { len, items: [f, ...((C.SIZE_ALTS || {})[w] || []).map(a => a[0])].map(n => [n, sizeArt(n)]) }
 }
 function viewToggle() {
   return `<div class="seg eq mini-seg">${[['size', 'Size'], ['real', 'Real life']].map(([id, l]) => `<button data-babyview="${id}" class="${babyView() === id ? 'on' : ''}">${l}</button>`).join('')}</div>`
