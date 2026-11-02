@@ -918,7 +918,7 @@ export const SELF_CARE_BASICS = [
 export const SOURCES = 'ACOG (American College of Obstetricians and Gynecologists), the FDA, the CDC and MotherToBaby'
 export const INFO_UPDATED = 'October 2026'
 export const REVIEWED = false
-export const DISCLAIMER_SHORT = 'Not medical advice. Compiled by an AI assistant from public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'
+export const DISCLAIMER_SHORT = 'Not medical advice. Based on public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'
 
 // ── Tools, after-birth mode and loss support (kick counter, contractions,
 // names, lists, birth plan, health log, newborn, postpartum, loss) ─────────

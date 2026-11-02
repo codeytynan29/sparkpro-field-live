@@ -1177,7 +1177,7 @@ function feed() {
 
 // ── Where the information comes from ────────────────────────────────────────
 function disclaimerCard(compact) {
-  const body = `The health and safety information in Together (medicines, foods, symptoms, warning signs and tips) was compiled by an AI assistant from public patient guidance by ${esc(C.SOURCES)}. ${C.REVIEWED ? 'It has been reviewed by a medical professional.' : '<b>It has not yet been reviewed by a doctor, nurse, midwife or pharmacist.</b>'} It is general information for healthy pregnancies, not medical advice, and it can't account for her own health history. Always check with your OB, midwife or pharmacist, and call 911 in an emergency.`
+  const body = `The health and safety information in Together (medicines, foods, symptoms, warning signs and tips) is based on public patient guidance from ${esc(C.SOURCES)}. ${C.REVIEWED ? 'It has been reviewed by a medical professional.' : '<b>It has not yet been reviewed by a doctor, nurse, midwife or pharmacist.</b>'} It is general information for healthy pregnancies, not medical advice, and it can't account for ${T('{m:their}')} own health history. Always check with your OB, midwife or pharmacist, and call 911 in an emergency.`
   if (compact) return `<details class="disclaimer"><summary>⚠️ Not medical advice, and not yet reviewed by a medical professional. <u>More</u></summary><p>${body}</p></details>`
   return `<section class="card soft disclaimer-card"><h3>ℹ️ About the health information</h3><p class="fine">${body}</p><p class="fine">Last updated ${esc(C.INFO_UPDATED)}. Free expert answers on medicines in pregnancy: MotherToBaby, 1-866-626-6847.</p></section>`
 }
