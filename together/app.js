@@ -709,7 +709,7 @@ const SCAN_ART = '<svg class="scan-art" viewBox="0 0 64 64" aria-hidden="true"><
 const babyView = () => (S.state.prefs || {}).babyView || 'size'
 const aOrAn = n => /^[aeiou]/i.test(n) ? 'an' : 'a'
 // original drawings for every comparison ("large eggplant" uses the eggplant)
-const sizeArt = n => { const A = C.SIZE_ART || {}; return A[n] || A[n.replace(/^(large|big|small|long) /, '')] || '' }
+const sizeArt = n => { const A = C.SIZE_ART || {}; return A[n] || A[n.replace(/^(large|big|small|long|mini|pie) /, '')] || '' }
 function sizeList(w) {
   const [f, , len] = C.BABY_SIZE[w] || C.BABY_SIZE[4]
   return { len, items: [f, ...((C.SIZE_ALTS || {})[w] || []).map(a => a[0])].map(n => [n, sizeArt(n)]) }
@@ -901,7 +901,7 @@ function supportCard() {
     <p>Around 1 in 10 new and expecting dads and partners get perinatal depression or anxiety. It's common and treatable.</p>
     <ul>
       <li><b>988</b>: call or text, Suicide & Crisis Lifeline (US), 24/7</li>
-      <li><b>1-800-944-4773</b>: Postpartum Support International helpline (dads included). Text "Dad" to 1-800-944-4773 for dad-specific support.</li>
+      <li><b>1-800-944-4773</b>: Postpartum Support International helpline. Call or text "HELP"; dads and partners are welcome. Not a crisis line.</li>
       <li>Your own doctor or an EAP through work, often free and confidential.</li>
     </ul>
   </section>`
@@ -1699,7 +1699,7 @@ function toolScreen() {
 // ── Kick counter ──
 function kicksTool() {
   const k = toolState().kick, n = names()
-  const past = live('kicks').slice(-8).reverse()
+  const past = live('kicks').slice(-8).reverse(), last = past[0]
   const running = !!k
   return `<section class="card center tool-hero">
       ${running ? `<div class="fine">Started ${new Date(k.start).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} · <span id="tick" data-since="${k.start}">${mmss((Date.now() - k.start) / 1000)}</span></div>
@@ -1711,6 +1711,9 @@ function kicksTool() {
         <button class="big primary" data-act="kick-start">Start counting</button>`}
     </section>
     ${running && Date.now() - k.start > 2 * 3600e3 && k.count < 10 ? `<section class="card alert"><h3>⚠️ Fewer than 10 movements in 2 hours</h3><p>Call labor & delivery now. Don't wait to count again.</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call</a>` : ''}</section>` : ''}
+    ${!running && last && last.data.count < 10 && Date.now() - new Date(last.created_at) < 3600e3 ? (last.data.minutes >= 120
+      ? `<section class="card alert"><h3>⚠️ Only ${num(last.data.count, 0, 99)} movements in ${num(last.data.minutes, 0, 999)} minutes</h3><p>Call labor & delivery now. Don't wait to count again.</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call</a>` : ''}</section>`
+      : `<section class="card soft"><h3>Stopped at ${num(last.data.count, 0, 99)} movements</h3><p>If baby is moving less than usual, call labor & delivery now. You don't need to finish counting first.</p></section>`) : ''}
     ${past.length ? `<section class="card"><h3>Recent counts</h3>${past.map(e => `<div class="mile"><b>${num(e.data.count, 0, 99)} movements in ${num(e.data.minutes, 0, 999)} min</b><span>${esc(fmtWhen(e.created_at))} · ${face(e.author_role)}</span></div>`).join('')}</section>` : ''}`
 }
 
@@ -1732,7 +1735,15 @@ function contractionStats(s) {
   const gaps = hour.slice(1).map((e, i) => (e.data.start - hour[i].data.start) / 1000)
   const freq = gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : 0
   const span = hour.length > 1 ? (hour.at(-1).data.start - hour[0].data.start) / 60000 : 0
-  return { count: hour.length, dur, freq, fiveOneOne: hour.length >= 8 && freq && freq <= 330 && dur >= 50 && span >= 45 }
+  const wk = gest()?.week ?? 40
+  return {
+    count: hour.length, dur, freq,
+    fiveOneOne: hour.length >= 8 && freq && freq <= 330 && dur >= 50 && span >= 45,
+    // before 37 weeks, regular contractions are a reason to call; don't wait for 5-1-1
+    preterm: wk < 37 && hour.length >= 4,
+    // very close together for 20+ minutes
+    frequent: hour.length >= 6 && freq && freq <= 180 && span >= 20,
+  }
 }
 function contractionsTool() {
   const c = toolState().contraction, s = contractionSession(), st = contractionStats(s)
@@ -1742,7 +1753,9 @@ function contractionsTool() {
       : `<div class="timer">${s.length ? ago2(new Date(s.at(-1).data.end).toISOString()).replace(' ago', '') : '0:00'}</div><div class="fine">${s.length ? 'since the last one ended' : 'Tap when a contraction starts'}</div>
         <button class="big-round" data-act="ctx-start"><b>Start</b><small>contraction</small></button>`}
     </section>
-    ${st.fiveOneOne ? `<section class="card alert"><h3>⏰ About 5 minutes apart, about a minute long, for an hour</h3><p>Many providers want a call at this point. Follow your own provider's rule, and call now if you're unsure.</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call</a>` : ''}</section>` : ''}
+    ${st.preterm ? `<section class="card alert"><h3>⚠️ Regular contractions before 37 weeks</h3><p>Call labor & delivery now. Before 37 weeks, don't wait for the 5-1-1 pattern.</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call</a>` : ''}</section>` : ''}
+    ${st.frequent && !st.preterm ? `<section class="card alert"><h3>⏰ About 3 minutes apart or closer</h3><p>Call your provider or head in now, especially if this isn't your first baby.</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call</a>` : ''}</section>` : ''}
+    ${st.fiveOneOne && !st.preterm ? `<section class="card alert"><h3>⏰ About 5 minutes apart, about a minute long, for an hour</h3><p>Many providers want a call at this point. Follow your own provider's rule, and call now if you're unsure.</p>${profile().obPhone ? `<a class="btn" href="tel:${esc(profile().obPhone.replace(/[^0-9+]/g, ''))}">📞 Call</a>` : ''}</section>` : ''}
     ${s.length ? `<section class="card">
         <div class="stat-row"><div><b>${st.count}</b><span>in the last hour</span></div><div><b>${st.dur ? mmss(st.dur) : '–'}</b><span>avg length</span></div><div><b>${st.freq ? mmss(st.freq) : '–'}</b><span>avg apart</span></div></div>
         ${s.slice(-10).reverse().map((e, i, arr) => { const next = arr[i + 1]; return `<div class="mile"><b>${new Date(e.data.start).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} · ${mmss((e.data.end - e.data.start) / 1000)} long</b><span>${next ? mmss((e.data.start - next.data.start) / 1000) + ' apart' : ''}</span></div>` }).join('')}
@@ -1815,11 +1828,18 @@ async function saveKicks(k) {
   const minutes = Math.max(1, Math.round((Date.now() - k.start) / 60000))
   setToolState({ kick: null })
   const e = await S.addEntry('kicks', { count: k.count, minutes })
+  if (k.count < 10 && minutes >= 120) navigator.vibrate?.([200, 100, 200])
   if (k.count < 10 && minutes >= 120) notifyPartner('checkin', '', { title: `👣 Only ${k.count} movements in ${minutes} min`, body: 'Fewer movements than usual is a reason to call labor & delivery now.' }, e.id)
   render()
 }
 // running timers tick on screen without redrawing the page
-setInterval(() => { const el = document.getElementById('tick'); if (el) el.textContent = mmss((Date.now() - +el.dataset.since) / 1000) }, 1000)
+let kickAlerted = 0
+setInterval(() => {
+  const el = document.getElementById('tick'); if (el) el.textContent = mmss((Date.now() - +el.dataset.since) / 1000)
+  // the 2-hour kick-count warning appears on its own, even if nothing else redraws the screen
+  const k = toolState().kick
+  if (k && k.count < 10 && Date.now() - k.start > 2 * 3600e3 && kickAlerted !== k.start && tab === 'tool' && toolView === 'kicks') { kickAlerted = k.start; navigator.vibrate?.([200, 100, 200]); render() }
+}, 1000)
 
 // ── Baby names ──
 // Each vote is its own entry, so the two of you never overwrite each other.

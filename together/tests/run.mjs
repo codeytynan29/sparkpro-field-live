@@ -285,11 +285,17 @@ await test('tools: kick counter counts to 10 and saves; contractions time and li
   ok((await text(page)).includes('in the last hour'), 'contraction stats missing')
 })
 
-await test('tools: 5-1-1 contractions show the call card', async page => {
+await test('tools: 5-1-1 contractions show the call card at term; before 37 weeks the preterm warning shows instead', async page => {
   const now = Date.now(), list = Array.from({ length: 10 }, (_, i) => { const start = now - (50 - i * 5) * 60000; return { id: 'c' + i, kind: 'contraction', author_role: 'dad', created_at: new Date(start + 60000).toISOString(), synced: true, data: { start, end: start + 62000 } } })
-  await seed(page, 'mom', list)
+  const due = new Date(now + 14 * 864e5).toISOString().slice(0, 10)
+  await seed(page, 'mom', [...list, { id: 'pd', kind: 'profile', author_role: 'mom', created_at: at(0), synced: true, data: { due } }])
   await openTool(page, 'contractions')
-  ok((await text(page)).includes('About 5 minutes apart'), '5-1-1 alert missing')
+  let t = await text(page)
+  ok(t.includes('About 5 minutes apart') && !t.includes('before 37 weeks'), '5-1-1 alert missing at 38 weeks')
+  await seed(page, 'mom', list.slice(-4))
+  await openTool(page, 'contractions')
+  t = await text(page)
+  ok(t.includes('Regular contractions before 37 weeks'), 'preterm warning missing')
 })
 
 await test('tools: baby names only show a match when you both like it', async page => {

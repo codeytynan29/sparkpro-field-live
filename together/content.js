@@ -39,12 +39,12 @@ export const BABY_SIZE = {
   12: ['lime', '', '~5.4 cm (2.1 in)'],
   13: ['lemon', '', '~7.4 cm (2.9 in)'],
   14: ['peach', '', '~8.7 cm (3.4 in)'],
-  15: ['apple', '', '~10.1 cm (4 in)'],
+  15: ['softball', '', '~10.1 cm (4 in)'],
   16: ['avocado', '', '~11.6 cm (4.6 in)'],
   17: ['pear', '', '~13 cm (5.1 in)'],
-  18: ['bell pepper', '', '~14.2 cm (5.6 in)'],
+  18: ['large bell pepper', '', '~14.2 cm (5.6 in)'],
   19: ['mango', '', '~15.3 cm (6 in)'],
-  20: ['banana', '', '~16.4 cm (6.5 in) crown to rump · ~300 g (11 oz)'],
+  20: ['banana', '', '~16.4 cm (6.5 in) crown to rump, ~25.6 cm (10.1 in) head to toe · ~300 g (11 oz)'],
   21: ['ear of corn', '', '~360 g (13 oz) · ~26.7 cm (10.5 in) head to toe'],
   22: ['long cucumber', '', '~430 g (15 oz) · ~27.8 cm (10.9 in) head to toe'],
   23: ['bunch of grapes', '', '~501 g (18 oz) · ~28.9 cm (11.4 in) head to toe'],
@@ -58,10 +58,10 @@ export const BABY_SIZE = {
   31: ['pineapple', '', '~1.5 kg (3.3 lb) · ~41.1 cm (16.2 in) head to toe'],
   32: ['large pineapple', '', '~1.7 kg (3.8 lb) · ~42.4 cm (16.7 in) head to toe'],
   33: ['honeydew melon', '', '~1.9 kg (4.2 lb) · ~43.7 cm (17.2 in) head to toe'],
-  34: ['small watermelon', '', '~2.1 kg (4.7 lb) · ~45 cm (17.7 in) head to toe'],
-  35: ['pumpkin', '', '~2.4 kg (5.3 lb) · ~46.2 cm (18.2 in) head to toe'],
-  36: ['small watermelon', '', '~2.6 kg (5.8 lb) · ~47.4 cm (18.7 in) head to toe'],
-  37: ['pumpkin', '', '~2.9 kg (6.3 lb) · ~48.6 cm (19.1 in) head to toe'],
+  34: ['mini watermelon', '', '~2.1 kg (4.7 lb) · ~45 cm (17.7 in) head to toe'],
+  35: ['pie pumpkin', '', '~2.4 kg (5.3 lb) · ~46.2 cm (18.2 in) head to toe'],
+  36: ['large honeydew melon', '', '~2.6 kg (5.8 lb) · ~47.4 cm (18.7 in) head to toe'],
+  37: ['small watermelon', '', '~2.9 kg (6.3 lb) · ~48.6 cm (19.1 in) head to toe'],
   38: ['small watermelon', '', '~3.1 kg (6.8 lb) · ~49.8 cm (19.6 in) head to toe'],
   39: ['small watermelon', '', '~3.3 kg (7.2 lb) · ~50.7 cm (20.0 in) head to toe'],
   40: ['small watermelon', '', '~3.5 kg (7.6 lb) · ~51.2 cm (20.2 in) head to toe'],
@@ -74,7 +74,7 @@ export const WEEK_NOTES = {
   4: 'Implantation. hCG starts rising — this is when a home test can turn positive.',
   5: 'The neural tube (future brain and spine) is forming. Folic acid matters most right now.',
   6: 'A tiny heart is starting to beat — sometimes visible on a transvaginal ultrasound this week or next.',
-  7: 'Arm and leg buds appear. Brain growth is rapid.',
+  7: 'Arm and leg buds are growing into tiny paddles. Brain growth is rapid.',
   8: 'Fingers and toes begin forming. Many first prenatal visits / dating ultrasounds land around weeks 8–10.',
   9: 'All the essential organs have started. Nausea often peaks around now — it usually eases by 12–14.',
   10: 'Officially a "fetus" now. NIPT blood screening can be drawn from 10 weeks.',
@@ -85,7 +85,7 @@ export const WEEK_NOTES = {
   15: 'Baby can sense light through the skin. Legs are getting longer than the arms.',
   16: 'Facial muscles are working. Some feel first flutters (more often in a second pregnancy).',
   17: 'Fat stores begin forming. {M:their} center of gravity is shifting.',
-  18: 'Baby may hear sounds now — talking to the bump counts. Anatomy scan window opens (18–22).',
+  18: 'Baby\'s ears are taking shape, and may start picking up muffled sounds soon. Talking to the bump counts. Anatomy scan window opens (18–22).',
   19: 'Vernix (a protective coating) forms on the skin.',
   20: 'Halfway. The anatomy scan checks organs, growth and placenta position.',
   21: 'Movements become more coordinated — kicks you may feel from outside soon.',
@@ -109,6 +109,7 @@ export const WEEK_NOTES = {
   39: '"Full term." Lots of waiting from here.',
   40: 'Due date week. Only about 1 in 20 babies arrive on the actual date.',
   41: '"Late term." Your provider will talk about monitoring and induction options.',
+  42: '"Post-term." Your provider will usually recommend delivery now if labor hasn\'t started.',
 }
 
 // ── Week by week: the body side (baby side is WEEK_NOTES) ───────────────────
@@ -145,7 +146,7 @@ export const WEEKS = {
   31: ['Leaky breasts (colostrum) may start. Braxton Hicks get more noticeable.', 'Pre-register at the hospital this week.'],
   32: ['Most babies are settling head-down. Swelling, backaches and frequent peeing continue.', 'Pick a pediatrician together.'],
   33: ['Pelvic pressure, clumsiness from the shifting center of gravity, and broken sleep.', 'Start packing the hospital bag, including your own.'],
-  34: ['Tired again, blurry vision can happen (mention it), and swelling in the feet and ankles.', 'Install the car seat and get it checked for free.'],
+  34: ['Tired again, and swelling in the feet and ankles is common. Blurry vision or seeing spots is not: call the OB right away.', 'Install the car seat and get it checked for free.'],
   35: ['More pressure low in the pelvis and needing to pee constantly. Visits are often weekly soon.', 'Stock the freezer with easy meals.'],
   36: ['Group B strep swab (36–37 weeks). Baby may "drop," making breathing easier but peeing harder.', 'Save the labor & delivery number in your phone and know the route.'],
   37: ['Early term. Nesting urges, more discharge, and possibly losing the mucus plug.', 'Keep your phone charged and on loud from now on.'],
@@ -167,7 +168,7 @@ export const STAGES = [
       ['Exhaustion', 'Progesterone hits hard now. Sleep when you can; it usually lifts in the second trimester.'],
       ['Nausea starting', 'Often begins around week 6. Eat small snacks every 2–3 hours, keep crackers by the bed, and try ginger. Ask the OB about vitamin B6.'],
       ['Sore breasts & peeing a lot', 'Both normal and early. A soft wireless bra helps.'],
-      ['Mild cramps or light spotting', 'Common early on. Heavy bleeding, or strong pain on one side, needs a call right away.'],
+      ['Mild cramps or light spotting', 'Common early on. Heavy bleeding (a pad an hour) or severe pain on one side: go to the ER or call 911. Lighter bleeding or milder one-sided pain: call the OB right away.'],
     ],
     todo: ['Take a prenatal vitamin with folic acid every day', 'Book the first OB or midwife visit (usually 8–10 weeks)', 'No alcohol, hot tubs or saunas; keep caffeine under 200 mg'],
     partner: ['Take dinner and smelly chores (trash, litter, fridge) off {m:their} plate.', 'Expect {m:them} to be wiped out by evening. Plan quiet nights.', 'Learn the "When to call" list now, so you know when to act.'],
@@ -228,7 +229,7 @@ export const STAGES = [
       ['Nesting', 'Wanting to get everything ready is common. Pace it.'],
     ],
     watch: 'Fewer movements, bleeding, fluid leaking, or regular contractions: call labor & delivery.',
-    todo: ['GBS swab (36–37 weeks)', 'Install the car seat and get it checked', 'Pack the hospital bag and write a birth plan', 'RSV vaccine at 32–36 weeks if it\'s RSV season'],
+    todo: ['GBS swab (36–37 weeks)', 'Install the car seat and get it checked', 'Pack the hospital bag and write a birth plan', 'RSV vaccine by 36 weeks if it\'s RSV season'],
     partner: ['Install the car seat now and get it checked for free.', 'Pack your own bag too: charger, snacks, clothes, pillow.', 'Fill the freezer with easy meals.'],
     next: 'Week 37: full term. Learn the signs of labor and when your provider wants you to come in.' },
   { from: 37, to: 45, title: 'Full term', emoji: '👶',
@@ -248,7 +249,7 @@ export const STAGES = [
 export const MILESTONES = [
   { week: 4, title: 'Positive test', detail: 'Start a prenatal vitamin with at least 400 mcg folic acid (and 150 mcg iodine) if {m:they} {m:has|have}n\'t already. Call the OB/midwife to book the first visit. Skip hot tubs and saunas from now on.' },
   { week: 5, title: 'Early things to tell the OB', detail: 'A past ectopic pregnancy, tubal surgery, or an IUD in place when {m:they} got pregnant: these mean an early ultrasound to check where the pregnancy is. Also mention any bleeding if {m:they} {m:knows|know} {m:they} {m:is|are} Rh-negative ({m:they} may need an Rh shot), and every medicine or supplement {m:they} {m:takes|take}.' },
-  { week: 8, title: 'Flu & COVID shots', detail: 'A flu shot is recommended in any trimester during flu season. ACOG also recommends the COVID vaccine in pregnancy; the CDC currently leaves it to {m:them} and {m:their} provider to decide. Ask at the first visit.' },
+  { week: 8, title: 'Flu & COVID shots', detail: 'A flu shot is recommended in any trimester during flu season. ACOG recommends the COVID vaccine in pregnancy; federal guidance has been changing, so ask at the first visit what applies now.' },
   { week: 6, title: 'Heartbeat may be visible', detail: 'On a transvaginal ultrasound, cardiac activity is often seen 6–7 weeks. Not seeing it this early is common — dating can be off by days.' },
   { week: 8, title: 'First prenatal visit (typically 8–10 wks)', detail: 'Dating ultrasound, bloodwork (blood type, Rh factor, immunity, anemia), urine test. Bring your questions — you can go too.' },
   { week: 10, title: 'NIPT blood screen (from 10 wks)', detail: 'Cell-free DNA screening for common chromosomal conditions. Can also report fetal sex. It\'s a screen, not a diagnosis.' },
@@ -259,8 +260,8 @@ export const MILESTONES = [
   { week: 24, title: 'Glucose test (24–28 wks)', detail: 'Screens for gestational diabetes. {M:they} {m:drinks|drink} a sugary drink and {m:has|have} blood drawn about an hour later.' },
   { week: 27, title: 'Tdap vaccine (27–36 wks)', detail: 'Recommended each pregnancy to pass whooping-cough protection to baby. Partners and close family should be up to date too.' },
   { week: 28, title: 'Third trimester + Rh shot if needed', detail: 'If {m:they} {m:is|are} Rh-negative, Rh immune globulin is usually given around 28 wks. Start learning baby\'s movement pattern.' },
-  { week: 32, title: 'RSV vaccine (32–36 wks, in RSV season)', detail: 'One dose (Abrysvo) protects baby from RSV for the first months. It\'s given during RSV season, roughly September to January. If {m:their} 32–36 weeks fall outside that, or {m:they} {m:skips|skip} it, baby can get an RSV antibody shot after birth instead. Ask the OB which applies.' },
-  { week: 32, title: 'Visits get more frequent', detail: 'Typically every 2 weeks from ~28–36, then weekly. Pre-register at the hospital, take a birth class.' },
+  { week: 32, title: 'RSV vaccine (32–36 wks, in RSV season)', detail: 'One dose (Abrysvo) at 32–36 weeks protects baby from RSV for about the first 6 months. In most of the US it\'s given September to January. If {m:their} 32–36 weeks fall outside that, {m:they} {m:skips|skip} it, {m:they} had it in an earlier pregnancy, or birth comes within 2 weeks of the shot, baby gets an RSV antibody shot instead. Ask the OB which applies.' },
+  { week: 28, title: 'Visits every 2 weeks', detail: 'Typically every 2 weeks from ~28–36, then weekly. Pre-register at the hospital, take a birth class.' },
   { week: 36, title: 'GBS swab (36–37 wks)', detail: 'Group B strep check. Bag packed, car seat installed, route planned.' },
   { week: 39, title: 'Full term', detail: 'Anytime now. Know the call-in rules your provider gave you (e.g. contraction timing, water breaking).' },
   { week: 40, title: 'Due date', detail: 'Most babies come within two weeks either side of it.' },
@@ -282,7 +283,7 @@ export const SYMPTOMS = [
   { id: 'fatigue', label: 'Exhausted', emoji: '😴',
     meaning: 'Progesterone is a sedative, and {m:their} body is building a placenta. First-trimester exhaustion is real and normal.',
     help: ['Take a chore off {m:their} list entirely — not "help with" it, own it.', 'Protect a nap or an early bedtime. Handle the evening.', 'Cancel or postpone plans for {m:them} if {m:they} {m:is|are} running on empty.'],
-    flag: 'Extreme fatigue with shortness of breath, racing heart or pale skin can point to anemia — mention it at the next visit, sooner if severe.', flagAt: 0 },
+    flag: 'Extreme fatigue with shortness of breath, racing heart or pale skin can point to anemia — mention it at the next visit, sooner if severe.', flagAt: 3 },
   { id: 'breasts', label: 'Sore breasts', emoji: '🫶',
     meaning: 'Hormones growing milk ducts. Very common early sign; often eases in the second trimester.',
     help: ['Gentle hugs — from behind or side, not chest-on.', 'Offer to pick up a soft, supportive wireless bra in a bigger size.'],
@@ -302,7 +303,7 @@ export const SYMPTOMS = [
   { id: 'headache', label: 'Headache', emoji: '🤕',
     meaning: 'Hormone shifts, dehydration, low blood sugar, caffeine cut-back and poor sleep are the usual causes early on.',
     help: ['Water and a snack first — it\'s often one of those.', 'Dark, quiet room and a cool cloth on {m:their} forehead/neck.', 'Acetaminophen is generally the go-to in pregnancy. Avoid ibuprofen/aspirin unless the OB says otherwise.'],
-    flag: 'A severe or "worst ever" headache, or headache with vision changes (spots, blurring), sudden swelling of face/hands, or upper-right belly pain — call the OB now. After 20 weeks this can be preeclampsia.', flagAt: 3 },
+    flag: 'A severe or "worst ever" headache, or headache with vision changes (spots, blurring), sudden swelling of face/hands, or upper-right belly pain — call the OB now. After 20 weeks this can be preeclampsia.', flagAt: 2 },
   { id: 'peeing', label: 'Peeing a lot', emoji: '🚽',
     meaning: 'Normal — blood volume rises and the uterus presses on the bladder.',
     help: ['Aisle seat at the movies, plan bathroom stops on drives.', 'Don\'t let {m:them} cut water to pee less — dehydration makes everything worse.'],
@@ -314,11 +315,11 @@ export const SYMPTOMS = [
   { id: 'moody', label: 'Moody / weepy', emoji: '🌦️',
     meaning: 'Hormonal shifts plus fatigue plus a huge life change. Mood swings are expected.',
     help: ['Listen without fixing. "That sounds hard" beats a solution.', 'Don\'t take a sharp moment personally — and don\'t keep score.', 'Ask: "Do you want comfort, distraction, or space?"'],
-    flag: 'Sadness or hopelessness most days for 2+ weeks, losing interest in everything, or any thoughts of self-harm — tell the OB. The National Maternal Mental Health Hotline is free, 24/7, call or text: 1-833-TLC-MAMA (1-833-852-6262). In a crisis, call or text 988.', flagAt: 0 },
+    flag: 'Sadness or hopelessness most days for 2+ weeks, losing interest in everything, or any thoughts of self-harm — tell the OB. The National Maternal Mental Health Hotline is free, 24/7, call or text: 1-833-TLC-MAMA (1-833-852-6262). In a crisis, call or text 988.', flagAt: 3 },
   { id: 'anxious', label: 'Anxious', emoji: '😟',
     meaning: 'Very common, especially in the first trimester before scans and milestones offer reassurance.',
     help: ['Mark the next appointment on the shared calendar so {m:they} can see the next checkpoint.', 'Make "worry time" — 10 minutes to talk about it, then a planned distraction.', 'Do the breathing exercise together (in the You tab).'],
-    flag: 'Panic attacks, constant worry that stops sleep or eating, or intrusive thoughts — perinatal anxiety is common and treatable. Tell the OB, or call/text 1-833-TLC-MAMA (free, 24/7). Crisis: 988.', flagAt: 0 },
+    flag: 'Panic attacks, constant worry that stops sleep or eating, or intrusive thoughts — perinatal anxiety is common and treatable. Tell the OB, or call/text 1-833-TLC-MAMA (free, 24/7). Crisis: 988.', flagAt: 3 },
   { id: 'aversions', label: 'Food aversions', emoji: '🙅',
     meaning: 'Smell and taste sensitivity spikes with hormones. Former favorites can become intolerable overnight.',
     help: ['Eat the trigger foods away from {m:them}, or not at all for now.', 'Take the trash out daily, clean the fridge.', 'Ask what sounds OK right now and just go get it.'],
@@ -334,7 +335,7 @@ export const SYMPTOMS = [
   { id: 'dizzy', label: 'Dizzy', emoji: '💫',
     meaning: 'Blood vessels relax and blood pressure dips; low blood sugar adds to it.',
     help: ['Get {m:them} seated or lying on {m:their} left side.', 'Snack with protein + water.', 'Stand up slowly — remind {m:them}, gently.'],
-    flag: 'Fainting, dizziness with bleeding or belly pain, or chest pain/shortness of breath — seek care now.', flagAt: 3 },
+    flag: 'Fainting, dizziness with bleeding or belly pain, or chest pain/shortness of breath — seek care now.', flagAt: 2 },
   { id: 'insomnia', label: 'Can\'t sleep', emoji: '🌙',
     meaning: 'Peeing at night, nausea, heartburn, anxiety and hormones all disrupt sleep.',
     help: ['Screens off, room cool and dark, a wind-down routine together.', 'Get a body pillow or extra pillows between knees.', 'Ask the OB before any sleep aid — some (like doxylamine) are commonly okayed.'],
@@ -346,11 +347,11 @@ export const SYMPTOMS = [
   { id: 'backpain', label: 'Back / hip pain', emoji: '🦴',
     meaning: 'Relaxin loosens ligaments and posture shifts as the bump grows.',
     help: ['Lower back massage or a warm (not hot) compress.', 'Get {m:them} supportive shoes and do the lifting.'],
-    flag: 'Rhythmic lower back pain that comes and goes, especially before 37 weeks — call (can be preterm labor).', flagAt: 3 },
+    flag: 'Rhythmic lower back pain that comes and goes, especially before 37 weeks — call (can be preterm labor).', flagAt: 2 },
   { id: 'swelling', label: 'Swelling', emoji: '🦶',
     meaning: 'Some ankle/foot swelling is normal, especially later and in heat.',
     help: ['Feet up, cool water soak, and get {m:them} off {m:their} feet.', 'Help {m:them} stay hydrated — it actually reduces swelling.'],
-    flag: 'Sudden swelling of the face or hands, or swelling with headache/vision changes — call the OB now (preeclampsia). One leg swollen, red and painful — seek care (blood clot).', flagAt: 3 },
+    flag: 'Sudden swelling of the face or hands, or swelling with headache/vision changes — call the OB now (preeclampsia). One leg swollen, red and painful — seek care (blood clot).', flagAt: 2 },
   { id: 'fever', label: 'Fever / chills', emoji: '🌡️',
     meaning: 'Fever in pregnancy should be treated and checked — it\'s not one to sit through.',
     help: ['Take {m:their} temperature and log it below.', 'Acetaminophen is generally the fever reducer used in pregnancy — check dose with the OB. Bringing a fever down matters: high fever early in pregnancy is linked to neural tube problems.', 'Call the OB line.'],
@@ -366,7 +367,7 @@ export const SYMPTOMS = [
   { id: 'breath', label: 'Short of breath', emoji: '😮‍💨',
     meaning: 'Mild breathlessness is common as progesterone changes breathing and later as the uterus pushes up.',
     help: ['Slow down the pace on walks. Let {m:them} set it.', 'Sit upright, open a window.'],
-    flag: 'Sudden or severe shortness of breath, chest pain, or coughing blood — call 911.', flagAt: 3 },
+    flag: 'Sudden or severe shortness of breath, chest pain, or coughing blood — call 911.', flagAt: 2 },
   { id: 'movement', label: 'Less baby movement', emoji: '👶',
     meaning: 'Once {m:they} {m:knows|know} baby\'s pattern (from about 24 weeks), fewer movements or a change in the pattern needs checking the same day. Don\'t wait until tomorrow, and don\'t wait to count kicks first.',
     help: ['Help {m:them} call labor & delivery right away. Checking takes a short visit, and they would much rather see {m:them}.', 'Skip the tricks people suggest to "wake the baby" (cold drinks, sugar, poking). They can delay getting checked.', 'Drive {m:them} in, or call 911 if {m:they} {m:has|have} no movement at all and can\'t get there quickly.'],
@@ -377,15 +378,17 @@ export const RED_FLAGS = [
   ['Call 911 or go to the ER', [
     'Heavy bleeding (soaking a pad in an hour) or passing large clots',
     'Severe pain on one side of the belly, especially with shoulder-tip pain, dizziness or fainting (early pregnancy: possible ectopic pregnancy)',
-    'Severe chest pain, trouble breathing, or coughing up blood',
+    'Chest pain or pressure, trouble breathing, or coughing up blood',
     'Fainting or seizure',
+    'Dizziness that doesn\'t pass, or feeling like you might faint',
     'Thoughts of harming {m:themselves} or the baby (or call/text 988, or the maternal mental health hotline 1-833-TLC-MAMA)',
   ]],
   ['Call the OB / labor & delivery now', [
     'Any vaginal bleeding beyond light spotting',
     'Belly pain or cramping that is strong, one-sided, or doesn\'t go away',
     'Fever of 100.4°F / 38°C or higher',
-    'Severe headache, vision changes, or sudden swelling of face or hands',
+    'A headache that is severe, won\'t go away, or keeps getting worse, vision changes, or sudden swelling of face or hands',
+    'Severe nausea and vomiting that feels different from morning sickness',
     'Racing or pounding heartbeat',
     'Overwhelming tiredness that isn\'t normal for {m:them}',
     'Can\'t keep fluids down for 24 hours',
@@ -394,13 +397,13 @@ export const RED_FLAGS = [
     'Any fall, car accident or blow to the belly, even if {m:they} {m:feels|feel} fine',
     'From 24 weeks: baby moving less than usual, or a change in the pattern',
     'Third trimester: severe itching, especially palms and soles (a liver condition that needs checking)',
-    'Before 37 weeks: regular contractions or rhythmic back pain',
+    'Before 37 weeks: regular contractions, pelvic pressure, period-like cramps, a low dull backache, or a change in discharge',
     'One leg red, swollen and painful',
     'After birth, for up to a year: any of these warning signs still count. Blood pressure problems can start days or weeks after delivery.',
   ]],
   ['Mention at the next visit', [
     'Ongoing heartburn, constipation, or trouble sleeping',
-    'Feeling low or anxious most days',
+    'Feeling low or anxious most days (call sooner if it lasts 2 weeks or gets in the way of daily life)',
     'Cravings for non-food items like ice or chalk',
     'New medications or supplements you\'re thinking of taking',
   ]],
@@ -472,7 +475,7 @@ export const MEDS = [
   { name: 'Hydrocortisone cream 1%', aka: 'Cortizone-10', use: 'Itchy skin, rashes', tier: 'ok',
     note: 'Short-term use on small areas is generally considered OK.' },
   { name: 'Miconazole / clotrimazole', aka: 'Monistat, Gyne-Lotrimin', use: 'Yeast infection', tier: 'ok',
-    note: 'Vaginal antifungal creams are the preferred treatment in pregnancy. Call the OB first to confirm it\'s actually yeast.' },
+    note: 'Vaginal antifungal creams are the preferred treatment in pregnancy; use the 7-day version. Call the OB first to confirm it\'s actually yeast.' },
   { name: 'Fluconazole (oral)', aka: 'Diflucan', use: 'Yeast infection', tier: 'avoid',
     note: 'Generally avoided in pregnancy, especially at higher or repeated doses. Use a vaginal cream instead.' },
   { name: 'Retinoids', aka: 'Retin-A, tretinoin, isotretinoin (Accutane), retinol', use: 'Acne, skin', tier: 'avoid',
@@ -506,7 +509,7 @@ export const FOODS = [
   { name: 'Canned light tuna', tier: 'ok', note: 'Low mercury. Counts toward the 2–3 servings a week.' },
   { name: 'Albacore (white) tuna, tuna steak', tier: 'ask', note: 'More mercury. Limit to 1 serving a week.' },
   { name: 'Shark, swordfish, king mackerel, marlin, orange roughy, bigeye tuna, Gulf tilefish', tier: 'avoid', note: 'Highest mercury. Avoid these.' },
-  { name: 'Refrigerated smoked seafood (lox, nova)', tier: 'avoid', note: 'Listeria risk. OK if cooked into a hot dish, and canned or shelf-stable versions are fine.' },
+  { name: 'Refrigerated smoked seafood (lox, nova)', tier: 'ask', note: 'Listeria risk. OK if cooked into a hot dish, and canned or shelf-stable versions are fine.' },
   { name: 'Raw oysters, clams, mussels', tier: 'avoid', note: 'Only eat shellfish fully cooked.' },
   { name: 'Unpasteurized (raw) milk & cheese', tier: 'avoid', note: 'Listeria risk. Check the label for "pasteurized."' },
   { name: 'Queso fresco, queso blanco, panela', tier: 'ask', note: 'Has been linked to listeria outbreaks even when labeled pasteurized. Safest cooked until hot.' },
@@ -551,7 +554,7 @@ export const FOODS = [
   // ── Fish & seafood
   { name: 'Canned salmon & sardines', aka: 'anchovies, kippers, herring', tier: 'ok', note: 'Low mercury and full of omega-3s. Great choice.' },
   { name: 'Low-mercury fish (best choices)', aka: 'catfish, pollock, haddock, trout, flounder, sole, whitefish, perch, crawfish, crayfish', tier: 'ok', note: 'FDA "best choices": 2–3 servings a week, cooked to 145°F (flaky and opaque).' },
-  { name: 'Mahi-mahi, halibut, snapper, grouper', aka: 'sea bass, chilean sea bass, striped bass, yellowfin tuna, ahi, rockfish, bluefish, monkfish', tier: 'ask', note: 'FDA "good choices": a bit more mercury. Limit to 1 serving a week, cooked through. Ahi or yellowfin must be cooked, not seared rare.' },
+  { name: 'Mahi-mahi, halibut, snapper, grouper', aka: 'chilean sea bass, striped bass, yellowfin tuna, ahi, rockfish, bluefish, monkfish', tier: 'ask', note: 'FDA "good choices": a bit more mercury. Limit to 1 serving a week, cooked through. Ahi or yellowfin must be cooked, not seared rare.' },
   { name: 'Shrimp, crab, lobster, scallops (cooked)', aka: 'prawns, crab legs, crab cakes, lobster roll, imitation crab, surimi', tier: 'ok', note: 'Low mercury. Fine cooked until firm and opaque (shrimp pink, scallops milky white).' },
   { name: 'Fish sticks & fried fish', aka: 'fish and chips, fish tacos, filet o fish', tier: 'ok', note: 'Usually low-mercury fish (cod, pollock). Fine cooked hot.' },
   { name: 'Ceviche', aka: 'aguachile, leche de tigre', tier: 'avoid', note: 'Lime juice doesn\'t kill bacteria or parasites the way heat does. Skip it.' },
@@ -621,8 +624,8 @@ export const FOODS = [
 // When a search finds nothing on the list, these rules still answer it.
 // [regex on the normalized query, tier, what applies]
 export const FOOD_RULES = [
-  ['\\b(raw|rare|tartare|carpaccio|ceviche|crudo|sashimi|poke|undercooked|pink|medium rare|bloody)\\b', 'avoid', 'Raw or undercooked meat, fish, shellfish or eggs: skip them until after the baby. Cook meat to a safe temperature (poultry 165°F, ground 160°F, steaks 145°F) and fish until opaque.'],
-  ['\\b(unpasteurized|raw milk|farm|farmers market|homemade cheese)\\b', 'avoid', 'Unpasteurized milk, cheese and juice can carry listeria. Look for "pasteurized" on the label.'],
+  ['\\b(raw|rare|tartare|carpaccio|ceviche|crudo|sashimi|poke|undercooked|pink (?:chicken|pork|turkey|burger|meat|in the middle)|medium rare|bloody)\\b', 'avoid', 'Raw or undercooked meat, fish, shellfish or eggs: skip them until after the baby. Cook meat to a safe temperature (poultry 165°F, ground 160°F, steaks 145°F) and fish until opaque.'],
+  ['\\b(unpasteurized|raw milk|raw cheese|homemade cheese)\\b', 'avoid', 'Unpasteurized milk, cheese and juice can carry listeria. Look for "pasteurized" on the label.'],
   ['\\b(smoked|lox|nova|gravlax|kipper)\\b', 'ask', 'Refrigerated smoked fish carries listeria risk. It\'s fine cooked into a hot dish, and canned or shelf-stable versions are OK.'],
   ['\\b(deli|lunch meat|cold cut|salami|ham|turkey slice|bologna|mortadella|cured|charcuterie|hot dog|frank)\\b', 'ask', 'Deli and cured meats: eat them heated until steaming hot (listeria).'],
   ['\\b(cheese|queso)\\b', 'ask', 'Cheese: hard cheeses are fine. Soft cheeses are fine if pasteurized. Queso fresco-style fresh cheeses are safest cooked until hot.'],
@@ -686,7 +689,7 @@ export const MORNING_MOM = [
   'Eat a few plain crackers before you even sit up. An empty stomach makes morning nausea worse.',
   'Prenatal vitamin with breakfast today. If it upsets your stomach, try it at night instead.',
   'Fill a big water bottle now and keep it with you. Dehydration makes nausea, headaches and dizziness worse.',
-  'Stand up slowly this morning. Blood pressure dips are normal right now.',
+  'Stand up slowly this morning. Pregnancy can make blood pressure dip when you get up fast.',
   'Plan small snacks every 2–3 hours today rather than three big meals.',
   'Pick one thing to let go of today. Rest is part of the work.',
   'Get 10 minutes of daylight or a short walk. It helps energy and sleep tonight.',
@@ -853,7 +856,7 @@ export const REG_GUIDE = [
   ['mattress', 'nursery', 'Crib mattress', 'Comes separately from most cribs.', 'Firm and flat. It should fit so you can\'t fit more than two fingers between the mattress and the crib side.', 'mattress', 'cpsc'],
   ['sheets', 'nursery', 'Fitted sheets (3)', 'Blowouts happen at 3 a.m.', 'Fitted only, made for your mattress size. Nothing else goes in the crib.', 'sheet', ''],
   ['sacks', 'nursery', 'Swaddles & sleep sacks', 'Keep baby warm without loose blankets.', 'Stop swaddling at the first signs of rolling. Skip weighted sleep sacks (AAP advises against them).', 'swaddle|sleep sack', ''],
-  ['monitor', 'nursery', 'Baby monitor', 'Peace of mind when baby naps in another room.', 'For Wi-Fi monitors, change the default password. "Smart sock" breathing monitors are not proven to prevent SIDS (AAP).', 'monitor', ''],
+  ['monitor', 'nursery', 'Baby monitor', 'Handy once baby sleeps in their own room.', 'For Wi-Fi monitors, change the default password. "Smart sock" breathing monitors are not proven to prevent SIDS (AAP).', 'monitor', ''],
   ['noise', 'nursery', 'White noise machine', 'Helps many babies (and parents) sleep.', 'Keep it across the room, not in the crib, at a low volume.', 'white noise|sound machine', ''],
   ['bottles', 'feeding', 'Bottles (a few kinds)', 'Even if breastfeeding, for pumped milk and partner feeds.', 'Buy one small pack of 2 or 3 brands first. Babies have strong opinions about nipples.', 'bottle(?! brush)', ''],
   ['pump', 'feeding', 'Breast pump', 'For going back to work, or letting {p:name} do a night feed.', 'Health insurance usually covers one for free (an ACA rule). Call the plan before buying.', 'pump', ''],
@@ -915,7 +918,7 @@ export const SELF_CARE_BASICS = [
 // ── Where the health information comes from ─────────────────────────────────
 // Shown wherever the app gives health or safety guidance. Update REVIEWED once
 // a clinician has actually reviewed the content.
-export const SOURCES = 'ACOG (American College of Obstetricians and Gynecologists), the FDA, the CDC and MotherToBaby'
+export const SOURCES = 'ACOG (American College of Obstetricians and Gynecologists), AAP, the CDC, FDA, USDA, AWHONN, the National Academy of Medicine and MotherToBaby'
 export const INFO_UPDATED = 'October 2026'
 export const REVIEWED = false
 export const DISCLAIMER_SHORT = 'Not medical advice. Based on public guidance (ACOG, FDA, CDC, MotherToBaby) and not yet reviewed by a medical professional. Check with your OB, midwife or pharmacist.'
@@ -1135,7 +1138,7 @@ export const BIRTH_PLAN = [
       ['no_pacifier', 'No pacifier unless we OK it'],
       ['circumcision', 'Circumcision (if applicable)'],
     ],
-    note: 'The AAP recommends vitamin K, eye ointment, and the hepatitis B vaccine for all newborns; ask your provider about any concerns.',
+    note: 'Vitamin K and the hepatitis B vaccine are recommended for all newborns, and most states require eye ointment. Ask your provider about any concerns.',
   },
   {
     id: 'feeding',
@@ -1166,7 +1169,7 @@ export const QUESTION_IDEAS = [
   [20, 'What do the anatomy scan results mean for us?'],
   [20, 'When should we start counting kicks?'],
   [22, 'Should we sign up for childbirth or breastfeeding classes?'],
-  [24, 'When is the glucose test, and how do I prepare?'],
+  [20, 'When is the glucose test, and how do I prepare?'],
   [26, 'What are the signs of preterm labor?'],
   [28, 'Do I need the Rh immune globulin shot?'],
   [28, 'Should I be checking my blood pressure at home?'],
@@ -1175,7 +1178,7 @@ export const QUESTION_IDEAS = [
   [32, 'What\'s your rule for when to come in once labor starts?'],
   [32, 'How often do you perform C-sections or inductions, and why?'],
   [34, 'Which hospital entrance and floor do we go to?'],
-  [36, 'When will you test for group B strep?'],
+  [32, 'When will you test for group B strep, and what if it\'s positive?'],
   [37, 'What happens if I go past my due date?'],
   [38, 'What should postpartum recovery look like, and when do we follow up?'],
 ];
@@ -1193,8 +1196,8 @@ export const WEIGHT_NOTE = 'Weight is just one data point, and these ranges are 
 
 export const BP_RULES = [
   { sys: 160, dia: 110, level: 'urgent', text: 'Severe-range blood pressure. Call labor & delivery now or go in right away.' },
-  { sys: 140, dia: 90, level: 'call', text: 'High for pregnancy. Rest 15 minutes and recheck, and call your OB today; it can be a sign of preeclampsia or gestational hypertension.' },
-  { sys: 0, dia: 0, level: 'ok', text: 'In the normal range. Keep logging as your provider recommends.' },
+  { sys: 140, dia: 90, level: 'call', text: 'High for pregnancy. Rest 15 minutes and recheck, and call your OB today. If you also have a headache, vision changes, upper belly pain or trouble breathing, go to labor & delivery now.' },
+  { sys: 0, dia: 0, level: 'ok', text: 'Below the range that needs a call. Keep logging as your provider recommends.' },
 ];
 
 export const BP_NOTE = 'Sit with your back supported and feet flat, rest 5 minutes first, and keep your arm at heart level. Use a cuff that fits your upper arm, and avoid caffeine or exercise 30 minutes before.';
@@ -1218,13 +1221,14 @@ export const NEWBORN_TIPS = [
 export const NEWBORN_CALL = [
   'Call 911 for trouble breathing, blue or gray lips or skin, or if baby is limp or won\'t wake.',
   'Call 911 for a seizure or any pause in breathing of 20 seconds or more.',
-  'Rectal temperature of 100.4°F or higher under 3 months old: call the pediatrician right away.',
-  'Temperature below 97.5°F that doesn\'t improve with warming.',
+  'Rectal temperature of 100.4°F or higher under 3 months old: call the pediatrician right away, or go to the ER if you can\'t reach them. Don\'t give fever medicine first.',
+  'Rectal temperature below 97.5°F that doesn\'t come up with warming.',
   'Fewer wet diapers than expected, or no wet diaper in 6–8 hours after the first few days.',
   'Not feeding well, refusing several feeds, or too sleepy to finish feeds.',
   'Very sleepy, floppy, or hard to wake.',
   'Yellow skin or eyes that spread to the belly or legs, or that appear in the first 24 hours.',
-  'Forceful or green vomiting, or repeated vomiting.',
+  'Green vomit: go to the ER now.',
+  'Forceful or repeated vomiting: call the pediatrician.',
   'Redness, swelling, pus, or a bad smell around the cord stump.',
   'Inconsolable crying that\'s different from usual, or a weak, high-pitched cry.',
   'Blood in the stool, or no stool in the first 2 days.',
@@ -1235,7 +1239,8 @@ export const FEED_TYPES = [['breast_l', '🤱 Left'], ['breast_r', '🤱 Right']
 export const DIAPER_TYPES = [['wet', '💧 Wet'], ['dirty', '💩 Dirty'], ['both', '💧💩 Both']];
 
 export const POSTPARTUM_911 = [
-  'Chest pain or a racing heartbeat with trouble breathing',
+  'Chest pain or pressure, even if you can breathe OK',
+  'Heavy bleeding: soaking a pad in an hour or less, or passing clots bigger than an egg',
   'Trouble breathing or shortness of breath',
   'A seizure',
   'Thoughts of harming yourself or the baby',
@@ -1250,10 +1255,10 @@ export const POSTPARTUM_CALL = [
   'Fast or pounding heartbeat',
   'Severe belly pain that doesn\'t go away',
   'Severe nausea and vomiting',
-  'Bleeding that soaks a pad in an hour or less, or clots bigger than an egg',
   'Swelling, redness, or pain in one leg',
   'Overwhelming tiredness',
   'Foul-smelling discharge, or redness or oozing at an incision',
+  'If you can\'t reach your provider right away, or you feel worse, call 911 or go to the ER.',
 ];
 
 export const POSTPARTUM_TIPS = [
@@ -1267,7 +1272,8 @@ export const POSTPARTUM_TIPS = [
   'Baby blues (weepy, moody) are common and fade by about 2 weeks; feelings that last longer or feel heavy may be postpartum depression, which is treatable.',
   'Partners can get postpartum depression too, so check in on each other.',
   'National Maternal Mental Health Hotline: call or text 1-833-TLC-MAMA (1-833-852-6262), free and 24/7.',
-  'Postpartum Support International helpline: 1-800-944-4773 (call or text).',
+  'Postpartum Support International helpline: call or text "HELP" to 1-800-944-4773. Not a crisis line; they reply within a day.',
+  'If you had high blood pressure in pregnancy, get it checked 3 to 10 days after birth.',
 ];
 
 export const MOOD_CHECK = [
@@ -1283,7 +1289,11 @@ export const LOSS_SUPPORT = {
   intro: 'We\'re so sorry for your loss; whatever you\'re feeling right now is valid, and you can take this one moment at a time.',
   physical: [
     'Bleeding and cramping are common for days to a couple of weeks, depending on how far along the pregnancy was.',
-    'Call right away for bleeding that soaks 2 pads an hour for 2 hours in a row, or for dizziness or fainting.',
+    'Early loss: call right away for bleeding that soaks 2 pads an hour for 2 hours in a row, or for dizziness or fainting.',
+    'After a loss later in pregnancy: call right away if you soak a pad in an hour.',
+    'Call 911 for chest pain, trouble breathing, a seizure, or thoughts of harming yourself.',
+    'Call right away for a severe headache, vision changes, or one leg that is swollen and painful. After a later loss these can happen for up to a year.',
+    'Before a loss is confirmed, severe pain on one side or shoulder-tip pain means go to the ER (possible ectopic pregnancy).',
     'Call for a fever of 100.4°F or higher, severe pain, or foul-smelling discharge.',
     'Breast milk may come in after a later loss; ask your provider how to ease the discomfort.',
     'Schedule a follow-up visit to check your recovery and ask any questions.',
@@ -1313,9 +1323,9 @@ export const LOSS_SUPPORT = {
   ],
 };
 
-export const CONTRACTION_NOTE = 'Time contractions from the start of one to the start of the next. Many providers use a "5-1-1" rule for first babies (5 minutes apart, 1 minute long, for 1 hour), but follow your own provider\'s instructions. Go in right away if your water breaks, you\'re bleeding, the baby is moving less, or you have severe, constant pain.';
+export const CONTRACTION_NOTE = 'Time contractions from the start of one to the start of the next. Many providers use a "5-1-1" rule for first babies (5 minutes apart, 1 minute long, for 1 hour), but follow your own provider\'s instructions. Go in right away if your water breaks, you\'re bleeding, the baby is moving less, or you have severe, constant pain. Before 37 weeks, don\'t wait for 5-1-1: call right away for regular contractions, pelvic pressure, or a low, dull backache.';
 
-export const KICK_NOTE = 'From about 28 weeks, pick a time the baby is usually active and count until you feel 10 movements. Most babies reach 10 well within 2 hours. If movements are fewer or feel different from usual, call labor & delivery right away; don\'t wait.';
+export const KICK_NOTE = 'From about 28 weeks, pick a time the baby is usually active and count until you feel 10 movements. Most babies reach 10 well within 2 hours. If movements are fewer or feel different from usual, call labor & delivery right away; don\'t wait. Before 28 weeks, any change in movement you\'ve started to notice is still worth a call.';
 
 export const BABY_MONTH_NOTE = 'Every baby grows on their own schedule. These are typical ranges, not tests, so talk to your pediatrician if baby loses skills they once had or misses several milestones.';
 
@@ -1384,14 +1394,14 @@ export const BABY_MONTHS = [
     can: [
       'Laughs or chuckles',
       'Holds the head steady without support',
-      'Reaches for and holds a toy',
+      'Holds a toy you put in their hand and swings at toys',
       'May roll from tummy to back',
       'Makes sounds back when you talk',
     ],
     next: 'Many babies start to sit with support and show interest in your food.',
     tip: 'Offer safe teething toys and keep small objects out of reach, since everything goes in the mouth now.',
     partner: 'Read a short board book to baby each day. It is never too early to start.',
-    watch: 'Call if baby does not bring things to the mouth, does not push down with the legs when feet touch a surface, or stops babbling.',
+    watch: 'Call if baby cannot hold the head steady when held, does not coo or make sounds back, or does not bring hands to the mouth.',
   },
   {
     month: 5,
@@ -1399,13 +1409,13 @@ export const BABY_MONTHS = [
     can: [
       'Rolls in one or both directions',
       'Blows raspberries and squeals',
-      'Passes a toy from one hand to the other',
+      'Puts toys and hands in the mouth to explore',
       'Recognizes familiar people',
     ],
     next: 'Solid foods usually begin around 6 months, once baby shows signs of readiness.',
-    tip: 'Lower the crib mattress before baby can pull up, and move the crib away from cords and blinds.',
+    tip: 'Lower the crib mattress before baby can sit up, and to the lowest setting before they can stand. Keep the crib away from cords and blinds.',
     partner: 'Try a fun game of peekaboo. It teaches baby that you come back.',
-    watch: 'Call if baby does not roll at all, cannot hold toys, or does not react to sounds around them.',
+    watch: 'Call if baby cannot hold toys, does not react to sounds around them, or does not push up on the arms during tummy time.',
   },
   {
     month: 6,
@@ -1434,7 +1444,7 @@ export const BABY_MONTHS = [
     next: 'Crawling, scooting and pulling up may begin, so get ready to childproof.',
     tip: 'Install outlet covers, cabinet locks and stair gates before baby is on the move.',
     partner: 'Get down on the floor and play. Baby loves to watch what you do.',
-    watch: 'Call if baby does not respond to their name or does not seem to recognize familiar people.',
+    watch: 'Call if baby does not babble, does not laugh or squeal, or does not seem to recognize familiar people.',
   },
   {
     month: 8,
@@ -1442,7 +1452,7 @@ export const BABY_MONTHS = [
     can: [
       'May crawl, scoot or army crawl',
       'Gets into a sitting position alone',
-      'Looks for a toy you hid under a blanket',
+      'Looks for a toy that drops out of sight',
       'May feel shy or upset with strangers',
     ],
     next: 'Pulling to stand and cruising along furniture often come next.',
@@ -1455,8 +1465,8 @@ export const BABY_MONTHS = [
     title: 'Curious explorer',
     can: [
       'Sits without support',
-      'Picks up small food with thumb and finger',
-      'Looks when you point at something',
+      'Rakes small food toward them with the fingers',
+      'Lifts arms up to be picked up',
       'Makes sounds like mamama and bababa',
       'Shows several facial expressions',
     ],
@@ -1506,22 +1516,22 @@ export const BABY_MONTHS = [
     next: 'Walking on their own, more words and lots of big feelings come in the toddler year.',
     tip: 'Ask your pediatrician about switching to whole milk and how much to offer each day.',
     partner: 'Look back at how far the three of you have come, and say thank you to {m:them}.',
-    watch: 'Call if baby cannot stand with support, does not say any words, or does not point to show you things.',
+    watch: 'Call if baby cannot stand with support, does not wave or call you by a special name, or does not look for things you hide.',
   },
 ];
 
 export const WELL_VISITS = [
-  ['At birth', 0, 'Hepatitis B vaccine, vitamin K, eye ointment, newborn screening and hearing test. RSV antibody if born in RSV season and mom did not get the RSV vaccine.'],
+  ['At birth', 0, 'Hepatitis B vaccine (within 24 hours), vitamin K, eye ointment, newborn screening and hearing test. RSV antibody in the first week if born October to March, unless the RSV vaccine was given in pregnancy at least 2 weeks before birth.'],
   ['3–5 days', 3, 'Weight check, jaundice and feeding check.'],
   ['1 month', 30, 'Growth and feeding check. Second hepatitis B dose may be given now or at 2 months.'],
-  ['2 months', 60, 'DTaP, Hib, polio, pneumococcal, hepatitis B and rotavirus. RSV antibody if not given at birth and mom did not get the RSV vaccine.'],
+  ['2 months', 60, 'DTaP, Hib, polio, pneumococcal, hepatitis B and rotavirus. If baby has not had RSV protection, ask about the RSV antibody before RSV season (usually October).'],
   ['4 months', 120, 'Second doses of DTaP, Hib, polio, pneumococcal and rotavirus. Growth and development check.'],
   ['6 months', 180, 'DTaP, pneumococcal, and Hib and rotavirus depending on brand. Polio and hepatitis B between 6 and 18 months. First flu vaccine in season, with a second dose 4 weeks later.'],
   ['9 months', 270, 'Developmental screening and catch-up vaccines if needed. Talk about safety now that baby is mobile.'],
   ['12 months', 365, 'MMR, chickenpox and hepatitis A. Hib and pneumococcal boosters between 12 and 15 months. Lead and anemia screening.'],
 ];
 
-export const VACCINE_NOTE = 'Vaccine schedules can vary by brand, by state and as national guidance changes. Follow your pediatrician\'s advice and ask them about any shot you have questions about.';
+export const VACCINE_NOTE = 'Vaccine schedules can vary by brand and by state, and federal guidance has been changing. Follow your pediatrician\'s advice (the AAP publishes its own schedule) and ask about any shot you have questions about.';
 
 export const WEEK_TODOS = {
   4: ['Start a daily prenatal vitamin with 400 mcg of folic acid', 'Call your OB or midwife to book a first visit'],
@@ -1530,11 +1540,11 @@ export const WEEK_TODOS = {
   7: ['Write down questions for the first prenatal visit', 'Check what your insurance covers for maternity care'],
   8: ['Gather family health history from both sides', 'Ask whether you will have a dating ultrasound'],
   9: ['Swap high-mercury fish for salmon, shrimp or cod', 'Keep caffeine under 200 mg a day'],
-  10: ['Ask about genetic screening and testing options', 'Book a dental cleaning, it is safe during pregnancy'],
-  11: ['Ask if the NIPT (cell-free DNA) blood test is right for you', 'Ask about the NT scan, usually done at 11 to 14 weeks'],
+  10: ['Ask about genetic screening and testing options', 'Book a dental cleaning. It\'s safe during pregnancy'],
+  11: ['Ask if the NIPT (cell-free DNA) blood test is right for you', 'Ask about the NT scan, usually done at 11 to 13 weeks'],
   12: ['Start a shared note of baby name ideas', 'Take a first bump photo for a monthly series'],
   13: ['Sketch a rough baby budget together', 'Plan how to share the news at work'],
-  14: ['Get a flu shot if it is flu season', 'Try a prenatal yoga or swim class'],
+  14: ['Get a flu shot now if it\'s flu season and you haven\'t yet', 'Try a prenatal yoga or swim class'],
   15: ['Ask about the AFP or quad screen if you want it', 'Start a short walk together most days'],
   16: ['Read your company parental leave policy', 'Check if your state offers paid family leave'],
   17: ['Buy comfortable bras and a few maternity basics', 'Get a body pillow and start sleeping on your side'],
@@ -1547,7 +1557,7 @@ export const WEEK_TODOS = {
   24: ['Schedule the glucose screening for 24 to 28 weeks', 'Learn the signs of preterm labor'],
   25: ['Look into cord blood banking or donation', 'Start daily pelvic floor exercises (Kegels)'],
   26: ['Shortlist pediatricians and set up meet-and-greets'],
-  27: ['Ask about the Tdap vaccine, given at 27 to 36 weeks', 'Ask if you need an Rh shot if your blood type is Rh negative'],
+  27: ['Ask about the Tdap vaccine, given at 27 to 36 weeks', 'If your blood type is Rh negative, ask about the Rh shot at 28 weeks'],
   28: ['Start daily kick counts if your provider suggests it', 'Note that visits move to every 2 weeks around now'],
   29: ['Tour the hospital or birth center'],
   30: ['Write a simple one-page birth preferences sheet', 'File FMLA and leave paperwork with HR'],
@@ -1573,7 +1583,7 @@ export const GUIDES = [
       ['A balanced plate', 'Aim for half your plate as fruits and vegetables, plus whole grains, lean protein and dairy or calcium-rich foods. Small, frequent meals can help with nausea and heartburn. Drink plenty of water through the day.'],
       ['Key nutrients', 'Folic acid (at least 400 mcg a day) helps prevent neural tube defects. Iron (27 mg a day) supports your growing blood supply, and calcium (1,000 mg) and vitamin D build baby\'s bones. Choline, iodine and DHA support brain growth. A prenatal vitamin fills gaps but does not replace food.'],
       ['How much extra to eat', 'In the first trimester you usually do not need extra calories. In the second trimester most people need about 340 extra calories a day, and about 450 extra in the third. That is roughly an extra snack or two, like yogurt with fruit or a peanut butter sandwich.'],
-      ['Fish and caffeine', 'Eat 8 to 12 ounces a week of low-mercury fish such as salmon, shrimp, cod or canned light tuna. Skip shark, swordfish, king mackerel, tilefish, bigeye tuna and marlin. Keep caffeine under 200 mg a day, about one 12-ounce cup of coffee.'],
+      ['Fish and caffeine', 'Eat 8 to 12 ounces a week of low-mercury fish such as salmon, shrimp, cod or canned light tuna. Skip shark, swordfish, king mackerel, tilefish, bigeye tuna, marlin and orange roughy. Keep caffeine under 200 mg a day, about one 12-ounce cup of coffee.'],
       ['Foods to skip', 'Avoid unpasteurized milk and cheese, raw or undercooked meat, eggs and seafood, and deli meats or hot dogs unless heated until steaming. These can carry listeria and other germs. There is no known safe amount of alcohol in pregnancy.'],
       ['Weight gain', 'Healthy weight gain depends on your weight before pregnancy. Your provider will give you a target range and track it at visits. Focus on nourishing food rather than the number on the scale.'],
     ],
@@ -1638,7 +1648,7 @@ export const GUIDES = [
       ['Telling your boss', 'There is no required time to share the news. Many people wait until after the first trimester or until they need changes at work. Come with a rough plan for your leave and coverage, and put key details in writing.'],
       ['Pregnant Workers Fairness Act', 'Under the PWFA, employers with 15 or more workers must give reasonable accommodations for pregnancy, childbirth and related conditions, unless it causes undue hardship. Examples include more breaks, a stool, water at your desk, time off for visits or lighter lifting. You cannot be forced to take leave if another accommodation would work.'],
       ['FMLA basics', 'The Family and Medical Leave Act gives up to 12 weeks of unpaid, job-protected leave in a year for the birth and care of a new baby. It covers employers with 50 or more workers within 75 miles, if you have worked there 12 months and 1,250 hours. Both parents may qualify.'],
-      ['Paid leave and pumping', 'Some states and many employers offer paid family leave, so check your state and your handbook. After birth, the PUMP Act gives most workers break time and a private space, not a bathroom, to pump milk.'],
+      ['Paid leave and pumping', 'Some states and many employers offer paid family leave, so check your state and your handbook. After birth, the PUMP Act gives most workers break time and a private space, not a bathroom, to pump milk for up to a year after birth.'],
       ['If something goes wrong', 'Keep notes of conversations and requests. If you are treated unfairly, you can contact HR, your state labor office or the EEOC. Deadlines for filing a complaint can be short.'],
     ],
   },
@@ -1688,7 +1698,7 @@ export const GUIDES = [
     intro: 'You are not a bystander. Your support makes a real difference at every stage.',
     sections: [
       ['During pregnancy', 'Come to prenatal visits when you can, especially the big scans. Take on more chores as {m:their} energy dips, and learn what is normal week to week. Ask how {m:they} {m:is|are} feeling, then really listen.'],
-      ['Getting ready', 'Take the childbirth class together and learn the signs of labor. Handle practical jobs like installing the car seat, planning the route and packing your own bag. Learn {m:their} birth preferences so you can speak up for them.'],
+      ['Getting ready', 'Take the childbirth class together and learn the signs of labor. Handle practical jobs like installing the car seat, planning the route and packing your own bag. Learn {m:their} birth preferences so you can speak up for {m:them}.'],
       ['On the big day', 'Your job is comfort and calm. Offer water, a cool cloth, massage and steady words. Keep track of questions for the care team and protect {m:their} space from too many visitors or messages.'],
       ['The first weeks', 'Do diaper changes, burping, baths and skin-to-skin, and take a night shift if baby is bottle fed. Keep the house fed and running. Watch for signs of postpartum depression or anxiety in {m:them} and in yourself, since partners can have it too.'],
       ['Take care of you', 'Sleep, eat and get outside when you can. Talk to a friend or your provider if you feel overwhelmed. A rested partner is a better partner.'],
@@ -1863,7 +1873,7 @@ export const WEEK_TODO_HELP = {
     'Pack your own bag and help {m:them} finish {m:their} bag so both are ready by the door.',
   ],
   36: [
-    'Put the GBS swab date in your calendar and ask {m:them} what it means for labor.',
+    'Put the GBS swab date in your calendar, and learn what a positive result means (antibiotics during labor).',
     'Take over the laundry and fold and put away the baby clothes and swaddles.',
   ],
   37: [
@@ -1900,8 +1910,8 @@ export const REVIEW_SECTIONS = [
   { id: 'movement', title: 'Movement, sleep & recovery', what: 'Exercise, sleep positions, back pain, recovery after birth', signoff: 'Physical or occupational therapist (pelvic floor: a pelvic-floor specialist)', size: '3 guides', time: '30 min', pri: 3 },
   { id: 'guides', title: 'Other guides', what: 'Eating well, sex, travel, work rights, for partners', signoff: 'OB nurse or midwife', size: '5 guides', time: '40 min', pri: 3 },
   { id: 'todos', title: 'Weekly to-dos & checklists', what: 'To-dos for weeks 4 to 40, hospital bag, questions for the OB', signoff: 'OB nurse or midwife', size: '68 to-dos, 45 items', time: '30 min', pri: 3 },
-  { id: 'babypics', title: 'Baby illustrations', what: 'What baby looks like each week, 4 to 40 (illustrations, not photos)', signoff: 'OB, sonographer or embryology instructor', size: '37 pictures', time: '20 min', pri: 2 },
-  { id: 'loss', title: 'After a loss', what: 'Physical recovery, grief, partner support, resources', signoff: 'OB, midwife or bereavement nurse', size: '17 items', time: '15 min', pri: 3 },
+  { id: 'babypics', title: 'Baby illustrations', what: 'What baby looks like each week, 4 to 42 (illustrations, not photos; 41 and 42 reuse 40)', signoff: 'OB, sonographer or embryology instructor', size: '37 pictures', time: '20 min', pri: 2 },
+  { id: 'loss', title: 'After a loss', what: 'Physical recovery, grief, partner support, resources', signoff: 'OB, midwife or bereavement nurse', size: '26 items', time: '15 min', pri: 3 },
 ]
 export const REVIEW_STEPS = [
   ['Source check first', 'Anyone with clinical training compares each item to the official page it\'s based on (ACOG, CDC, AAP, FDA) and flags anything that doesn\'t match, is out of date, or reads unclearly.'],
@@ -1929,11 +1939,11 @@ export const SIZE_ALTS = {
   8: [['jelly bean']],
   9: [['olive'], ['gumball']],
   10: [['chestnut'], ['peanut in its shell']],
-  11: [['large strawberry'], ['peanut in its shell']],
+  11: [['large strawberry']],
   12: [['kiwi'], ['egg'], ['garlic bulb']],
   13: [['tomato'], ['peach']],
   14: [['orange'], ['onion']],
-  15: [['softball'], ['potato']],
+  15: [['large apple'], ['potato']],
   16: [['potato']],
   17: [['sweet potato'], ['big potato']],
   18: [['sweet potato'], ['mango']],
@@ -1944,7 +1954,7 @@ export const SIZE_ALTS = {
   23: [['eggplant'], ['loaf of bread']],
   24: [['head of broccoli'], ['large eggplant']],
   25: [['coconut'], ['loaf of bread']],
-  26: [['small cantaloupe']],
+  26: [['large loaf of bread']],
   27: [['small cantaloupe'], ['small pineapple']],
   28: [['small cantaloupe'], ['large coconut']],
   29: [['pineapple'], ['cantaloupe']],
@@ -1952,17 +1962,17 @@ export const SIZE_ALTS = {
   31: [['cantaloupe'], ['small honeydew melon']],
   32: [['honeydew melon'], ['large cantaloupe']],
   33: [['large pineapple'], ['small watermelon']],
-  34: [['honeydew melon'], ['pumpkin']],
+  34: [['honeydew melon'], ['pie pumpkin']],
   35: [['honeydew melon'], ['small watermelon']],
-  36: [['pumpkin'], ['large honeydew melon']],
-  37: [['small watermelon']],
-  38: [['pumpkin']],
-  39: [['pumpkin']],
-  40: [['pumpkin']],
-  41: [['pumpkin']],
-  42: [['pumpkin']],
+  36: [['pie pumpkin'], ['small watermelon']],
+  37: [['pie pumpkin']],
+  38: [['pie pumpkin']],
+  39: [],
+  40: [],
+  41: [],
+  42: [],
 }
-export const SIZE_NOTE = 'Until 20 weeks, babies are measured crown to rump and compared by length. From 21 weeks they are measured head to toe and compared by weight. All sizes are averages; every baby grows at their own pace.'
+export const SIZE_NOTE = 'Until 20 weeks, babies are measured crown to rump and compared by length. From 21 weeks they are measured head to toe and compared by weight. All sizes are averages from standard charts, which switch measuring methods, so a few weeks jump more than others. Every baby grows at their own pace.'
 
 // ── Original size-comparison art (drawn for Together) ──
 const ART_1 = {
@@ -2026,3 +2036,4 @@ export const SIZE_ART = { ...ART_1, ...ART_2, ...ART_3 }
 
 SIZE_ART['fig'] = '<svg viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true"><path d="M33 13c3 9 15 14 15 28 0 9-7 15-16 15s-16-6-16-15c0-14 13-19 17-28z" fill="#6b3a5e"/><path d="M45 39c2 10-5 16-13 16 7-3 11-8 13-16z" fill="#4e2844"/><ellipse cx="25" cy="34" rx="4" ry="7" fill="#8e5a80" transform="rotate(-20 25 34)"/><path d="M33 13c0-3 1-6 3-8" stroke="#6f7a3a" stroke-width="3" stroke-linecap="round" fill="none"/></svg>'
 SIZE_ART['mustard seed'] = '<svg viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true"><circle cx="32" cy="32" r="6" fill="#d9a62e"/><path d="M37 35a6 6 0 0 1-9 2 6 6 0 0 0 9-2z" fill="#b5821a"/><circle cx="30" cy="30" r="2" fill="#f1cf72"/></svg>'
+MILESTONES.sort((a, b) => a.week - b.week)
