@@ -430,7 +430,7 @@ await test('expert review checklist: tucked at the end of Settings, lists every 
 
 await test('baby card: swipe through same-size things; Real life shows ultrasounds and the illustration', async (page, ctx) => {
   await seed(page, 'mom', [], { prefs: { lmp: new Date(Date.now() - 6 * 7 * 864e5).toISOString().slice(0, 10), momName: 'Sarah' }, entries: [] })
-  ok((await page.innerText('.baby .size-swipe')).includes('sweet pea') && (await page.innerText('.baby .size-swipe')).includes('jelly bean'), 'same-size comparisons missing')
+  ok((await page.innerText('.baby .size-swipe')).includes('sweet pea') && (await page.innerText('.baby .size-swipe')).includes('peppercorn'), 'same-size comparisons missing')
   await page.locator('.baby [data-size-i="1"]').click(); await page.waitForTimeout(600)
   ok(await page.evaluate(() => document.querySelector('#sizeSwipe').scrollLeft > 0), 'dot did not move to the next comparison')
   await page.click('.baby [data-babyview=real]')

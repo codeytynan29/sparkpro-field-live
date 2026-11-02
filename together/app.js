@@ -722,7 +722,7 @@ function sizeBlock(w, big) {
   const { len, items } = sizeList(w)
   return `<div class="size-swipe ${big ? 'size-big' : ''}" id="sizeSwipe" data-w="${w}">${items.map(([n, e], i) => `<div class="size-slide">
       <div class="fruit">${e}${i === 0 ? art(w) : ''}</div>
-      <div class="size-text">About the size of ${aOrAn(n)} <b>${esc(n)}</b><div class="fine">${esc(len)}</div></div></div>`).join('')}</div>
+      <div class="size-text">${w >= 21 ? 'About as heavy as' : 'About the size of'} ${aOrAn(n)} <b>${esc(n)}</b><div class="fine">${esc(len)}</div></div></div>`).join('')}</div>
     ${items.length > 1 ? `<div class="swipe-dots">${items.map(([n], i) => `<button data-size-i="${i}" class="${i === (sizeAt.w === w ? sizeAt.i : 0) ? 'on' : ''}" aria-label="${esc(n)}"></button>`).join('')}<span class="fine">swipe for more</span></div>` : ''}`
 }
 function realLife(w) {
@@ -768,6 +768,7 @@ function weeksView() {
     <section class="card week-hero">
       <div class="baby-head center-head">${viewToggle()}</div>
       ${sizeBlock(w, true)}
+      ${babyView() === 'size' ? `<p class="fine center">${esc(C.SIZE_NOTE || '')}</p>` : ''}
     </section>
     <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
     ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}

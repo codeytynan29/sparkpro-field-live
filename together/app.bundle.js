@@ -45,19 +45,45 @@ const COFFEE_BEAN = svg('<ellipse cx="20" cy="20" rx="10" ry="13" fill="#6b4226"
 const GUMBALL = svg('<circle cx="20" cy="20" r="13" fill="#4aa3df" stroke="#2a78ad" stroke-width="1.2"/><circle cx="15" cy="15" r="4" fill="#fff" opacity=".6"/>')
 
 const BABY_SIZE = {
-  4: ['poppy seed', POPPY, '~1 mm'], 5: ['sesame seed', SESAME, '~2 mm'], 6: ['sweet pea', '🫛', '~5 mm'],
-  7: ['blueberry', '🫐', '~1 cm'], 8: ['kidney bean', '🫘', '~1.6 cm'], 9: ['cherry', '🍒', '~2.3 cm'],
-  10: ['strawberry', '🍓', '~3 cm'], 11: ['kiwi', '🥝', '~4 cm'], 12: ['lime', '🍋‍🟩', '~5 cm'],
-  13: ['lemon', '🍋', '~7 cm'], 14: ['peach', '🍑', '~8.5 cm'], 15: ['apple', '🍎', '~10 cm'],
-  16: ['avocado', '🥑', '~11.5 cm'], 17: ['pear', '🍐', '~13 cm'], 18: ['bell pepper', '🫑', '~14 cm'],
-  19: ['mango', '🥭', '~15 cm'], 20: ['banana', '🍌', '~16.5 cm (head to bottom)'], 21: ['carrot', '🥕', '~27 cm (head to toe)'],
-  22: ['bunch of grapes', '🍇', '~28 cm'], 23: ['big sweet potato', '🍠', '~29 cm'], 24: ['ear of corn', '🌽', '~30 cm'],
-  25: ['head of broccoli', '🥦', '~34 cm'], 26: ['long cucumber', '🥒', '~36 cm'], 27: ['eggplant', '🍆', '~37 cm'],
-  28: ['large eggplant', '🍆', '~38 cm'], 29: ['small pumpkin', '🎃', '~39 cm'], 30: ['coconut', '🥥', '~40 cm'],
-  31: ['large coconut', '🥥', '~41 cm'], 32: ['pineapple', '🍍', '~42 cm'], 33: ['large pineapple', '🍍', '~44 cm'],
-  34: ['cantaloupe', '🍈', '~45 cm'], 35: ['honeydew melon', '🍈', '~46 cm'], 36: ['pumpkin', '🎃', '~47 cm'],
-  37: ['small watermelon', '🍉', '~48 cm'], 38: ['small watermelon', '🍉', '~49 cm'], 39: ['watermelon', '🍉', '~50 cm'],
-  40: ['watermelon', '🍉', '~51 cm'], 41: ['watermelon', '🍉', '~51 cm'], 42: ['watermelon', '🍉', '~51 cm'],
+  4: ['poppy seed', '', 'under 1 mm'],
+  5: ['sesame seed', '', '~1–3 mm'],
+  6: ['sweet pea', '', '~4–7 mm'],
+  7: ['blueberry', '', '~1–1.3 cm (½ in)'],
+  8: ['kidney bean', '', '~1.6 cm (0.6 in)'],
+  9: ['cherry', '', '~2.3 cm (0.9 in)'],
+  10: ['strawberry', '', '~3.1 cm (1.2 in)'],
+  11: ['fig', '', '~4.1 cm (1.6 in)'],
+  12: ['lime', '', '~5.4 cm (2.1 in)'],
+  13: ['lemon', '', '~7.4 cm (2.9 in)'],
+  14: ['peach', '', '~8.7 cm (3.4 in)'],
+  15: ['apple', '', '~10.1 cm (4 in)'],
+  16: ['avocado', '', '~11.6 cm (4.6 in)'],
+  17: ['pear', '', '~13 cm (5.1 in)'],
+  18: ['bell pepper', '', '~14.2 cm (5.6 in)'],
+  19: ['mango', '', '~15.3 cm (6 in)'],
+  20: ['banana', '', '~16.4 cm (6.5 in) crown to rump · ~300 g (11 oz)'],
+  21: ['ear of corn', '', '~360 g (13 oz) · ~26.7 cm (10.5 in) head to toe'],
+  22: ['long cucumber', '', '~430 g (15 oz) · ~27.8 cm (10.9 in) head to toe'],
+  23: ['bunch of grapes', '', '~501 g (18 oz) · ~28.9 cm (11.4 in) head to toe'],
+  24: ['loaf of bread', '', '~600 g (21 oz) · ~30 cm (11.8 in) head to toe'],
+  25: ['head of broccoli', '', '~660 g (23 oz) · ~34.6 cm (13.6 in) head to toe'],
+  26: ['coconut', '', '~760 g (27 oz) · ~35.6 cm (14.0 in) head to toe'],
+  27: ['large coconut', '', '~875 g (31 oz) · ~36.6 cm (14.4 in) head to toe'],
+  28: ['small pineapple', '', '~1.0 kg (2.2 lb) · ~37.6 cm (14.8 in) head to toe'],
+  29: ['small pumpkin', '', '~1.2 kg (2.5 lb) · ~38.6 cm (15.2 in) head to toe'],
+  30: ['cantaloupe', '', '~1.3 kg (2.9 lb) · ~39.9 cm (15.7 in) head to toe'],
+  31: ['pineapple', '', '~1.5 kg (3.3 lb) · ~41.1 cm (16.2 in) head to toe'],
+  32: ['large pineapple', '', '~1.7 kg (3.8 lb) · ~42.4 cm (16.7 in) head to toe'],
+  33: ['honeydew melon', '', '~1.9 kg (4.2 lb) · ~43.7 cm (17.2 in) head to toe'],
+  34: ['small watermelon', '', '~2.1 kg (4.7 lb) · ~45 cm (17.7 in) head to toe'],
+  35: ['pumpkin', '', '~2.4 kg (5.3 lb) · ~46.2 cm (18.2 in) head to toe'],
+  36: ['small watermelon', '', '~2.6 kg (5.8 lb) · ~47.4 cm (18.7 in) head to toe'],
+  37: ['pumpkin', '', '~2.9 kg (6.3 lb) · ~48.6 cm (19.1 in) head to toe'],
+  38: ['small watermelon', '', '~3.1 kg (6.8 lb) · ~49.8 cm (19.6 in) head to toe'],
+  39: ['small watermelon', '', '~3.3 kg (7.2 lb) · ~50.7 cm (20.0 in) head to toe'],
+  40: ['small watermelon', '', '~3.5 kg (7.6 lb) · ~51.2 cm (20.2 in) head to toe'],
+  41: ['small watermelon', '', '~3.6 kg (7.9 lb) · ~51.5 cm (20.3 in) head to toe'],
+  42: ['small watermelon', '', '~3.7 kg (8.1 lb) · ~51.7 cm (20.4 in) head to toe'],
 }
 
 const WEEK_NOTES = {
@@ -1913,44 +1939,47 @@ const REVIEW_ASK = 'Hi! We built a pregnancy app for couples called Together, an
 // Other things about the same size, to swipe through after the main one.
 // Every picture shows exactly that thing.
 const SIZE_ALTS = {
-  4: [['grain of salt', SALT], ['grain of sand', SAND]],
-  5: [['apple seed', APPLE_SEED], ['peppercorn', PEPPERCORN]],
-  6: [['jelly bean', JELLY_BEAN], ['grain of rice', RICE]],
-  7: [['coffee bean', COFFEE_BEAN], ['jelly bean', JELLY_BEAN]],
-  8: [['olive', '🫒'], ['gumball', GUMBALL]],
-  9: [['olive', '🫒'], ['peanut in its shell', '🥜']],
-  10: [['chestnut', '🌰'], ['peanut in its shell', '🥜']],
-  11: [['garlic bulb', '🧄'], ['large strawberry', '🍓']],
-  12: [['egg', '🥚'], ['garlic bulb', '🧄']],
-  13: [['tomato', '🍅'], ['egg', '🥚']],
-  14: [['orange', '🍊'], ['onion', '🧅']],
-  15: [['orange', '🍊'], ['potato', '🥔']],
-  16: [['softball', '🥎'], ['potato', '🥔']],
-  17: [['sweet potato', '🍠'], ['big potato', '🥔']],
-  18: [['sweet potato', '🍠'], ['mango', '🥭']],
-  19: [['bell pepper', '🫑'], ['sweet potato', '🍠']],
-  20: [['carrot', '🥕'], ['cucumber', '🥒']],
-  21: [['banana', '🍌'], ['baguette', '🥖']],
-  22: [['baguette', '🥖'], ['cucumber', '🥒']],
-  23: [['baguette', '🥖'], ['mango', '🥭']],
-  24: [['baguette', '🥖'], ['eggplant', '🍆']],
-  25: [['eggplant', '🍆'], ['loaf of bread', '🍞']],
-  26: [['loaf of bread', '🍞'], ['eggplant', '🍆']],
-  27: [['loaf of bread', '🍞'], ['coconut', '🥥']],
-  28: [['coconut', '🥥'], ['pineapple', '🍍']],
-  29: [['coconut', '🥥'], ['pineapple', '🍍']],
-  30: [['pineapple', '🍍'], ['football', '🏈']],
-  31: [['pineapple', '🍍'], ['cantaloupe', '🍈']],
-  32: [['cantaloupe', '🍈'], ['coconut', '🥥']],
-  33: [['cantaloupe', '🍈'], ['pumpkin', '🎃']],
-  34: [['pineapple', '🍍'], ['pumpkin', '🎃']],
-  35: [['cantaloupe', '🍈'], ['pumpkin', '🎃']],
-  36: [['honeydew melon', '🍈'], ['small watermelon', '🍉']],
-  37: [['pumpkin', '🎃'], ['honeydew melon', '🍈']],
-  38: [['pumpkin', '🎃'], ['honeydew melon', '🍈']],
-  39: [['pumpkin', '🎃']], 40: [['pumpkin', '🎃']], 41: [['pumpkin', '🎃']], 42: [['pumpkin', '🎃']],
+  4: [['grain of salt'], ['grain of sand']],
+  5: [['mustard seed']],
+  6: [['peppercorn'], ['grain of rice'], ['apple seed']],
+  7: [['coffee bean']],
+  8: [['jelly bean']],
+  9: [['olive'], ['gumball']],
+  10: [['chestnut'], ['peanut in its shell']],
+  11: [['large strawberry'], ['peanut in its shell']],
+  12: [['kiwi'], ['egg'], ['garlic bulb']],
+  13: [['tomato'], ['peach']],
+  14: [['orange'], ['onion']],
+  15: [['softball'], ['potato']],
+  16: [['potato']],
+  17: [['sweet potato'], ['big potato']],
+  18: [['sweet potato'], ['mango']],
+  19: [['sweet potato'], ['carrot']],
+  20: [['carrot'], ['cucumber']],
+  21: [['large mango'], ['big sweet potato']],
+  22: [['eggplant'], ['bunch of grapes']],
+  23: [['eggplant'], ['loaf of bread']],
+  24: [['head of broccoli'], ['large eggplant']],
+  25: [['coconut'], ['loaf of bread']],
+  26: [['small cantaloupe']],
+  27: [['small cantaloupe'], ['small pineapple']],
+  28: [['small cantaloupe'], ['large coconut']],
+  29: [['pineapple'], ['cantaloupe']],
+  30: [['pineapple'], ['small pumpkin']],
+  31: [['cantaloupe'], ['small honeydew melon']],
+  32: [['honeydew melon'], ['large cantaloupe']],
+  33: [['large pineapple'], ['small watermelon']],
+  34: [['honeydew melon'], ['pumpkin']],
+  35: [['honeydew melon'], ['small watermelon']],
+  36: [['pumpkin'], ['large honeydew melon']],
+  37: [['small watermelon']],
+  38: [['pumpkin']],
+  39: [['pumpkin']],
+  40: [['pumpkin']],
+  41: [['pumpkin']],
+  42: [['pumpkin']],
 }
-const SIZE_NOTE = 'Sizes are approximate: measured crown to rump until about 20 weeks, then head to toe. Every baby grows at their own pace.'
+const SIZE_NOTE = 'Until 20 weeks, babies are measured crown to rump and compared by length. From 21 weeks they are measured head to toe and compared by weight. All sizes are averages; every baby grows at their own pace.'
 
 // ── Original size-comparison art (drawn for Together) ──
 const ART_1 = {
@@ -2011,6 +2040,9 @@ const ART_3 = {
   'watermelon': '<svg viewBox="5 5 54 54" width="1em" height="1em" aria-hidden="true"><g transform="rotate(-20 32 32)"><ellipse cx="32" cy="32" rx="29" ry="21" fill="#2f6b2e"/><ellipse cx="31.2" cy="31" rx="27.6" ry="19.8" fill="#7cb85a"/><path d="M6.4 31.5Q18 8.4 32 10.5T57.6 31.5" stroke="#2f6b2e" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="7 1.5 5 1.5"/><path d="M5.2 31.5Q18 19.2 32 20.5T58.8 31.5" stroke="#2f6b2e" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-dasharray="7 1.5 5 1.5"/><path d="M4 31.5Q18 30 32 30.5T60 31.5" stroke="#2f6b2e" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-dasharray="7 1.5 5 1.5"/><path d="M5.2 31.5Q18 40.8 32 40.5T58.8 31.5" stroke="#2f6b2e" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-dasharray="7 1.5 5 1.5"/><path d="M6.4 31.5Q18 51.6 32 50.5T57.6 31.5" stroke="#2f6b2e" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="7 1.5 5 1.5"/><path d="M12 24Q20 16 32 15" stroke="#a6d47f" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".9"/></g></svg>',
 };
 const SIZE_ART = { ...ART_1, ...ART_2, ...ART_3 }
+
+SIZE_ART['fig'] = '<svg viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true"><path d="M33 13c3 9 15 14 15 28 0 9-7 15-16 15s-16-6-16-15c0-14 13-19 17-28z" fill="#6b3a5e"/><path d="M45 39c2 10-5 16-13 16 7-3 11-8 13-16z" fill="#4e2844"/><ellipse cx="25" cy="34" rx="4" ry="7" fill="#8e5a80" transform="rotate(-20 25 34)"/><path d="M33 13c0-3 1-6 3-8" stroke="#6f7a3a" stroke-width="3" stroke-linecap="round" fill="none"/></svg>'
+SIZE_ART['mustard seed'] = '<svg viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true"><circle cx="32" cy="32" r="6" fill="#d9a62e"/><path d="M37 35a6 6 0 0 1-9 2 6 6 0 0 0 9-2z" fill="#b5821a"/><circle cx="30" cy="30" r="2" fill="#f1cf72"/></svg>'
 
 return { get BABY_SIZE() { return BABY_SIZE }, get WEEK_NOTES() { return WEEK_NOTES }, get WEEKS() { return WEEKS }, get STAGES() { return STAGES }, get MILESTONES() { return MILESTONES }, get SYMPTOMS() { return SYMPTOMS }, get RED_FLAGS() { return RED_FLAGS }, get MEDS() { return MEDS }, get FOODS() { return FOODS }, get FOOD_RULES() { return FOOD_RULES }, get FOOD_BASICS() { return FOOD_BASICS }, get DAD_FEELINGS() { return DAD_FEELINGS }, get DAD_TRUTHS() { return DAD_TRUTHS }, get DAD_TRIMESTER() { return DAD_TRIMESTER }, get MORNING_MOM() { return MORNING_MOM }, get MORNING_DAD() { return MORNING_DAD }, get ENCOURAGE_MOM() { return ENCOURAGE_MOM }, get ENCOURAGE_DAD() { return ENCOURAGE_DAD }, get MOOD() { return MOOD }, get ENERGY() { return ENERGY }, get MOOD_PLAN() { return MOOD_PLAN }, get ENERGY_PLAN() { return ENERGY_PLAN }, get BREATH_STEPS() { return BREATH_STEPS }, get SUPPORT_HIM() { return SUPPORT_HIM }, get SUPPORT_HIM_STRESS() { return SUPPORT_HIM_STRESS }, get NUDGE() { return NUDGE }, get MOOD_NUDGE() { return MOOD_NUDGE }, get SYMPTOM_NOUN() { return SYMPTOM_NOUN }, get REG_CATS() { return REG_CATS }, get REG_GUIDE() { return REG_GUIDE }, get REG_SKIP() { return REG_SKIP }, get RATING_TIPS() { return RATING_TIPS }, get SELF_CARE_STRESS() { return SELF_CARE_STRESS }, get SELF_CARE_BASICS() { return SELF_CARE_BASICS }, get SOURCES() { return SOURCES }, get INFO_UPDATED() { return INFO_UPDATED }, get REVIEWED() { return REVIEWED }, get DISCLAIMER_SHORT() { return DISCLAIMER_SHORT }, get BABY_NAMES() { return BABY_NAMES }, get BAG_LIST() { return BAG_LIST }, get BIRTH_PLAN_INTRO() { return BIRTH_PLAN_INTRO }, get BIRTH_PLAN() { return BIRTH_PLAN }, get QUESTION_IDEAS() { return QUESTION_IDEAS }, get WEIGHT_GAIN() { return WEIGHT_GAIN }, get FIRST_TRI_GAIN() { return FIRST_TRI_GAIN }, get WEIGHT_NOTE() { return WEIGHT_NOTE }, get BP_RULES() { return BP_RULES }, get BP_NOTE() { return BP_NOTE }, get NEWBORN_TIPS() { return NEWBORN_TIPS }, get NEWBORN_CALL() { return NEWBORN_CALL }, get FEED_TYPES() { return FEED_TYPES }, get DIAPER_TYPES() { return DIAPER_TYPES }, get POSTPARTUM_911() { return POSTPARTUM_911 }, get POSTPARTUM_CALL() { return POSTPARTUM_CALL }, get POSTPARTUM_TIPS() { return POSTPARTUM_TIPS }, get MOOD_CHECK() { return MOOD_CHECK }, get MOOD_CHECK_NOTE() { return MOOD_CHECK_NOTE }, get LOSS_SUPPORT() { return LOSS_SUPPORT }, get CONTRACTION_NOTE() { return CONTRACTION_NOTE }, get KICK_NOTE() { return KICK_NOTE }, get BABY_MONTH_NOTE() { return BABY_MONTH_NOTE }, get BABY_MONTHS() { return BABY_MONTHS }, get WELL_VISITS() { return WELL_VISITS }, get VACCINE_NOTE() { return VACCINE_NOTE }, get WEEK_TODOS() { return WEEK_TODOS }, get GUIDES() { return GUIDES }, get JOURNAL_PROMPTS() { return JOURNAL_PROMPTS }, get WEEK_TODO_HELP() { return WEEK_TODO_HELP }, get REVIEWS() { return REVIEWS }, get REVIEW_SECTIONS() { return REVIEW_SECTIONS }, get REVIEW_STEPS() { return REVIEW_STEPS }, get REVIEW_WHERE() { return REVIEW_WHERE }, get REVIEW_ASK() { return REVIEW_ASK }, get SIZE_ALTS() { return SIZE_ALTS }, get SIZE_NOTE() { return SIZE_NOTE }, get SIZE_ART() { return SIZE_ART } }
 })()
@@ -3145,7 +3177,7 @@ function sizeBlock(w, big) {
   const { len, items } = sizeList(w)
   return `<div class="size-swipe ${big ? 'size-big' : ''}" id="sizeSwipe" data-w="${w}">${items.map(([n, e], i) => `<div class="size-slide">
       <div class="fruit">${e}${i === 0 ? art(w) : ''}</div>
-      <div class="size-text">About the size of ${aOrAn(n)} <b>${esc(n)}</b><div class="fine">${esc(len)}</div></div></div>`).join('')}</div>
+      <div class="size-text">${w >= 21 ? 'About as heavy as' : 'About the size of'} ${aOrAn(n)} <b>${esc(n)}</b><div class="fine">${esc(len)}</div></div></div>`).join('')}</div>
     ${items.length > 1 ? `<div class="swipe-dots">${items.map(([n], i) => `<button data-size-i="${i}" class="${i === (sizeAt.w === w ? sizeAt.i : 0) ? 'on' : ''}" aria-label="${esc(n)}"></button>`).join('')}<span class="fine">swipe for more</span></div>` : ''}`
 }
 function realLife(w) {
@@ -3191,6 +3223,7 @@ function weeksView() {
     <section class="card week-hero">
       <div class="baby-head center-head">${viewToggle()}</div>
       ${sizeBlock(w, true)}
+      ${babyView() === 'size' ? `<p class="fine center">${esc(C.SIZE_NOTE || '')}</p>` : ''}
     </section>
     <section class="card"><h3>👶 Baby this week</h3><p>${esc(C.WEEK_NOTES[w] || '')}</p></section>
     ${body ? `<section class="card"><h3>${face('mom')} ${me() === 'mom' ? 'Your body' : esc(names().mom) + '\'s body'} this week</h3><p>${esc(body)}</p></section>` : ''}
