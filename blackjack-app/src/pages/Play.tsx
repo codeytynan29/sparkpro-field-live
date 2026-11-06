@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CasinoTable } from '../components/CasinoTable'
 import { Icon } from '../components/Icons'
 import { RulesEditor } from '../components/RulesEditor'
-import { PageHeader, Sheet, Toggle } from '../components/ui'
+import { PageHeader, Sheet } from '../components/ui'
 import { VENUES } from '../content/dialogue'
 import { describeRules, RULE_PRESETS } from '../engine/rules'
 import type { Venue } from '../state/progress'
@@ -64,9 +64,6 @@ export default function Play() {
             <div className="mt-1 text-sm text-cream-100">{describeRules(rules).join(' · ')} · {rules.playerHands} hand{rules.playerHands > 1 ? 's' : ''} at once</div>
           </div>
           <button className="btn-ghost" onClick={() => setRulesOpen(true)}><Icon name="settings" size={16} /> Change rules</button>
-        </div>
-        <div className="mt-3 border-t border-white/5 pt-2">
-          <Toggle label="Other players at the table" hint="Off: it’s just you and the dealer. On: computer players sit with you. They play their own hands against the dealer and never affect yours." checked={p.settings.otherPlayers} onChange={(v) => update((x) => { x.settings.otherPlayers = v })} />
         </div>
         <p className="mt-3 text-xs text-cream-300/55">Atlantic City and Online rooms load a matching rule preset unless you’ve set custom rules. Strategy feedback always follows the rules in play.</p>
       </div>

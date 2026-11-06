@@ -220,27 +220,20 @@ console.log('Blackjack table')
     assert(!/Marty|Dolores|Big Lou/.test(t), t)
     await page.getByRole('button', { name: /^Lobby/ }).click()
   })
-  await check('Atlantic City floor: optional other players and hand-signal controls', async () => {
-    await setProgress(page, 'p.settings.otherPlayers = true')
-    await page.evaluate(() => localStorage.removeItem('bj-test-shoe'))
-    await page.goto(URL + '#/')
-    await page.reload()
-    await page.goto(URL + '#/play')
+  await check('a few Atlantic City hands play through with signal controls', async () => {
     await page.getByRole('button', { name: /Atlantic City Floor/ }).click()
-    const t = await table(page)
-    assert(/Marty/.test(t) && /Big Lou/.test(t), t)
     for (let i = 0; i < 4; i++) {
       await deal(page)
-      for (let k = 0; k < 8; k++) {
+      for (let k = 0; k < 10; k++) {
         const ctl = await page.locator('section[aria-label=Controls]').innerText()
         if (/No insurance/.test(ctl)) await press(page, 'No insurance')
-        else if (/Wave off/.test(ctl)) { await page.getByRole('button', { name: /Stand/ }).first().click(); await page.waitForTimeout(300) }
+        else if (/Wave off/.test(ctl)) { await page.getByRole('button', { name: /^Stand/ }).first().click(); await page.waitForTimeout(300) }
         else if (/Deal next hand/.test(ctl)) break
         else await page.waitForTimeout(300)
       }
     }
+    assert(!/Marty|Dolores|Big Lou/.test(await table(page)), 'no other players')
     await page.screenshot({ path: join(SHOTS, 'atlantic-city.png') })
-    await setProgress(page, 'p.settings.otherPlayers = false')
   })
   await check('progress persists across a reload, outcomes separate from decisions', async () => {
     await page.reload()
