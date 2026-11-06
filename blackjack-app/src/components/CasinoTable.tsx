@@ -113,7 +113,8 @@ export function CasinoTable({ venue, rules, countQuiz = false, onExit }: { venue
   const settings = progress.settings
   const bankroll = progress.chips.bankroll
   const humans = rules.playerHands
-  const withOthers = settings.otherPlayers
+  // Always heads-up: you against the dealer. (The engine still supports extra seats.)
+  const withOthers = false
   const physical = venue === 'atlantic-city'
   const faceDownGame = physical && rules.decks <= 2
   const coaching = venue === 'practice'
