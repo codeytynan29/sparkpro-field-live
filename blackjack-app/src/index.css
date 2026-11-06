@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --deal-ms: 380ms;
+}
+
+html, body, #root { min-height: 100%; }
+body {
+  @apply bg-ink-950 text-cream-100 font-sans antialiased;
+  background:
+    radial-gradient(1200px 600px at 50% -200px, rgba(212, 166, 59, 0.10), transparent 70%),
+    radial-gradient(900px 500px at 100% 0%, rgba(26, 112, 76, 0.10), transparent 60%),
+    #07080a;
+  background-attachment: fixed;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+h1, h2, h3, .font-display { font-family: 'Playfair Display', Georgia, serif; letter-spacing: 0.01em; }
+
+@layer components {
+  .panel { @apply rounded-2xl border border-gold-400/15 bg-ink-900/80 shadow-[0_10px_40px_rgba(0,0,0,.35)]; }
+  .panel-soft { @apply rounded-2xl border border-white/5 bg-ink-850/70; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[.98] disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-300/70; }
+  .btn-gold { @apply btn text-ink-950 shadow-gold; background: linear-gradient(180deg, #ead28c 0%, #d4a63b 55%, #b98b26 100%); }
+  .btn-gold:hover { filter: brightness(1.06); }
+  .btn-ghost { @apply btn border border-gold-400/30 text-gold-100 hover:bg-gold-400/10; }
+  .btn-quiet { @apply btn text-cream-200/80 hover:bg-white/5; }
+  .btn-felt { @apply btn border border-gold-300/40 bg-felt-800/70 text-cream-50 hover:bg-felt-700; }
+  .chip-tag { @apply inline-flex items-center gap-1 rounded-full border border-gold-400/25 bg-gold-400/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-gold-200; }
+  .label { @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-300/80; }
+  .input { @apply w-full rounded-xl border border-white/10 bg-ink-800 px-3 py-2.5 text-cream-50 placeholder:text-cream-300/30 focus:border-gold-400/60 focus:outline-none; }
+  .gold-text { background: linear-gradient(180deg, #f4e7bf, #d4a63b 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .felt {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 90% 70% at 50% 18%, #1a704c 0%, #11573b 38%, #0a3524 72%, #062419 100%);
+  }
+  .felt-rim { box-shadow: inset 0 0 0 2px rgba(212,166,59,.35), inset 0 0 0 7px rgba(10,20,15,.6), inset 0 0 60px rgba(0,0,0,.55), 0 20px 50px rgba(0,0,0,.5); }
+  .prose-dealer p + p { @apply mt-3; }
+}
+
+/* Cards */
+.pcard { position: relative; border-radius: 9%/6.5%; background: linear-gradient(160deg, #fffdf7 0%, #f6efdc 60%, #ece1c4 100%); box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 6px 14px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.5); }
+.pcard-back { background:
+    repeating-linear-gradient(45deg, rgba(212,166,59,.22) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(-45deg, rgba(212,166,59,.22) 0 2px, transparent 2px 8px),
+    radial-gradient(circle at 50% 50%, #135a3d, #062419);
+  border: 3px solid #f3ead3; }
+.pcard-inner { transform-style: preserve-3d; transition: transform .45s cubic-bezier(.3,.7,.2,1); }
+.pcard-face, .pcard-backface { backface-visibility: hidden; -webkit-backface-visibility: hidden; position: absolute; inset: 0; }
+.pcard-backface { transform: rotateY(180deg); }
+.flipped .pcard-inner { transform: rotateY(180deg); }
+
+@keyframes deal-in {
+  0% { transform: translate(var(--from-x, 180px), var(--from-y, -220px)) rotate(-18deg) scale(.85); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translate(0, 0) rotate(0) scale(1); opacity: 1; }
+}
+.deal-in { animation: deal-in var(--deal-ms) cubic-bezier(.2,.8,.25,1) both; }
+
+@keyframes pop-in { 0% { transform: scale(.6); opacity: 0 } 70% { transform: scale(1.06) } 100% { transform: scale(1); opacity: 1 } }
+.pop-in { animation: pop-in .35s ease-out both; }
+@keyframes fade-up { from { transform: translateY(8px); opacity: 0 } to { transform: none; opacity: 1 } }
+.fade-up { animation: fade-up .35s ease-out both; }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(212,166,59,.0) } 50% { box-shadow: 0 0 0 4px rgba(212,166,59,.35) } }
+.glow { animation: glow 1.8s ease-in-out infinite; }
+@keyframes tap { 0%, 100% { transform: translateY(0) } 40% { transform: translateY(6px) } }
+@keyframes wave { 0%, 100% { transform: translateX(-10px) } 50% { transform: translateX(10px) } }
+@keyframes scratch { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(5px) } }
+@keyframes slide-under { 0% { transform: translateY(0) } 60%, 100% { transform: translateY(-14px) } }
+@keyframes line { 0% { stroke-dashoffset: 60 } 70%, 100% { stroke-dashoffset: 0 } }
+.anim-tap { animation: tap 1.1s ease-in-out infinite; transform-box: fill-box; }
+.anim-wave { animation: wave 1.3s ease-in-out infinite; transform-box: fill-box; }
+.anim-scratch { animation: scratch .7s ease-in-out infinite; transform-box: fill-box; }
+.anim-slide { animation: slide-under 1.6s ease-in-out infinite; transform-box: fill-box; }
+.anim-line { stroke-dasharray: 60; animation: line 1.6s ease-in-out infinite; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+.safe-top { padding-top: env(safe-area-inset-top); }
+
+@media (prefers-reduced-motion: reduce) {
+  .deal-in, .pop-in, .fade-up, .glow, .anim-tap, .anim-wave, .anim-scratch, .anim-slide, .anim-line { animation: none !important; }
+  .pcard-inner { transition: none; }
+}
+.reduce-motion .deal-in, .reduce-motion .pop-in, .reduce-motion .fade-up, .reduce-motion .glow { animation: none !important; }
+.reduce-motion .pcard-inner { transition: none; }
+
+/* Grid and flex children must be allowed to shrink below their content width,
+   otherwise truncated text pushes cards past the screen edge on phones. */
+.grid > *, main > * { min-width: 0; }
+section, .panel { min-width: 0; max-width: 100%; }
+/* Cards fly in from the shoe (off to the right); never let that widen the page. */
+main { overflow-x: clip; }
