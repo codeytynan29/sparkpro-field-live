@@ -4,7 +4,7 @@ import { pick, type Rng } from '../engine/rng'
 
 export const VENUES: { id: Venue; name: string; short: string; blurb: string }[] = [
   { id: 'practice', name: 'Practice Table', short: 'Practice', blurb: 'The teaching dealer coaches every decision as you make it. Hints on request.' },
-  { id: 'atlantic-city', name: 'Atlantic City Floor', short: 'Atlantic City', blurb: 'A live table with other players. Use hand signals, follow dealer procedure, get coached after each hand.' },
+  { id: 'atlantic-city', name: 'Atlantic City Floor', short: 'Atlantic City', blurb: 'Just you and the dealer, casino style: hand signals, real dealer procedure and patter, coaching after each hand.' },
   { id: 'online', name: 'Online Casino', short: 'Online', blurb: 'Buttons, pop-ups and a faster pace, like a digital table. Coaching after each hand.' },
 ]
 

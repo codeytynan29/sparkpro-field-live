@@ -197,7 +197,31 @@ console.log('Blackjack table')
     assert(/Lose −\$20/.test(await table(page, /Lose −\$20/)), await table(page))
     await setProgress(page, 'p.settings.rules.dealerHitsSoft17 = false')
   })
-  await check('Atlantic City floor: other players and hand-signal controls', async () => {
+  await check('double down is clearly labeled in every room; reason shown once it is gone', async () => {
+    for (const room of ['Practice Table', 'Atlantic City Floor', 'Online Casino']) {
+      await sit(page, '5S 9D 6H 10C 2C 3D 4H 5H', room)
+      await deal(page)
+      const dbl = page.getByRole('button', { name: /Double down/ }).first()
+      await dbl.waitFor({ timeout: 6000 })
+      assert(await dbl.isEnabled(), `${room}: double down should be available on 11`)
+      await page.getByRole('button', { name: /^Hit/ }).first().click()
+      const ctl = await textOf(page.locator('section[aria-label=Controls]'), /first two cards/)
+      assert(/only allowed on your first two cards/.test(ctl), `${room}: ${ctl}`)
+      await page.getByRole('button', { name: /^Lobby/ }).click()
+    }
+  })
+  await check('just you and the dealer by default', async () => {
+    await page.evaluate(() => localStorage.removeItem('bj-test-shoe'))
+    await page.goto(URL + '#/')
+    await page.reload()
+    await page.goto(URL + '#/play')
+    await page.getByRole('button', { name: /Atlantic City Floor/ }).click()
+    const t = await table(page)
+    assert(!/Marty|Dolores|Big Lou/.test(t), t)
+    await page.getByRole('button', { name: /^Lobby/ }).click()
+  })
+  await check('Atlantic City floor: optional other players and hand-signal controls', async () => {
+    await setProgress(page, 'p.settings.otherPlayers = true')
     await page.evaluate(() => localStorage.removeItem('bj-test-shoe'))
     await page.goto(URL + '#/')
     await page.reload()
@@ -210,12 +234,13 @@ console.log('Blackjack table')
       for (let k = 0; k < 8; k++) {
         const ctl = await page.locator('section[aria-label=Controls]').innerText()
         if (/No insurance/.test(ctl)) await press(page, 'No insurance')
-        else if (/Wave off/.test(ctl)) { await page.getByRole('button', { name: /Wave off/ }).first().click(); await page.waitForTimeout(300) }
+        else if (/Wave off/.test(ctl)) { await page.getByRole('button', { name: /Stand/ }).first().click(); await page.waitForTimeout(300) }
         else if (/Deal next hand/.test(ctl)) break
         else await page.waitForTimeout(300)
       }
     }
     await page.screenshot({ path: join(SHOTS, 'atlantic-city.png') })
+    await setProgress(page, 'p.settings.otherPlayers = false')
   })
   await check('progress persists across a reload, outcomes separate from decisions', async () => {
     await page.reload()

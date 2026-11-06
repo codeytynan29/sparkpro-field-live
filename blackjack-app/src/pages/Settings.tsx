@@ -53,6 +53,7 @@ export default function Settings() {
             <span className="text-sm font-medium text-cream-100">Dealing speed</span>
             <Tabs value={p.settings.dealerSpeed} onChange={(v) => update((x) => { x.settings.dealerSpeed = v })} tabs={[{ id: 'relaxed', label: 'Relaxed' }, { id: 'normal', label: 'Normal' }, { id: 'fast', label: 'Fast' }]} />
           </div>
+          <Toggle label="Other players at the table" hint="Off by default: just you and the dealer" checked={p.settings.otherPlayers} onChange={(v) => update((x) => { x.settings.otherPlayers = v })} />
           <Toggle label="Show the card count at the table" hint="Running count, decks left and true count, for counting practice" checked={p.settings.showCount} onChange={(v) => update((x) => { x.settings.showCount = v })} />
           <Toggle label="Reduce motion" hint="Turns off dealing and flip animations" checked={p.settings.reduceMotion} onChange={(v) => update((x) => { x.settings.reduceMotion = v })} />
         </div>
