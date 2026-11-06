@@ -71,17 +71,15 @@ The built files in `../blackjack/` are committed so GitHub Pages can serve them 
 
 The e2e suite deals from stacked shoes using a test hook: if `localStorage['bj-test-shoe']` holds card codes (`"10S 6H 9D …"`), the table deals in that order. Normal play never sets it.
 
-## Progress and accounts
+## Progress and cloud sync
 
 Progress saves to `localStorage` on every change, works offline, and syncs between open tabs. Settings can export and import it as JSON.
 
-**Optional cloud sync (Supabase), not configured in this build:**
+**Cloud backup and sync is on, with no account needed.** In Settings, tap **Turn on sync** to back up and get a private 12-character code (like `ABCD-EFGH-JK23`). On another phone or computer, enter that code to load the same progress. After that, every change uploads a moment later, and each device pulls the latest when the app opens. If two devices disagree, the newer save wins.
 
-1. Create a Supabase project and run `supabase/schema.sql`. It creates a `bj_progress` table with row-level security so each user can only read and write their own row.
-2. Enable **Email** sign-in (magic link) under Authentication. Add the site URL to the redirect allow-list.
-3. Build with `VITE_SUPABASE_URL=… VITE_SUPABASE_ANON_KEY=… npm run build`.
-
-Settings will then offer "Email me a link". When a device signs in, the newer save wins, and later changes upload a moment after they happen.
+- **Where it's stored:** a separate `bj_sync` table in the existing Supabase project (`hbskekfutvxvixafeden`, the same project as Together). It shares nothing with Together's `tg_*` tables. See `supabase/schema.sql`.
+- **How it's protected:** row-level security blocks direct access to the table. The only way in is the `bj_pull` and `bj_push` functions, and both require the code. Treat the code like a password.
+- **Changing where it syncs:** override with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at build time. Set both to empty strings for a device-only build.
 
 ---
 
@@ -90,4 +88,4 @@ Educational simulator only. If gambling stops being fun, call or text 1-800-GAMB
 ## Test status
 
 - `npm test`: 164 unit tests covering the deck and shoe, hand evaluation, dealer S17/H17, every settlement path, double, split and resplit rules, split Aces, surrender, insurance and even money, multi-spot wallets, chip conservation over 400 random rounds, the strategy fixtures and EV cross-check, the simulator, side-bet math, drills, the teaching verdicts, and progress, XP and achievements.
-- `npm run e2e`: 95 browser checks covering all navigation, scripted hands for each move (insurance, 3:2 and 6:5 payouts, S17 vs H17), grading that ignores the outcome, progress after a reload, every one of the 52 lessons played through, practice modes, the daily challenge, counting drills, and no horizontal scroll at iPhone width.
+- `npm run e2e`: 99 browser checks covering two devices syncing through a sync code, all navigation, scripted hands for each move (insurance, 3:2 and 6:5 payouts, S17 vs H17), grading that ignores the outcome, progress after a reload, every one of the 52 lessons played through, practice modes, the daily challenge, counting drills, and no horizontal scroll at iPhone width.

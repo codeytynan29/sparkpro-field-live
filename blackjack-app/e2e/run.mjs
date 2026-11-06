@@ -327,6 +327,60 @@ console.log('Every lesson')
   await ctx.close()
 }
 
+console.log('Cloud sync (two devices, server mocked with the same newer-wins rules)')
+{
+  const store = new Map()
+  const mock = async (route) => {
+    const body = JSON.parse(route.request().postData() || '{}')
+    const code = String(body.p_code || '').toUpperCase()
+    if (route.request().url().endsWith('/bj_pull')) return route.fulfill({ json: store.get(code) ?? null })
+    const cur = store.get(code)
+    if (!cur || body.p_updated_ms > cur.updated_ms) { store.set(code, { data: body.p_data, updated_ms: body.p_updated_ms }); return route.fulfill({ json: { stored: true } }) }
+    return route.fulfill({ json: { stored: false, updated_ms: cur.updated_ms } })
+  }
+  const a = await freshPage()
+  const b = await freshPage(devices['iPhone 13'])
+  for (const x of [a, b]) await x.ctx.route('**/rest/v1/rpc/bj_*', mock)
+  let code = ''
+  await check('device A turns on sync and gets a code', async () => {
+    await setProgress(a.page, "p.name = 'Ace'; p.xp = 777; p.updatedAt = Date.now()")
+    await a.page.reload()
+    await a.page.goto(URL + '#/settings')
+    await a.page.getByRole('button', { name: 'Turn on sync' }).click()
+    code = await a.page.getByLabel('Your sync code').textContent()
+    assert(/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(code), 'code: ' + code)
+    assert(store.size === 1, 'uploaded')
+  })
+  await check('device B enters the code and gets A’s progress', async () => {
+    await b.page.goto(URL + '#/settings')
+    await b.page.getByLabel('Sync code').fill(code.toLowerCase())
+    await b.page.getByRole('button', { name: 'Link' }).click()
+    await b.page.getByText('Progress loaded from the cloud').waitFor()
+    const p = await b.page.evaluate(() => JSON.parse(localStorage.getItem('bj-the-table:v1')))
+    assert(p.name === 'Ace' && p.xp === 777, JSON.stringify({ name: p.name, xp: p.xp }))
+  })
+  await check('progress made on B reaches A', async () => {
+    await b.page.goto(URL + '#/practice?mode=challenge')
+    await b.page.getByRole('button', { name: /^(Hit|Stand)$/ }).first().click()
+    await b.page.waitForTimeout(2200) // debounce
+    await a.page.reload()
+    await a.page.waitForTimeout(800)
+    const p = await a.page.evaluate(() => JSON.parse(localStorage.getItem('bj-the-table:v1')))
+    assert(p.decisions.total >= 1, 'A got B’s decision: ' + p.decisions.total)
+  })
+  await check('a wrong code is refused politely', async () => {
+    const c = await freshPage()
+    await c.ctx.route('**/rest/v1/rpc/bj_*', mock)
+    await c.page.goto(URL + '#/settings')
+    await c.page.getByLabel('Sync code').fill('ZZZZ-ZZZZ-ZZZZ')
+    await c.page.getByRole('button', { name: 'Link' }).click()
+    await c.page.getByText('No saved progress was found for that code.').waitFor()
+    await c.ctx.close()
+  })
+  await a.ctx.close()
+  await b.ctx.close()
+}
+
 console.log('Mobile (iPhone 13)')
 {
   const { ctx, page } = await freshPage(devices['iPhone 13'])
