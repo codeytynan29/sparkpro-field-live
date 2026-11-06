@@ -20,6 +20,8 @@ export interface Settings {
   dealerSpeed: 'relaxed' | 'normal' | 'fast'
   autoTeach: boolean
   reduceMotion: boolean
+  /** Seat computer players at the table. Off: it's just you and the dealer. */
+  otherPlayers: boolean
 }
 
 export interface Progress {
@@ -92,6 +94,7 @@ export function blankProgress(now = Date.now()): Progress {
       dealerSpeed: 'normal',
       autoTeach: true,
       reduceMotion: false,
+      otherPlayers: false,
     },
   }
 }

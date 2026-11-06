@@ -40,10 +40,11 @@ interface SessionStats {
 
 const STEP: Record<string, number> = { relaxed: 540, normal: 380, fast: 210 }
 
-function seatsFor(venue: Venue, humans: number, bankroll: number): SeatConfig[] {
+function seatsFor(withOthers: boolean, humans: number, bankroll: number): SeatConfig[] {
   const human: SeatConfig[] = Array.from({ length: humans }, (_, i) => ({ name: humans > 1 ? `You · ${i + 1}` : 'You', human: true, stack: i === 0 ? bankroll : 0, wallet: undefined }))
-  if (venue !== 'atlantic-city') return human.map((h, i) => ({ ...h, wallet: undefined, stack: i === 0 ? bankroll : 0 }))
-  // First base, (you), …, third base.
+  if (!withOthers) return human
+  // Optional: other players at the table. They play their own hands against the dealer
+  // too; nothing they do changes how your hand is paid. First base, (you), …, third base.
   const npcs = NPCS.slice(0, Math.max(1, 5 - humans - 1))
   return [npcs[0], ...human, ...npcs.slice(1)]
 }
@@ -112,13 +113,14 @@ export function CasinoTable({ venue, rules, countQuiz = false, onExit }: { venue
   const settings = progress.settings
   const bankroll = progress.chips.bankroll
   const humans = rules.playerHands
+  const withOthers = settings.otherPlayers
   const physical = venue === 'atlantic-city'
   const faceDownGame = physical && rules.decks <= 2
   const coaching = venue === 'practice'
   const step = settings.reduceMotion ? 0 : STEP[settings.dealerSpeed] ?? 380
   const rng = useMemo(() => createRng(randomSeed()), [])
 
-  const [game, setGame] = useState<GameState>(() => createGame(rules, seatsFor(venue, humans, getProgress().chips.bankroll), randomSeed(), testShoe()))
+  const [game, setGame] = useState<GameState>(() => createGame(rules, seatsFor(withOthers, humans, getProgress().chips.bankroll), randomSeed(), testShoe()))
   const [anim, setAnim] = useState<{ delays: Map<string, number>; revealPending: boolean }>({ delays: new Map(), revealPending: false })
   const [busy, setBusy] = useState(false)
   const [bet, setBet] = useState(() => Math.max(rules.minBet, Math.min(rules.maxBet, rules.minBet * 2)))
@@ -148,13 +150,13 @@ export function CasinoTable({ venue, rules, countQuiz = false, onExit }: { venue
       firstBuild.current = false
       return
     }
-    setGame(createGame(rules, seatsFor(venue, humans, getProgress().chips.bankroll), randomSeed(), testShoe()))
+    setGame(createGame(rules, seatsFor(withOthers, humans, getProgress().chips.bankroll), randomSeed(), testShoe()))
     setBreakdowns([])
     setFeedback(null)
     setMessage(dealerLine(venue, 'bets', rng))
     setBet((b) => Math.max(rules.minBet, Math.min(rules.maxBet, b)))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rulesKey, venue, humans, rng])
+  }, [rulesKey, venue, humans, rng, withOthers])
 
   const humanSeats = game.seats.filter((s) => s.human)
   const wallet = humanSeats[0]
@@ -394,6 +396,7 @@ export function CasinoTable({ venue, rules, countQuiz = false, onExit }: { venue
           </div>
         )}
 
+        {withOthers && <p className="mt-3 text-center text-[11px] text-cream-200/55">Everyone here plays their own hand against the dealer. Other players can’t win or lose your bet.</p>}
         {/* Seats */}
         <div className="mt-4 flex items-end justify-center gap-2 overflow-x-auto pb-1 sm:gap-4 no-scrollbar">
           {game.seats.map((seat) => (
@@ -424,7 +427,7 @@ export function CasinoTable({ venue, rules, countQuiz = false, onExit }: { venue
           <InsurancePrompt evenMoney={evenMoneyOffer} venue={venue} bet={insuranceSeat.hands[0].bet} onDecide={doInsurance} disabled={busy} showHint={coaching} />
         ) : myTurn ? (
           <div>
-            <ActionButtons actions={actions} onAction={doAction} physical={physical} faceDown={faceDownGame} />
+            <ActionButtons actions={actions} onAction={doAction} physical={physical} faceDown={faceDownGame} why={unavailableReason(game, actions)} />
             {coaching && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <button className="btn-quiet px-3 py-1.5 text-xs" onClick={() => {
@@ -562,7 +565,7 @@ const PITCH_LABEL: Record<Action, [string, string]> = {
   hit: ['Scratch cards', 'Hit'], stand: ['Tuck under chips', 'Stand'], double: ['Flip + add chips', 'Double'], split: ['Flip + add chips', 'Split'], surrender: ['Say “Surrender”', 'Surrender'],
 }
 
-function ActionButtons({ actions, onAction, physical, faceDown }: { actions: Action[]; onAction: (a: Action) => void; physical: boolean; faceDown: boolean }) {
+function ActionButtons({ actions, onAction, physical, faceDown, why }: { actions: Action[]; onAction: (a: Action) => void; physical: boolean; faceDown: boolean; why?: string | null }) {
   const order: Action[] = ['hit', 'stand', 'double', 'split', 'surrender']
   return (
     <div>
@@ -570,16 +573,17 @@ function ActionButtons({ actions, onAction, physical, faceDown }: { actions: Act
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         {order.map((a) => {
           const on = actions.includes(a)
-          const [main, sub] = physical ? (faceDown ? PITCH_LABEL[a] : PHYSICAL_LABEL[a]) : [ACTION_LABEL[a], '']
+          const main = ACTION_LABEL[a]
+          const sub = physical ? (faceDown ? PITCH_LABEL[a] : PHYSICAL_LABEL[a])[0] : ''
           return (
             <button
               key={a}
               onClick={() => onAction(a)}
               disabled={!on}
               title={physical ? SIGNALS[a][faceDown ? 'faceDown' : 'faceUp'] : undefined}
-              className={`flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-2 py-2 text-sm font-bold shadow-md transition active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-20 ${ACTION_STYLE[a]} ${a === 'surrender' && !on ? 'hidden sm:flex' : ''}`}
+              className={`flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-2 py-2 text-sm font-bold shadow-md transition active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-35 ${ACTION_STYLE[a]} ${a === 'surrender' && !on ? 'hidden sm:flex' : ''}`}
             >
-              {physical && <span className="hidden overflow-hidden rounded-md sm:block"><HandSignal action={a} faceDown={faceDown} size={44} animate={false} /></span>}
+              {physical && <span aria-hidden="true" className="hidden overflow-hidden rounded-md sm:block"><HandSignal action={a} faceDown={faceDown} size={44} animate={false} /></span>}
               <span className="flex flex-col leading-tight">
                 <span>{main}</span>
                 {sub && <span className="text-[10px] font-semibold opacity-70">{sub}</span>}
@@ -588,8 +592,26 @@ function ActionButtons({ actions, onAction, physical, faceDown }: { actions: Act
           )
         })}
       </div>
+      {why && <p className="mt-2 text-xs text-cream-300/70">{why}</p>}
     </div>
   )
+}
+
+/** Plain-English reason double down (or split) is greyed out right now. */
+function unavailableReason(game: GameState, actions: Action[]): string | null {
+  if (game.phase !== 'playing' || game.activeSeat < 0) return null
+  const seat = game.seats[game.activeSeat]
+  const hand = seat?.hands[seat.activeHand]
+  if (!hand || actions.includes('double')) return null
+  const r = game.rules
+  const v = handValue(hand.cards)
+  const wallet = game.seats[seat.wallet] ?? seat
+  if (hand.cards.length > 2 || hand.actions > 0) return 'Double down is only allowed on your first two cards, before you hit.'
+  if (hand.splitAces && !r.hitSplitAces) return 'Split Aces get one card each, so they can’t be doubled.'
+  if (hand.fromSplit && !r.doubleAfterSplit) return 'This table doesn’t allow doubling after a split.'
+  if (r.doubleOn !== 'any' && (v.soft || !(r.doubleOn === '9-11' ? v.total >= 9 && v.total <= 11 : v.total === 10 || v.total === 11))) return `This table only lets you double on ${r.doubleOn === '9-11' ? '9, 10 or 11' : '10 or 11'}.`
+  if (wallet.stack < hand.bet) return `Doubling needs another ${money(hand.bet)} and you have ${money(wallet.stack)} left.`
+  return null
 }
 
 function InsurancePrompt({ evenMoney, venue, bet, onDecide, disabled, showHint }: { evenMoney: boolean; venue: Venue; bet: number; onDecide: (t: boolean) => void; disabled: boolean; showHint: boolean }) {
