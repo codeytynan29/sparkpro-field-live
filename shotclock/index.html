@@ -1,0 +1,1391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05060a">
+<meta name="description" content="Voice-activated blackjack decision and advantage-play trainer. Rapid-fire reps, true-count deviations, shot-clock drills.">
+<title>Shot Clock 21</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2305060a'/%3E%3Ctext x='32' y='44' font-family='Impact,Arial' font-size='34' font-weight='900' text-anchor='middle' fill='%23ffd000'%3E21%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05060a; --panel:#0c0f15; --panel2:#121722; --line:#1d2431; --line2:#2a3344;
+  --text:#eef2f8; --dim:#8590a3; --faint:#4a5468;
+  --hit:#39ff88; --stand:#2fd5ff; --double:#ffd000; --split:#c08cff; --sur:#ff3d5a; --ins:#ff8a1f; --no:#8590a3;
+  --good:#39ff88; --bad:#ff3d5a; --accent:#ffd000;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --cond:'Barlow Condensed','Arial Narrow','Helvetica Neue',Impact,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--cond);-webkit-font-smoothing:antialiased;min-height:100%}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -200px, #121a2a 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 39px, #0b0e14 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, #0b0e14 39px 40px),
+    var(--bg);
+  padding-bottom:env(safe-area-inset-bottom);
+  overflow-x:hidden;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+kbd{font-family:var(--mono);font-size:.72em;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 .35em;color:var(--dim);background:#0a0d13}
+.mono{font-family:var(--mono)}
+.dim{color:var(--dim)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+
+/* ===== header ===== */
+header{position:sticky;top:0;z-index:20;background:rgba(5,6,10,.92);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.hbar{display:flex;align-items:center;gap:12px;height:56px}
+.brand{font-weight:900;font-size:26px;letter-spacing:.04em;line-height:1;white-space:nowrap}
+.brand b{color:var(--accent)}
+.brand small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--dim);font-weight:400;margin-top:2px}
+.tabs{display:flex;gap:4px;margin-left:auto}
+.tab{padding:8px 14px;font-weight:800;font-size:16px;letter-spacing:.12em;border:1px solid var(--line);border-radius:6px;color:var(--dim)}
+.tab.on{color:#000;background:var(--accent);border-color:var(--accent)}
+.tab kbd{margin-left:6px}
+.tab.on kbd{color:#000;border-color:#0004;background:#0001}
+.hbtn{padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-weight:700;font-size:14px;letter-spacing:.1em;color:var(--dim);white-space:nowrap}
+.hbtn.on{color:var(--text);border-color:var(--line2)}
+.hbtn .led{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--faint);margin-right:6px;vertical-align:1px}
+.hbtn.on .led{background:var(--good);box-shadow:0 0 8px var(--good)}
+
+/* rules drawer */
+#rules{display:none;border-top:1px solid var(--line);padding:12px 0;gap:10px;flex-wrap:wrap;align-items:center}
+#rules.open{display:flex}
+.chip{padding:7px 12px;border:1px solid var(--line2);border-radius:999px;font-weight:700;font-size:14px;letter-spacing:.08em;color:var(--dim)}
+.chip.on{color:#000;background:var(--text);border-color:var(--text)}
+.rnote{font-family:var(--mono);font-size:11px;color:var(--dim);flex-basis:100%}
+
+/* ===== count HUD ===== */
+.hud{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:stretch;margin:14px 0}
+.cbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px}
+.cbox label{font-size:12px;letter-spacing:.2em;color:var(--dim);font-weight:700;writing-mode:vertical-rl;transform:rotate(180deg)}
+.cval{font-family:var(--mono);font-weight:800;font-size:30px;min-width:3.2ch;text-align:center}
+.step{width:34px;height:34px;border:1px solid var(--line2);border-radius:8px;font-family:var(--mono);font-size:20px;font-weight:800;color:var(--dim)}
+.step:active{background:var(--panel2);color:var(--text)}
+.tcbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;gap:14px;padding:6px 14px;position:relative;overflow:hidden}
+.tcbox .lab{font-size:13px;letter-spacing:.25em;color:var(--dim);font-weight:800}
+.tcbig{font-family:var(--mono);font-weight:800;font-size:44px;line-height:1}
+.tcsub{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.tc-pos{color:var(--good)} .tc-neg{color:var(--sur)} .tc-zero{color:var(--text)}
+.resetb{padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-weight:800;letter-spacing:.12em;color:var(--dim);font-size:14px}
+.keys{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin:-6px 0 10px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.keys kbd{font-size:10px}
+
+/* ===== call view ===== */
+.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.ptitle{font-size:12px;letter-spacing:.3em;color:var(--dim);font-weight:800;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.microw{display:flex;align-items:center;gap:14px}
+.mic{width:72px;height:72px;flex:0 0 72px;border-radius:50%;border:2px solid var(--line2);display:grid;place-items:center;background:var(--panel2);position:relative}
+.mic svg{width:30px;height:30px;fill:var(--dim)}
+.mic.live{border-color:var(--sur);background:#2a0b12}
+.mic.live svg{fill:var(--sur)}
+.mic.live::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--sur);animation:ping 1s ease-out infinite}
+@keyframes ping{from{opacity:.9;transform:scale(.9)}to{opacity:0;transform:scale(1.35)}}
+.micinfo{min-width:0;flex:1}
+.micstate{font-weight:800;letter-spacing:.15em;font-size:15px}
+.transcript{font-family:var(--mono);font-size:14px;color:var(--dim);margin-top:4px;min-height:1.4em;overflow-wrap:anywhere}
+.transcript b{color:var(--text);font-weight:600}
+.lockb{margin-left:auto;align-self:flex-start}
+
+.callout{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:#080a0f;padding:16px;min-height:300px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.callhead{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.handtxt{font-weight:800;font-size:26px;letter-spacing:.04em}
+.handtxt .vs{color:var(--dim);font-weight:600;margin:0 .3em}
+.badge{font-weight:900;letter-spacing:.06em;line-height:.9;text-align:center;border-radius:12px;padding:14px 10px 10px;font-size:clamp(56px,11vw,120px);color:#000;user-select:none}
+.badge.H{background:var(--hit)} .badge.S{background:var(--stand)} .badge.D{background:var(--double)} .badge.P{background:var(--split)} .badge.R{background:var(--sur)} .badge.I{background:var(--ins)} .badge.N{background:var(--no)}
+.badge.BJ{background:linear-gradient(90deg,var(--double),var(--ins))}
+.badge.empty{background:transparent;border:2px dashed var(--line2);color:var(--faint);font-size:clamp(28px,5vw,44px);padding:30px 10px}
+.flash{animation:flash .32s ease-out}
+@keyframes flash{0%{transform:scale(1.06);filter:brightness(1.8)}100%{transform:scale(1);filter:none}}
+.reason{font-size:21px;font-weight:600;line-height:1.2}
+.evline{font-family:var(--mono);font-size:12.5px;color:var(--dim);display:flex;flex-wrap:wrap;gap:6px}
+.evline span{border:1px solid var(--line);border-radius:6px;padding:3px 7px}
+.evline span.best{color:#000;background:var(--text);border-color:var(--text);font-weight:800}
+.devline{font-family:var(--mono);font-size:13px;border-left:3px solid var(--faint);padding:6px 10px;background:#0c0f16;border-radius:0 6px 6px 0}
+.devline.on{border-left-color:var(--accent);color:var(--accent)}
+.devline .tag{font-weight:800;margin-right:6px}
+.insline{font-family:var(--mono);font-size:13px;font-weight:800;padding:6px 10px;border-radius:6px;border:1px solid var(--line2)}
+.insline.take{background:var(--ins);color:#000;border-color:var(--ins)}
+.cards{display:flex;gap:6px;align-items:center}
+.card{width:46px;height:64px;border-radius:6px;background:#f4f1ea;color:#111;font-family:var(--mono);font-weight:800;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;box-shadow:0 2px 0 #0008}
+.card i{font-style:normal;font-size:17px}
+.card.red{color:#d0142f}
+.card.up{outline:2px solid var(--accent);outline-offset:2px}
+
+.history{margin-top:12px;display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:12px}
+.hrow{display:flex;gap:10px;align-items:center;color:var(--dim);padding:3px 0;border-bottom:1px solid #12161f}
+.hrow .a{font-weight:800;min-width:5.5em;color:#000;text-align:center;border-radius:4px;padding:1px 0}
+.a.H{background:var(--hit)}.a.S{background:var(--stand)}.a.D{background:var(--double)}.a.P{background:var(--split)}.a.R{background:var(--sur)}.a.I{background:var(--ins)}.a.N{background:var(--no)}.a.BJ{background:var(--double)}
+
+/* quick input */
+.txtin{width:100%;background:#080a0f;border:1px solid var(--line2);border-radius:8px;padding:12px;color:var(--text);font-family:var(--mono);font-size:16px;outline:none}
+.txtin:focus{border-color:var(--accent)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:12px 0 8px}
+.seg button{padding:9px 0;border:1px solid var(--line2);border-radius:6px;font-weight:800;letter-spacing:.14em;color:var(--dim)}
+.seg button.on{background:var(--text);color:#000;border-color:var(--text)}
+.kgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.kgrid button,.dgrid button{padding:10px 0;border:1px solid var(--line);background:var(--panel2);border-radius:6px;font-family:var(--mono);font-weight:800;font-size:15px}
+.kgrid button.on,.dgrid button.on{background:var(--accent);color:#000;border-color:var(--accent)}
+.dgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.sublab{font-size:12px;letter-spacing:.25em;color:var(--dim);font-weight:800;margin:12px 0 6px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:8px;line-height:1.6}
+
+/* ===== montage ===== */
+.mset{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px}
+.hero{font-weight:900;font-size:clamp(44px,8vw,84px);line-height:.88;letter-spacing:.01em}
+.hero em{font-style:normal;color:var(--accent)}
+.lead{font-size:19px;color:var(--dim);margin:12px 0 18px;max-width:34em;line-height:1.25}
+.optrow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.bigbtn{display:inline-flex;align-items:center;gap:12px;padding:16px 26px;background:var(--accent);color:#000;font-weight:900;font-size:26px;letter-spacing:.12em;border-radius:10px}
+.bigbtn kbd{color:#000;border-color:#0005;background:#0001;font-size:13px}
+.ghost{display:inline-flex;align-items:center;gap:10px;padding:14px 20px;border:1px solid var(--line2);border-radius:10px;font-weight:800;font-size:18px;letter-spacing:.1em}
+.life{font-family:var(--mono);font-size:12.5px;color:var(--dim);display:grid;grid-template-columns:1fr auto;gap:5px 12px}
+.life b{color:var(--text)}
+
+.run{position:relative}
+.runtop{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.stat .k{font-size:11px;letter-spacing:.25em;color:var(--dim);font-weight:800}
+.stat .v{font-family:var(--mono);font-size:24px;font-weight:800;line-height:1.15;white-space:nowrap}
+.mult{color:var(--accent)}
+.clock{height:14px;background:var(--panel2);border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+.clock i{display:block;height:100%;width:100%;background:var(--good);transform-origin:left center}
+.clockrow{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--dim);margin:4px 2px 10px}
+.table{background:radial-gradient(ellipse at 50% 0%, #0f2a1e 0%, #08130e 70%);border:1px solid #1a3a2b;border-radius:16px;padding:22px 16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;min-height:280px;position:relative;overflow:hidden}
+.side{display:flex;flex-direction:column;align-items:center;gap:8px}
+.side .lbl{font-size:13px;letter-spacing:.3em;color:#8fb5a2;font-weight:800}
+.table .card{width:74px;height:104px;font-size:36px;border-radius:9px}
+.table .card i{font-size:26px}
+.htot{font-family:var(--mono);font-weight:800;font-size:18px;color:#cfe8da}
+.tcpill{font-family:var(--mono);font-weight:800;font-size:30px;padding:10px 16px;border-radius:10px;border:2px solid var(--line2);background:#05060a;text-align:center;line-height:1}
+.tcpill small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);margin-bottom:4px}
+.tcpill.hot{border-color:var(--accent);box-shadow:0 0 22px #ffd00055}
+.prompt{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-weight:900;letter-spacing:.2em;font-size:20px;color:var(--ins);white-space:nowrap}
+.fb{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:14px;background:rgba(5,6,10,.86)}
+.fb.show{display:flex}
+.fb.ok{background:rgba(10,40,24,.55)}
+.fb .big{font-weight:900;font-size:64px;line-height:.9}
+.fb .ms{font-family:var(--mono);font-weight:800;font-size:22px}
+.fb .why{font-size:19px;font-weight:600;max-width:36em}
+.fb .dev{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+.fb .badge{font-size:64px;padding:10px 22px 6px}
+.actbar{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.actbar button{padding:14px 0 10px;border-radius:10px;font-weight:900;font-size:22px;letter-spacing:.08em;color:#000;line-height:1}
+.actbar button small{display:block;font-family:var(--mono);font-size:11px;opacity:.7;margin-top:4px}
+.actbar button:disabled{opacity:.18}
+.actbar .H{background:var(--hit)}.actbar .S{background:var(--stand)}.actbar .D{background:var(--double)}.actbar .P{background:var(--split)}.actbar .R{background:var(--sur)}.actbar .I{background:var(--ins)}.actbar .N{background:var(--no)}
+.actbar.ins{grid-template-columns:repeat(2,1fr)}
+.runfoot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--dim);gap:10px;flex-wrap:wrap}
+.flashok{animation:fok .25s ease-out}.flashbad{animation:fbad .4s ease-out}
+@keyframes fok{0%{box-shadow:inset 0 0 0 4px var(--good)}100%{box-shadow:inset 0 0 0 0 transparent}}
+@keyframes fbad{0%,40%{box-shadow:inset 0 0 0 5px var(--bad)}100%{box-shadow:none}}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+
+/* results */
+.res{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.grade{font-weight:900;font-size:130px;line-height:.8;color:var(--accent)}
+.rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+.tbl th{text-align:left;color:var(--dim);font-weight:600;font-size:10.5px;letter-spacing:.15em;padding:4px 6px;border-bottom:1px solid var(--line)}
+.tbl td{padding:6px;border-bottom:1px solid #141922;vertical-align:middle}
+.tbl td.r,.tbl th.r{text-align:right}
+.bad{color:var(--bad)} .good{color:var(--good)}
+.catbar{display:grid;grid-template-columns:7em 1fr 4.5em 5em;gap:8px;align-items:center;font-family:var(--mono);font-size:12px;margin:5px 0}
+.catbar .bar{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden}
+.catbar .bar i{display:block;height:100%}
+.notice{font-family:var(--mono);font-size:12px;color:var(--ins);border:1px solid #4a2a0d;background:#1a0f05;border-radius:8px;padding:8px 10px;margin-bottom:10px;display:none}
+.notice.show{display:block}
+.hidden{display:none!important}
+
+@media (max-width:860px){
+  .grid2,.mset,.res{grid-template-columns:minmax(0,1fr)}
+  .runtop{grid-template-columns:repeat(3,1fr)}
+  .runtop .stat:nth-child(n+4){display:none}
+}
+@media (max-width:560px){
+  .hbar{gap:6px}
+  .brand{font-size:19px}
+  .brand small{display:none}
+  .hbtn{padding:7px 7px;font-size:12px}
+  .hbtn .led{margin-right:4px}
+  .tab{padding:7px 9px;font-size:14px}
+  .tab kbd,.hbtn .txt{display:none}
+  .hud{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .cbox{min-width:0;gap:4px;padding:8px}
+  .step{width:30px;height:30px;flex:0 0 30px}
+  .cval{min-width:0}
+  .tcbox{grid-column:1/-1;grid-row:1}
+  .resetb{grid-column:1/-1;padding:8px}
+  .cbox label{writing-mode:horizontal-tb;transform:none}
+  .cbox{justify-content:space-between}
+  .cval{font-size:24px}
+  .keys{display:none}
+  .table{grid-template-columns:1fr;gap:10px;padding-top:40px}
+  .table .card{width:58px;height:82px;font-size:28px}
+  .actbar button{font-size:16px}
+  .actbar button small{display:none}
+  .dgrid{grid-template-columns:repeat(5,1fr)}
+  .kgrid{grid-template-columns:repeat(5,1fr)}
+  .grade{font-size:96px}
+  .fb .big{font-size:44px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hbar">
+      <div class="brand">SHOT<b>CLOCK</b>21<small>DECISION // ADVANTAGE TRAINER</small></div>
+      <nav class="tabs">
+        <button class="tab on" data-tab="call">CALL<kbd>1</kbd></button>
+        <button class="tab" data-tab="montage">MONTAGE<kbd>2</kbd></button>
+      </nav>
+      <button class="hbtn on" id="voiceOutBtn" title="Spoken callouts (V)"><span class="led"></span><span class="txt">VOICE </span>OUT</button>
+      <button class="hbtn" id="rulesBtn" title="Table rules">RULES</button>
+    </div>
+    <div id="rules">
+      <button class="chip" data-rule="h17">DEALER HITS SOFT 17</button>
+      <button class="chip" data-rule="ls">LATE SURRENDER</button>
+      <span class="dim mono" style="font-size:12px">SHOE</span>
+      <button class="chip" data-shoe="2">2D</button>
+      <button class="chip" data-shoe="6">6D</button>
+      <button class="chip" data-shoe="8">8D</button>
+      <div class="rnote">DAS on · peek on A/10 · Hi-Lo · TC floored for index plays · I18 + Fab 4 (S17 indices). EV shown is ∞-deck, composition-shifted by TC — directional, the chart call is the authority.</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="notice" id="micNotice"></div>
+
+  <!-- COUNT HUD -->
+  <section class="hud" id="hud">
+    <div class="cbox"><label>RC</label>
+      <button class="step" data-rc="-1" aria-label="Running count minus one">−</button>
+      <div class="cval" id="rcVal">0</div>
+      <button class="step" data-rc="1" aria-label="Running count plus one">+</button>
+    </div>
+    <div class="cbox"><label>DECKS</label>
+      <button class="step" data-dk="-0.5" aria-label="Fewer decks remaining">−</button>
+      <div class="cval" id="dkVal">6</div>
+      <button class="step" data-dk="0.5" aria-label="More decks remaining">+</button>
+    </div>
+    <div class="tcbox"><span class="lab">TRUE<br>COUNT</span><div><div class="tcbig tc-zero" id="tcVal">+0</div><div class="tcsub" id="tcSub">raw +0.00 · index ⌊+0⌋</div></div></div>
+    <button class="resetb" id="resetBtn">NEW<br>SHOE <kbd>0</kbd></button>
+  </section>
+  <div class="keys" id="keysCall">
+    <span><kbd>SPACE</kbd> listen</span><span><kbd>L</kbd> lock mic</span><span><kbd>/</kbd> type</span>
+    <span><kbd>↑</kbd><kbd>↓</kbd> RC ±1</span><span><kbd>[</kbd><kbd>]</kbd> decks</span><span><kbd>V</kbd> voice out</span>
+    <span>say: "16 vs 10" · "soft 18 vs 6" · "pair of 8s dealer 9" · "count plus 2" · "true count 3" · "2 decks left"</span>
+  </div>
+
+  <!-- CALL VIEW -->
+  <section id="view-call">
+    <div class="grid2">
+      <div class="panel">
+        <div class="microw">
+          <button class="mic" id="micBtn" aria-label="Listen (Space)">
+            <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2z"/></svg>
+          </button>
+          <div class="micinfo">
+            <div class="micstate" id="micState">PRESS SPACE · CALL THE HAND</div>
+            <div class="transcript" id="transcript">—</div>
+          </div>
+          <button class="hbtn lockb" id="lockBtn" title="Keep mic open (L)"><span class="led"></span>LOCK</button>
+        </div>
+
+        <div class="callout" id="callout">
+          <div class="callhead">
+            <div class="cards" id="cCards"></div>
+            <div class="handtxt" id="cHand"><span class="dim">AWAITING HAND</span></div>
+          </div>
+          <div class="badge empty" id="cBadge">— — —</div>
+          <div class="reason" id="cReason"></div>
+          <div class="evline" id="cEV"></div>
+          <div class="devline hidden" id="cDev"></div>
+          <div class="insline hidden" id="cIns"></div>
+        </div>
+        <div class="history" id="history"></div>
+      </div>
+
+      <div class="panel">
+        <div class="ptitle">QUICK INPUT <span><kbd>/</kbd> then <kbd>ENTER</kbd></span></div>
+        <input class="txtin" id="txtIn" autocomplete="off" spellcheck="false" placeholder="16v10 · a7 6 · 88 9 · s18v2 · tc 3">
+        <div class="seg" id="seg">
+          <button data-type="hard" class="on">HARD</button>
+          <button data-type="soft">SOFT</button>
+          <button data-type="pair">PAIR</button>
+        </div>
+        <div class="kgrid" id="kgrid"></div>
+        <div class="sublab">DEALER UP</div>
+        <div class="dgrid" id="dgrid"></div>
+        <div class="hint">Tap hand, tap dealer → instant call. Change either to re-call.<br>Typed shorthand: <b>16v10</b> · <b>a7v6</b> · <b>88 9</b> · <b>s18 2</b> · <b>10 6 vs a</b> · <b>5 4 7 v 10</b> (3-card) · <b>rc 5</b> · <b>+2</b> · <b>decks 2.5</b> · <b>reset</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MONTAGE VIEW -->
+  <section id="view-montage" class="hidden">
+    <!-- setup -->
+    <div id="mSetup" class="mset">
+      <div class="panel">
+        <div class="hero">NO TUTORIAL.<br><em>JUST REPS.</em></div>
+        <p class="lead">Scenarios fire on a shrinking shot clock. Every streak of 5 adds a multiplier and shaves the clock. Miss and it resets. TC is live on every hand — deviations count.</p>
+        <div class="sublab">FOCUS</div>
+        <div class="optrow" id="optMode">
+          <button class="chip on" data-mode="mixed">MIXED</button>
+          <button class="chip" data-mode="soft">SOFT</button>
+          <button class="chip" data-mode="pair">SPLITS</button>
+          <button class="chip" data-mode="stiff">STIFFS v 7–A</button>
+          <button class="chip" data-mode="dev">DEVIATIONS</button>
+          <button class="chip" data-mode="dbl">DOUBLES</button>
+        </div>
+        <div class="sublab">REPS</div>
+        <div class="optrow" id="optLen">
+          <button class="chip" data-len="15">15</button>
+          <button class="chip on" data-len="25">25</button>
+          <button class="chip" data-len="50">50</button>
+          <button class="chip" data-len="100">100</button>
+        </div>
+        <div class="sublab">ANSWER WITH</div>
+        <div class="optrow" id="optVoice">
+          <button class="chip on" data-v="0">KEYS / TAP</button>
+          <button class="chip" data-v="1">KEYS + VOICE</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+          <button class="bigbtn" id="startBtn">GO <kbd>ENTER</kbd></button>
+          <button class="ghost hidden" id="lifeDrillBtn">DRILL ALL-TIME LEAKS <kbd>W</kbd></button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">SERVICE RECORD</div>
+        <div class="life" id="life"></div>
+        <div class="sublab" style="margin-top:16px">ALL-TIME LEAKS</div>
+        <table class="tbl" id="lifeLeaks"></table>
+        <div class="hint" style="margin-top:12px"><kbd>H</kbd> hit <kbd>S</kbd> stand <kbd>D</kbd> double <kbd>P</kbd> split <kbd>R</kbd> surrender · insurance: <kbd>I</kbd> take <kbd>N</kbd> decline · <kbd>ESC</kbd> abort · <kbd>SPACE</kbd> mic</div>
+      </div>
+    </div>
+
+    <!-- run -->
+    <div id="mRun" class="run hidden">
+      <div class="runtop">
+        <div class="stat"><div class="k">REP</div><div class="v" id="rRep">1/25</div></div>
+        <div class="stat"><div class="k">STREAK</div><div class="v" id="rStreak">0 <span class="mult">×1</span></div></div>
+        <div class="stat"><div class="k">SCORE</div><div class="v" id="rScore">0</div></div>
+        <div class="stat"><div class="k">ACC</div><div class="v" id="rAcc">—</div></div>
+        <div class="stat"><div class="k">LAST</div><div class="v" id="rLast">—</div></div>
+      </div>
+      <div class="clock"><i id="clockBar"></i></div>
+      <div class="clockrow"><span id="clockTxt">SHOT CLOCK 4.2s</span><span id="tempoTxt">TEMPO 1</span></div>
+      <div class="table" id="felt">
+        <div class="prompt hidden" id="insPrompt">INSURANCE?</div>
+        <div class="side"><div class="lbl">DEALER</div><div class="cards" id="mDealer"></div></div>
+        <div class="tcpill" id="mTC"><small>TRUE COUNT</small><span>+0</span></div>
+        <div class="side"><div class="lbl">YOU</div><div class="cards" id="mPlayer"></div><div class="htot" id="mTot"></div></div>
+        <div class="fb" id="fb"></div>
+      </div>
+      <div class="actbar" id="actbar"></div>
+      <div class="runfoot"><span id="micFoot">MIC OFF · <kbd>SPACE</kbd></span><span><kbd>ESC</kbd> abort</span></div>
+    </div>
+
+    <!-- results -->
+    <div id="mRes" class="hidden"></div>
+  </section>
+</main>
+
+<script>
+'use strict';
+/* =====================================================================
+   STORAGE (best-effort; app works without it)
+   ===================================================================== */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const saved = store.get('sc21.settings', {});
+const S = {
+  tab: 'call',
+  rc: 0,
+  shoe: saved.shoe || 6,
+  decks: saved.shoe || 6,
+  voiceOut: saved.voiceOut !== false,
+  rules: { h17: !!saved.h17, ls: !!saved.ls },
+  micLock: false,
+};
+function saveSettings(){ store.set('sc21.settings', { shoe:S.shoe, voiceOut:S.voiceOut, h17:S.rules.h17, ls:S.rules.ls }); }
+
+/* =====================================================================
+   STRATEGY ENGINE
+   Up-card values: 2..10, 11 = Ace.
+   Hand: {type:'hard'|'soft'|'pair'|'bj', total, rank, cards?, multi?}
+   ===================================================================== */
+const A = 11;
+const NAME = { H:'HIT', S:'STAND', D:'DOUBLE', P:'SPLIT', R:'SURRENDER', I:'INSURE', N:'NO INS', BJ:'BLACKJACK' };
+const upL = u => u === A ? 'A' : String(u);
+const rankL = r => r === A ? 'A' : r === 10 ? 'T' : String(r);
+
+function hardBasic(t, u, r){
+  if (t <= 8) return 'H';
+  if (t === 9) return (u >= 3 && u <= 6) ? 'D' : 'H';
+  if (t === 10) return u <= 9 ? 'D' : 'H';
+  if (t === 11) return u <= 10 ? 'D' : (r.h17 ? 'D' : 'H');
+  if (t === 12) return (u >= 4 && u <= 6) ? 'S' : 'H';
+  if (t === 13 || t === 14) return u <= 6 ? 'S' : 'H';
+  if (t === 15){ if (u <= 6) return 'S'; if (r.ls && (u === 10 || (r.h17 && u === A))) return 'R'; return 'H'; }
+  if (t === 16){ if (u <= 6) return 'S'; if (r.ls && u >= 9) return 'R'; return 'H'; }
+  if (t === 17) return (r.ls && r.h17 && u === A) ? 'R' : 'S';
+  return 'S';
+}
+function softBasic(t, u, r){
+  if (t <= 12) return 'H';
+  if (t <= 14) return (u === 5 || u === 6) ? 'D' : 'H';
+  if (t <= 16) return (u >= 4 && u <= 6) ? 'D' : 'H';
+  if (t === 17) return (u >= 3 && u <= 6) ? 'D' : 'H';
+  if (t === 18){ if ((u >= 3 && u <= 6) || (r.h17 && u === 2)) return 'D'; if (u <= 8) return 'S'; return 'H'; }
+  if (t === 19) return (r.h17 && u === 6) ? 'D' : 'S';
+  return 'S';
+}
+function pairSplits(k, u){ // DAS chart; null = don't split, play as total
+  switch (k){
+    case A: case 8: return true;
+    case 10: case 5: return false;
+    case 9: return (u <= 6 || u === 8 || u === 9);
+    case 7: return u <= 7;
+    case 6: return u <= 6;
+    case 4: return u === 5 || u === 6;
+    case 3: case 2: return u <= 7;
+  }
+  return false;
+}
+
+// Illustrious 18 + Fab 4 (Hi-Lo, multi-deck S17). cmp 'ge': do act when TC >= idx. 'lt': do act when TC < idx.
+const DEVS = [
+  { id:'16v10', t:16, u:10, act:'S', cmp:'ge', idx:0,  set:'I18', noLS:true },
+  { id:'15v10', t:15, u:10, act:'S', cmp:'ge', idx:4,  set:'I18', noLS:true },
+  { id:'10v10', t:10, u:10, act:'D', cmp:'ge', idx:4,  set:'I18' },
+  { id:'12v3',  t:12, u:3,  act:'S', cmp:'ge', idx:2,  set:'I18' },
+  { id:'12v2',  t:12, u:2,  act:'S', cmp:'ge', idx:3,  set:'I18' },
+  { id:'11vA',  t:11, u:A,  act:'D', cmp:'ge', idx:1,  set:'I18', s17:true },
+  { id:'9v2',   t:9,  u:2,  act:'D', cmp:'ge', idx:1,  set:'I18' },
+  { id:'10vA',  t:10, u:A,  act:'D', cmp:'ge', idx:4,  set:'I18' },
+  { id:'9v7',   t:9,  u:7,  act:'D', cmp:'ge', idx:3,  set:'I18' },
+  { id:'16v9',  t:16, u:9,  act:'S', cmp:'ge', idx:5,  set:'I18', noLS:true },
+  { id:'13v2',  t:13, u:2,  act:'H', cmp:'lt', idx:-1, set:'I18' },
+  { id:'12v4',  t:12, u:4,  act:'H', cmp:'lt', idx:0,  set:'I18' },
+  { id:'12v5',  t:12, u:5,  act:'H', cmp:'lt', idx:-2, set:'I18' },
+  { id:'12v6',  t:12, u:6,  act:'H', cmp:'lt', idx:-1, set:'I18' },
+  { id:'13v3',  t:13, u:3,  act:'H', cmp:'lt', idx:-2, set:'I18' },
+  { id:'14v10R',t:14, u:10, act:'R', cmp:'ge', idx:3,  set:'FAB4', ls:true },
+  { id:'15v10R',t:15, u:10, act:'R', cmp:'ge', idx:0,  set:'FAB4', ls:true },
+  { id:'15v9R', t:15, u:9,  act:'R', cmp:'ge', idx:2,  set:'FAB4', ls:true },
+  { id:'15vAR', t:15, u:A,  act:'R', cmp:'ge', idx:1,  set:'FAB4', ls:true, s17:true },
+];
+const PAIR_DEVS = [
+  { id:'TTv5', k:10, u:5, act:'P', cmp:'ge', idx:5, set:'I18' },
+  { id:'TTv6', k:10, u:6, act:'P', cmp:'ge', idx:4, set:'I18' },
+];
+const INS_IDX = 3;
+const fires = (d, tc) => d.cmp === 'ge' ? tc >= d.idx : tc < d.idx;
+const sgn = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
+function devText(d){
+  const what = d.t ? `${d.t} v ${upL(d.u)}` : `T,T v ${upL(d.u)}`;
+  return d.cmp === 'ge'
+    ? `${what} → ${NAME[d.act]} at TC ≥ ${sgn(d.idx)}`
+    : `${what} → STAND at TC ≥ ${sgn(d.idx)}, else HIT`;
+}
+
+function decide(hand, u, tcRaw, rules){
+  const tc = Math.floor(tcRaw + 1e-9);
+  const out = { action:null, basic:null, dev:null, devOn:false, note:null, ins:null, tc };
+  if (u === A) out.ins = { take: tc >= INS_IDX, idx: INS_IDX };
+  if (hand.type === 'bj'){ out.action = out.basic = 'BJ'; return out; }
+
+  let t = hand.total, soft = hand.type === 'soft';
+  if (hand.type === 'pair'){
+    const k = hand.rank;
+    if (k === 10){
+      const pd = PAIR_DEVS.find(d => d.u === u);
+      out.basic = 'S';
+      if (pd){ out.dev = pd; out.devOn = fires(pd, tc); }
+      out.action = out.devOn ? 'P' : 'S';
+      return out;
+    }
+    if (pairSplits(k, u)){ out.action = out.basic = 'P'; return out; }
+    if (k === A){ t = 12; soft = true; } else t = k * 2;
+  }
+  const r = hand.multi ? { ...rules, ls:false } : rules;
+
+  if (soft){
+    let a = softBasic(t, u, r);
+    if (hand.multi && a === 'D') a = t >= 18 ? 'S' : 'H';
+    out.action = out.basic = a;
+    return out;
+  }
+
+  // hard
+  out.basic = hardBasic(t, u, r);
+  let act = hardBasic(t, u, { ...r, ls:false });
+  const usable = d => d.t === t && d.u === u && !(d.s17 && r.h17);
+  const plain = DEVS.find(d => usable(d) && !d.ls);
+  if (plain){ out.dev = plain; if (fires(plain, tc)){ act = plain.act; out.devOn = true; } }
+  if (r.ls){
+    const fab = DEVS.find(d => usable(d) && d.ls);
+    if (fab){
+      if (plain && plain.noLS) out.note = `No surrender? ${devText(plain)}`;
+      out.dev = fab; out.devOn = false;
+      if (fires(fab, tc)){ act = 'R'; out.devOn = true; }
+      else if (plain && plain.noLS && fires(plain, tc)){ /* stand dev unreachable when fab misses, keep act */ }
+    } else if (out.basic === 'R'){
+      act = 'R';
+      if (plain && plain.noLS){ out.note = `No surrender? ${devText(plain)}`; out.dev = null; out.devOn = false; }
+    }
+  }
+  if (hand.multi && act === 'D') act = 'H';
+  out.action = act;
+  return out;
+}
+
+/* ---------- EV engine: infinite deck, composition shifted by Hi-Lo TC ---------- */
+function probs(tc){
+  const t = Math.max(-12, Math.min(12, tc));
+  const low = (20 - t/2) / 5, high = 20 + t/2;
+  const p = new Array(11).fill(0);
+  for (let c = 2; c <= 6; c++) p[c] = low / 52;
+  for (let c = 7; c <= 9; c++) p[c] = 4 / 52;
+  p[10] = (high * 16/20) / 52;
+  p[1]  = (high * 4/20) / 52;
+  return p;
+}
+function dealerDist(u, p, h17){
+  const up = u === A ? 1 : u;
+  const memo = new Map();
+  function f(h, ace){
+    const key = h * 2 + (ace ? 1 : 0);
+    if (memo.has(key)) return memo.get(key);
+    const soft = ace && h + 10 <= 21, tot = soft ? h + 10 : h;
+    let res;
+    if (tot > 21){ res = [0,0,0,0,0,1]; }
+    else if (tot >= 17 && !(h17 && soft && tot === 17)){ res = [0,0,0,0,0,0]; res[tot-17] = 1; }
+    else {
+      res = [0,0,0,0,0,0];
+      for (let c = 1; c <= 10; c++){ const s = f(h + c, ace || c === 1); for (let i = 0; i < 6; i++) res[i] += p[c] * s[i]; }
+    }
+    memo.set(key, res); return res;
+  }
+  const D = [0,0,0,0,0,0]; let w = 0;
+  for (let c = 1; c <= 10; c++){
+    if ((up === 1 && c === 10) || (up === 10 && c === 1)) continue; // peeked: no dealer BJ
+    w += p[c];
+    const s = f(up + c, up === 1 || c === 1);
+    for (let i = 0; i < 6; i++) D[i] += p[c] * s[i];
+  }
+  return D.map(x => x / w);
+}
+function evTable(hand, u, tc, rules){
+  if (hand.type === 'bj') return null;
+  const p = probs(tc), D = dealerDist(u, p, rules.h17);
+  const stand = tot => {
+    if (tot > 21) return -1;
+    let win = D[5], lose = 0;
+    for (let i = 0; i < 5; i++){ const d = 17 + i; if (tot > d) win += D[i]; else if (tot < d) lose += D[i]; }
+    return win - lose;
+  };
+  const eff = (h, a) => (a && h + 10 <= 21) ? h + 10 : h;
+  const mh = new Map();
+  const best = (h, a) => Math.max(stand(eff(h, a)), hit(h, a));
+  function hit(h, a){
+    const k = h * 2 + (a ? 1 : 0); if (mh.has(k)) return mh.get(k);
+    let e = 0;
+    for (let c = 1; c <= 10; c++) e += p[c] * (h + c > 21 ? -1 : best(h + c, a || c === 1));
+    mh.set(k, e); return e;
+  }
+  const dbl = (h, a) => { let e = 0; for (let c = 1; c <= 10; c++) e += p[c] * (h + c > 21 ? -1 : stand(eff(h + c, a || c === 1))); return 2 * e; };
+  let h, a;
+  if (hand.type === 'pair'){ h = hand.rank === A ? 2 : hand.rank * 2; a = hand.rank === A; }
+  else if (hand.type === 'soft'){ h = hand.total - 10; a = true; }
+  else { h = hand.total; a = false; }
+  const ev = { S: stand(eff(h, a)), H: hit(h, a) };
+  if (!hand.multi){
+    ev.D = dbl(h, a);
+    if (rules.ls) ev.R = -0.5;
+    if (hand.type === 'pair'){
+      const k = hand.rank === A ? 1 : hand.rank; let e = 0;
+      for (let c = 1; c <= 10; c++){
+        if (k === 1) e += p[c] * stand(eff(1 + c, true));
+        else { const hh = k + c, aa = c === 1; e += p[c] * Math.max(stand(eff(hh, aa)), hit(hh, aa), dbl(hh, aa)); }
+      }
+      ev.P = 2 * e;
+    }
+  }
+  return { ev, bust: D[5], D, p10: p[10] };
+}
+
+/* ---------- one-line reasoning ---------- */
+const pct = x => (x * 100).toFixed(0) + '%';
+const evf = x => (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(3);
+function reasonLine(hand, u, d, et){
+  const a = d.action, U = upL(u);
+  if (a === 'BJ') return u === A || u === 10 ? 'Natural. Dealer peeked clean — collect 3:2.' : 'Natural. Collect 3:2 and move.';
+  const bust = et ? et.bust : 0;
+  const t = hand.type === 'pair' ? (hand.rank === A ? 12 : hand.rank * 2) : hand.total;
+  const soft = hand.type === 'soft';
+  if (d.devOn && d.tc <= 0 && d.dev.cmp === 'ge') return `TC ${sgn(d.tc)} sits on the index — ${NAME[a]} edges out the chart play. Take the flip.`;
+  if (d.devOn){
+    if (a === 'R') return `Ten-rich shoe turns this into a sub-50% hand — give half back.`;
+    if (a === 'P') return `Ten-rich shoe: dealer ${U} breaks ${pct(bust)} — split the 20 and press.`;
+    if (a === 'D') return `Count is up — extra tens make this double profitable.`;
+    if (a === 'S') return `Ten-rich shoe: hit busts too often — let the dealer draw into it.`;
+    if (a === 'H') return `Low-card-rich shoe: dealer ${U} only breaks ${pct(bust)} — take the card.`;
+  }
+  switch (a){
+    case 'R': return `Worth less than −50% — surrender caps the loss at half.`;
+    case 'P':
+      if (hand.rank === A) return 'Two shots at 21 beat one soft 12.';
+      if (hand.rank === 8) return '16 is the worst total in the game — two 8s are two fresh starts.';
+      if (hand.rank === 9) return `18 loses to dealer's likely finish vs ${U} — two 9s do better.`;
+      return `Dealer ${U} is weak — split and double after to press the edge.`;
+    case 'D': return soft
+      ? `Soft ${t} can't bust on one card and dealer ${U} breaks ${pct(bust)} — get the money in.`
+      : `You're the favorite vs ${U} — double the bet while you're ahead.`;
+    case 'S':
+      if (!soft && t >= 17) return 'Made hand. Do not touch it.';
+      if (soft && t >= 19) return `Soft ${t} is a winner — stand.`;
+      if (soft) return `18 vs ${U} wins or pushes too often to draw on.`;
+      return `Dealer ${U} breaks ${pct(bust)} — don't bust first.`;
+    case 'H':
+      if (soft) return `Soft ${t} can't bust — draw to improve.`;
+      if (t <= 11) return `Can't bust — take a card.`;
+      return `Dealer ${U} makes 17+ ${pct(1 - bust)} — standing is dead money.`;
+  }
+  return '';
+}
+function evLineHTML(et, d){
+  if (!et) return '';
+  const entries = Object.entries(et.ev).sort((x, y) => y[1] - x[1]);
+  return entries.map(([k, v]) => `<span class="${k === d.action ? 'best' : ''}">${NAME[k]} ${evf(v)}</span>`).join('');
+}
+
+/* ---------- hand helpers ---------- */
+function handFromCards(cs){ // cs: values 2..11
+  if (cs.length === 2){
+    if (cs[0] === cs[1]) return { type:'pair', rank:cs[0], total: cs[0] === A ? 12 : cs[0]*2, cards:cs };
+    if (cs.includes(A)){ const o = cs[0] === A ? cs[1] : cs[0]; if (o === 10) return { type:'bj', total:21, cards:cs }; return { type:'soft', total: 11 + o, cards:cs }; }
+    return { type:'hard', total: cs[0] + cs[1], cards:cs };
+  }
+  let h = 0, ace = false; for (const c of cs){ h += c === A ? 1 : c; if (c === A) ace = true; }
+  const soft = ace && h + 10 <= 21;
+  return { type: soft ? 'soft' : 'hard', total: soft ? h + 10 : h, cards:cs, multi:true };
+}
+function handLabel(h){
+  if (h.type === 'bj') return 'BLACKJACK';
+  if (h.type === 'pair') return h.rank === A ? 'A,A' : h.rank === 10 ? 'T,T' : `${h.rank}s`;
+  if (h.type === 'soft' && !h.multi && h.total <= 20) return `SOFT ${h.total}`;
+  return `${h.type === 'soft' ? 'SOFT' : 'HARD'} ${h.total}${h.multi ? ' (3+)' : ''}`;
+}
+function handKey(h){
+  if (h.type === 'pair') return 'P' + rankL(h.rank);
+  if (h.type === 'bj') return 'BJ';
+  return (h.type === 'soft' ? 'S' : 'H') + h.total + (h.multi ? 'm' : '');
+}
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+function cardsFor(h){
+  if (h.cards) return h.cards;
+  if (h.type === 'pair') return [h.rank, h.rank];
+  if (h.type === 'bj') return [A, 10];
+  if (h.type === 'soft') return h.total <= 21 && h.total >= 13 ? [A, h.total - 11] : [A, A];
+  const opts = [];
+  for (let a = 2; a <= 10; a++){ const b = h.total - a; if (b >= 2 && b <= 10 && b !== a && a < b) opts.push([b, a]); }
+  if (!opts.length){ if (h.total === 4) return [2,2]; if (h.total === 20) return [10,10]; if (h.total === 21) return [10, 6, 5]; return [h.total]; }
+  return pick(opts);
+}
+const SUITS = ['♠','♥','♦','♣'];
+function cardHTML(v, up){
+  const r = v === A ? 'A' : v === 10 ? pick(['10','J','Q','K']) : String(v);
+  const s = pick(SUITS); const red = s === '♥' || s === '♦';
+  return `<div class="card${red ? ' red' : ''}${up ? ' up' : ''}">${r}<i>${s}</i></div>`;
+}
+
+/* =====================================================================
+   PARSER — speech + typed shorthand
+   ===================================================================== */
+const WORDS = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, eleven:11, twelve:12,
+  thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19, twenty:20, thirty:30, too:2, ate:8, sixty:16 };
+const PLURALS = { twos:'2 pl', threes:'3 pl', fours:'4 pl', fives:'5 pl', sixes:'6 pl', sevens:'7 pl', eights:'8 pl', nines:'9 pl',
+  tens:'10 pl', kings:'10 pl', queens:'10 pl', jacks:'10 pl', faces:'10 pl', aces:'ace pl' };
+const FACES = { king:'10', queen:'10', jack:'10', face:'10', picture:'10', t:'10' };
+const SEPS = new Set(['vs','v','versus','verses','against','dealer','dealers','into','facing','showing','shows','on','bs','up','dealing','upcard']);
+
+function normalize(raw){
+  let s = ' ' + raw.toLowerCase() + ' ';
+  s = s.replace(/[×]/g, ' ');
+  s = s.replace(/(^|\s)\+\s?(\d)/g, ' plus $2').replace(/(^|\s)[-−–]\s?(\d)/g, ' minus $2');
+  s = s.replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(/[,!?;:"()]/g, ' ');
+  s = s.replace(/[-–—\/]/g, ' ');
+  s = s.replace(/\b(\w+)\b/g, w => PLURALS[w] ?? w);
+  s = s.replace(/(\d+)\s?'?s\b/g, '$1 pl');
+  s = s.replace(/\b[a-z]+\b/g, w => (w in WORDS) ? String(WORDS[w]) : w);
+  s = s.replace(/\b(20|30) ([1-9])\b/g, (m, a, b) => String(+a + +b));
+  s = s.replace(/(\d+) and a half/g, (m, d) => String(+d + 0.5)).replace(/\bhalf a deck\b/g, '0.5 deck').replace(/\ba half\b/g, '0.5');
+  s = s.replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)([a-z])/g, '$1 $2');
+  s = s.replace(/\b([a-z]+)\b/g, w => FACES[w] ?? w);
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+function parseSigned(sign, n){ n = parseFloat(n); return /minus|negative/.test(sign || '') ? -n : n; }
+function extractCount(s){
+  const cmds = [];
+  if (/\b(reset( count| shoe)?|new shoe|shuffle( up)?)\b/.test(s)){ cmds.push({ reset:true }); s = s.replace(/\b(reset( count| shoe)?|new shoe|shuffle( up)?)\b/g, ' '); }
+  s = s.replace(/\b(?:true count|tc)(?: is| of| at| equals)? (plus |minus |negative |positive )?(\d+(?:\.\d+)?)/g, (x, sg, n) => { cmds.push({ tc: parseSigned(sg, n) }); return ' '; });
+  s = s.replace(/\b(?:running count|count is|count of|count at|count equals|rc)(?: is)? (plus |minus |negative |positive )?(\d+)/g, (x, sg, n) => { cmds.push({ rc: parseSigned(sg, n) }); return ' '; });
+  s = s.replace(/\b(?:count )?(plus|add|minus|subtract|count up|count down) (\d+)/g, (x, sg, n) => { cmds.push({ drc: /minus|subtract|down/.test(sg) ? -n : +n }); return ' '; });
+  s = s.replace(/\b(\d+(?:\.\d+)?) decks?(?: left| remaining| to go)?\b/g, (x, n) => { cmds.push({ decks: parseFloat(n) }); return ' '; });
+  s = s.replace(/\bdecks?(?: left| remaining)?(?: is)? (\d+(?:\.\d+)?)/g, (x, n) => { cmds.push({ decks: parseFloat(n) }); return ' '; });
+  const order = c => c.reset ? 0 : c.decks !== undefined ? 1 : c.rc !== undefined ? 2 : c.drc !== undefined ? 3 : 4;
+  return { cmds: cmds.sort((a, b) => order(a) - order(b)), rest: s.replace(/\s+/g, ' ').trim() };
+}
+
+function cardTok(tok, dealerSide){
+  if (tok === 'ace' || tok === 'a' || tok === 'aces') return A;
+  if (/^\d+$/.test(tok)){ const n = +tok; if (dealerSide && (n === 1 || n === 11)) return A; return n; }
+  return null;
+}
+function parseHand(s){
+  let toks = s.split(' ').filter(Boolean);
+  // typed pair shorthand: 88, tt, aa, 1010
+  toks = toks.flatMap((t, i) => {
+    if (i === 0 || !SEPS.has(toks[i - 1])){
+      if (/^(22|33|44|55|66|77|88|99)$/.test(t)) return ['pair', t[0]];
+      if (t === 'tt' || t === '1010') return ['pair', '10'];
+      if (t === 'aa') return ['pair', 'ace'];
+    }
+    return [t];
+  });
+  toks = toks.filter(t => !['of','the','an','and','got','have','i','my','is','me','with','hand','total','what','about','do'].includes(t));
+  const si = toks.findIndex(t => SEPS.has(t));
+  let left, right;
+  if (si >= 0){ left = toks.slice(0, si); right = toks.slice(si + 1).filter(t => !SEPS.has(t)); }
+  else {
+    const idxs = toks.map((t, i) => cardTok(t, false) !== null && t !== 'a' ? i : -1).filter(i => i >= 0);
+    if (idxs.length < 2) return null;
+    const last = idxs[idxs.length - 1];
+    left = toks.slice(0, last); right = toks.slice(last);
+  }
+  // dealer
+  let u = null;
+  for (let i = 0; i < right.length; i++){
+    const t = right[i];
+    if (t === 'a' && right.slice(i + 1).some(x => /^\d+$/.test(x) || x === 'ace')) continue; // article
+    const c = cardTok(t, true); if (c !== null){ u = c; break; }
+  }
+  if (u === null || u < 2 || u > A) return null;
+
+  // player
+  const flags = { soft:false, hard:false, pair:false, bj:false };
+  const vals = [];
+  left.forEach((t, i) => {
+    if (t === 'soft' || t === 's') flags.soft = true;
+    else if (t === 'hard' || t === 'h') flags.hard = true;
+    else if (['pair','pairs','p','split','pl','double','doubles'].includes(t)) flags.pair = true;
+    else if (t === 'blackjack' || t === 'natural' || t === 'bj') flags.bj = true;
+    else if (t === 'a'){ const nx = left[i + 1]; if (nx === undefined || /^\d+$/.test(nx) || ['pl','a','ace'].includes(nx) || left[i - 1] === 'a') vals.push(A); }
+    else { const c = cardTok(t, false); if (c !== null) vals.push(c); }
+  });
+  let hand = null;
+  if (flags.bj) hand = { type:'bj', total:21 };
+  else if (!vals.length) return null;
+  else if (flags.pair){
+    let k = vals[0]; if (k === 1) k = A;
+    if (k > A && k % 2 === 0 && k / 2 <= 10) k = k / 2;
+    if (k < 2 || k > A) return null;
+    hand = { type:'pair', rank:k, total: k === A ? 12 : k * 2 };
+  } else if (vals.length >= 2 && vals.every(v => v >= 1 && v <= A)){
+    hand = handFromCards(vals.map(v => v === 1 ? A : v));
+  } else if (vals.length === 1){
+    const n = vals[0];
+    if (n === A) return null;
+    if (flags.soft){
+      if (n >= 13 && n <= 21) hand = n === 21 ? { type:'bj', total:21 } : { type:'soft', total:n };
+      else if (n === 12) hand = { type:'pair', rank:A, total:12 };
+      else if (n >= 2 && n <= 10) hand = n === 10 ? { type:'bj', total:21 } : { type:'soft', total: 11 + n };
+      else return null;
+    } else {
+      if (n < 4 || n > 21) return null;
+      hand = { type:'hard', total:n };
+    }
+  } else return null;
+  return { hand, u };
+}
+
+/* =====================================================================
+   COUNT
+   ===================================================================== */
+const tcRaw = () => S.rc / Math.max(0.5, S.decks);
+function renderCount(){
+  $('#rcVal').textContent = (S.rc > 0 ? '+' : '') + S.rc;
+  $('#dkVal').textContent = S.decks % 1 ? S.decks.toFixed(1) : S.decks;
+  const raw = tcRaw(), fl = Math.floor(raw + 1e-9);
+  const el = $('#tcVal');
+  el.textContent = (fl > 0 ? '+' : fl < 0 ? '−' : '+') + Math.abs(fl);
+  el.className = 'tcbig ' + (fl > 0 ? 'tc-pos' : fl < 0 ? 'tc-neg' : 'tc-zero');
+  $('#tcSub').textContent = `raw ${raw >= 0 ? '+' : '−'}${Math.abs(raw).toFixed(2)} · index ⌊${fl >= 0 ? '+' : '−'}${Math.abs(fl)}⌋`;
+}
+function applyCount(c){
+  if (c.reset){ S.rc = 0; S.decks = S.shoe; }
+  if (c.rc !== undefined) S.rc = Math.round(c.rc);
+  if (c.drc !== undefined) S.rc += Math.round(c.drc);
+  if (c.decks !== undefined) S.decks = Math.max(0.5, Math.min(8, Math.round(c.decks * 2) / 2));
+  if (c.tc !== undefined) S.rc = Math.round(c.tc * S.decks);
+}
+function countSummary(){ const f = Math.floor(tcRaw() + 1e-9); return `RC ${S.rc >= 0 ? '+' : ''}${S.rc} · ${S.decks} decks · TC ${f >= 0 ? '+' : ''}${f}`; }
+
+/* =====================================================================
+   SPEECH OUT
+   ===================================================================== */
+let voice = null;
+function pickVoice(){
+  try{ const vs = speechSynthesis.getVoices(); voice = vs.find(v => /en[-_]US/i.test(v.lang) && /Google|Samantha|Alex|Aaron|Guy|Davis/i.test(v.name)) || vs.find(v => /^en/i.test(v.lang)) || null; }catch(e){}
+}
+if ('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function say(text, force){
+  if ((!S.voiceOut && !force) || !('speechSynthesis' in window)) return;
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); if (voice) u.voice = voice; u.rate = 1.25; u.pitch = 0.9; speechSynthesis.speak(u); }catch(e){}
+}
+
+/* =====================================================================
+   SPEECH IN
+   ===================================================================== */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, recOn = false, recWant = false, recMode = 'call';
+const voiceSt = { key:-1, len:0 };
+function notice(msg){ const n = $('#micNotice'); n.textContent = msg; n.classList.toggle('show', !!msg); }
+function ensureRec(){
+  if (!SR){ notice('Voice input not supported in this browser (use Chrome, Edge or Safari). Typed + tap input still works.'); return null; }
+  if (rec) return rec;
+  rec = new SR();
+  rec.lang = 'en-US'; rec.interimResults = true; rec.maxAlternatives = 4;
+  rec.onstart = () => { recOn = true; micUI(); };
+  rec.onend = () => { recOn = false; micUI(); if (recWant) setTimeout(() => { if (recWant) startRec(); }, 120); };
+  rec.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){ recWant = false; S.micLock = false; notice('Microphone blocked. Allow mic access for this site, then press Space.'); }
+    else if (e.error === 'network'){ notice('Speech service unreachable (browser speech uses an online engine). Typed + tap input still works.'); }
+  };
+  rec.onresult = onRec;
+  return rec;
+}
+function startRec(){
+  const r = ensureRec(); if (!r) return;
+  r.continuous = recMode === 'montage' || S.micLock;
+  try{ r.start(); }catch(e){}
+}
+function stopRec(){ recWant = false; try{ rec && rec.stop(); }catch(e){} }
+function toggleListen(){
+  if (recOn || recWant){ stopRec(); return; }
+  notice('');
+  recWant = recMode === 'montage' || S.micLock;
+  voiceSt.key = -1; voiceSt.len = 0;
+  startRec();
+}
+function onRec(e){
+  const i = e.results.length - 1, res = e.results[i];
+  if (recMode === 'montage'){ montageVoice(res[0].transcript, i, res.isFinal); return; }
+  const tx = res[0].transcript;
+  $('#transcript').innerHTML = res.isFinal ? `<b>${esc(tx)}</b>` : esc(tx) + '…';
+  if (!res.isFinal) return;
+  for (let k = 0; k < res.length; k++){ if (handleUtterance(res[k].transcript, 'voice')) return; }
+  $('#transcript').innerHTML = `<b>${esc(tx)}</b> <span class="bad">· didn't catch a hand — try "16 vs 10"</span>`;
+}
+function micUI(){
+  const live = recOn;
+  $('#micBtn').classList.toggle('live', live && recMode === 'call');
+  $('#micState').textContent = live && recMode === 'call' ? (S.micLock ? 'MIC LOCKED · CALL HANDS' : 'LISTENING…') : 'PRESS SPACE · CALL THE HAND';
+  $('#lockBtn').classList.toggle('on', S.micLock);
+  $('#micFoot').innerHTML = (live && recMode === 'montage') ? '<span class="good">● MIC LIVE</span> · say the action' : 'MIC OFF · <kbd>SPACE</kbd>';
+}
+
+/* =====================================================================
+   CALL VIEW
+   ===================================================================== */
+const $ = q => document.querySelector(q);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const callHist = [];
+let lastCall = null;
+
+function handleUtterance(text, src){
+  const norm = normalize(text);
+  const { cmds, rest } = extractCount(norm);
+  cmds.forEach(applyCount);
+  if (cmds.length){ renderCount(); saveSettings(); }
+  const parsed = rest ? parseHand(rest) : null;
+  if (parsed){ callHand(parsed.hand, parsed.u, src); return true; }
+  if (cmds.length){
+    $('#transcript').innerHTML = `<b>${esc(text)}</b> · <span class="good">${countSummary()}</span>`;
+    say(`True count ${Math.floor(tcRaw() + 1e-9)}`);
+    if (lastCall) callHand(lastCall.hand, lastCall.u, 'recount', true);
+    return true;
+  }
+  return false;
+}
+
+function callHand(hand, u, src, quiet){
+  const d = decide(hand, u, tcRaw(), S.rules);
+  const et = evTable(hand, u, d.tc, S.rules);
+  lastCall = { hand, u };
+  $('#cCards').innerHTML = cardsFor(hand).map(c => cardHTML(c)).join('') + '<span class="dim" style="font-weight:800;margin:0 4px">vs</span>' + cardHTML(u, true);
+  $('#cHand').innerHTML = `${handLabel(hand)}<span class="vs">v</span>${upL(u)}`;
+  const b = $('#cBadge');
+  b.className = 'badge ' + d.action; b.textContent = NAME[d.action];
+  void b.offsetWidth; b.classList.add('flash');
+  $('#cReason').textContent = reasonLine(hand, u, d, et);
+  $('#cEV').innerHTML = et ? evLineHTML(et, d) + `<span>dealer bust ${pct(et.bust)}</span>` : '';
+  const dv = $('#cDev');
+  if (d.dev || d.note){
+    let h = '';
+    if (d.dev){
+      h = `<span class="tag">${d.dev.set}${d.devOn ? ' · DEVIATION ON' : ''}</span>${devText(d.dev)} · now TC ${sgn(d.tc)}${d.devOn ? '' : ' → basic ' + NAME[d.action]}`;
+    }
+    if (d.note) h += (h ? '<br>' : '') + `<span class="tag">LS</span>${d.note}`;
+    dv.innerHTML = h; dv.className = 'devline' + (d.devOn ? ' on' : '');
+  } else dv.className = 'devline hidden';
+  const ins = $('#cIns');
+  if (d.ins){
+    const evIns = et ? (3 * et.p10 - 1) : 0;
+    ins.className = 'insline' + (d.ins.take ? ' take' : '');
+    ins.textContent = `${hand.type === 'bj' ? 'EVEN MONEY' : 'INSURANCE'}: ${d.ins.take ? 'TAKE IT' : 'DECLINE'} · index TC ≥ +3 · now ${sgn(d.tc)} · ins EV ${evf(evIns)}`;
+  } else ins.className = 'insline hidden';
+
+  if (!quiet){
+    let line = NAME[d.action].toLowerCase();
+    if (d.action === 'BJ') line = 'blackjack';
+    if (d.devOn) line += '. index play';
+    if (d.ins && d.ins.take) line += '. take insurance';
+    say(line);
+  }
+  if (src !== 'recount'){
+    callHist.unshift({ hand, u, d, tc:d.tc });
+    if (callHist.length > 8) callHist.pop();
+  } else if (callHist[0]) callHist[0] = { hand, u, d, tc:d.tc };
+  $('#history').innerHTML = callHist.map(x => `<div class="hrow"><span class="a ${x.d.action}">${NAME[x.d.action]}</span><span>${handLabel(x.hand)} v ${upL(x.u)}</span><span>TC ${sgn(x.tc)}</span>${x.d.devOn ? '<span style="color:var(--accent)">INDEX</span>' : ''}</div>`).join('');
+}
+
+// quick-input pad
+const Q = { type:'hard', val:null, u:null };
+function renderPad(){
+  document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('on', b.dataset.type === Q.type));
+  let items = [];
+  if (Q.type === 'hard') for (let t = 5; t <= 20; t++) items.push([t, String(t)]);
+  if (Q.type === 'soft') for (let x = 2; x <= 9; x++) items.push([x, 'A,' + x]);
+  if (Q.type === 'pair') [2,3,4,5,6,7,8,9,10,A].forEach(k => items.push([k, rankL(k) + rankL(k)]));
+  $('#kgrid').innerHTML = items.map(([v, l]) => `<button data-v="${v}" class="${Q.val === v ? 'on' : ''}">${l}</button>`).join('');
+  $('#dgrid').innerHTML = [2,3,4,5,6,7,8,9,10,A].map(u => `<button data-u="${u}" class="${Q.u === u ? 'on' : ''}">${upL(u)}</button>`).join('');
+}
+function padCall(){
+  if (Q.val === null || Q.u === null) return;
+  let hand;
+  if (Q.type === 'hard') hand = { type:'hard', total:Q.val };
+  else if (Q.type === 'soft') hand = { type:'soft', total: 11 + Q.val, cards:[A, Q.val] };
+  else hand = { type:'pair', rank:Q.val, total: Q.val === A ? 12 : Q.val * 2 };
+  $('#transcript').innerHTML = `<b>tap</b> · ${handLabel(hand)} v ${upL(Q.u)}`;
+  callHand(hand, Q.u, 'tap');
+}
+
+/* =====================================================================
+   MONTAGE
+   ===================================================================== */
+const CATS = { soft:'SOFT', pair:'SPLITS', stiff:'STIFFS', dev:'DEVIATION', dbl:'DOUBLES', ins:'INSURANCE' };
+const M = { state:'idle', mode:'mixed', len:25, voice:false, queue:null, scen:null, i:0, t0:0, clock:4200, raf:0,
+  streak:0, bestStreak:0, score:0, recs:[], locked:false, sid:0 };
+const life = store.get('sc21.life', { reps:0, correct:0, msSum:0, best:0, bestStreak:0, rounds:0, spots:{} });
+
+function weighted(pairs){ const tot = pairs.reduce((s, p) => s + p[1], 0); let r = Math.random() * tot; for (const [v, w] of pairs){ if ((r -= w) <= 0) return v; } return pairs[pairs.length - 1][0]; }
+const UPS = [2,3,4,5,6,7,8,9,10,10,10,10,A];
+function usableDevs(){
+  const r = S.rules;
+  const list = DEVS.filter(d => !(d.s17 && r.h17) && (d.ls ? r.ls : true) && !(d.noLS && r.ls));
+  return [...list, ...PAIR_DEVS, { id:'INS' }];
+}
+function scenFrom(hand, u, tc, cat){ return { hand, u, tc, cat, ins: cat === 'ins', cards: cardsFor(hand) }; }
+function nearTC(idx){ return idx + pick([-2, -1, -1, 0, 0, 1, 1, 2]); }
+function genScenario(mode){
+  const cat = mode === 'mixed' ? weighted([['soft',22],['pair',22],['stiff',20],['dev',26],['dbl',6],['ins',4]]) : mode;
+  const tcAmb = () => rint(-2, 2);
+  // adaptive: pull from all-time leaks sometimes
+  if (mode === 'mixed' && Math.random() < 0.22){ const w = weakSpots(8); if (w.length){ const s = pick(w); const sc = spotToScen(s.key); if (sc) return sc; } }
+  if (cat === 'soft'){
+    const x = weighted([[2,1],[3,1],[4,1.2],[5,1.2],[6,1.6],[7,3],[8,1.3],[9,.4]]);
+    const u = x === 7 ? pick([2,3,4,5,6,7,8,9,10,A]) : x <= 6 ? pick([2,3,4,5,6,7]) : pick([4,5,6,7]);
+    return scenFrom({ type:'soft', total:11 + x, cards:[A, x] }, u, tcAmb(), 'soft');
+  }
+  if (cat === 'pair'){
+    const k = weighted([[2,2],[3,2],[4,1.6],[6,2],[7,2],[9,2.4],[8,1],[A,.6],[10,.5],[5,.6]]);
+    return scenFrom({ type:'pair', rank:k, total: k === A ? 12 : k * 2 }, pick([2,3,4,5,6,7,8,9,10,A]), tcAmb(), 'pair');
+  }
+  if (cat === 'stiff'){
+    const t = rint(12, 16);
+    const u = (t === 12 && Math.random() < .3) ? pick([2,3]) : pick([7,8,9,10,10,10,A]);
+    return scenFrom({ type:'hard', total:t }, u, tcAmb(), 'stiff');
+  }
+  if (cat === 'dbl'){
+    const t = rint(8, 11);
+    return scenFrom({ type:'hard', total:t }, pick(UPS), tcAmb(), 'dbl');
+  }
+  if (cat === 'ins'){
+    const t = rint(9, 19);
+    return scenFrom({ type:'hard', total:t }, A, INS_IDX + pick([-3,-2,-1,0,0,1,2]), 'ins');
+  }
+  // dev
+  const d = pick(usableDevs());
+  if (d.id === 'INS') return scenFrom({ type:'hard', total: rint(9, 19) }, A, nearTC(INS_IDX), 'ins');
+  if (d.k) return scenFrom({ type:'pair', rank:10, total:20 }, d.u, nearTC(d.idx), 'dev');
+  return scenFrom({ type:'hard', total:d.t }, d.u, nearTC(d.idx), 'dev');
+}
+function spotKey(sc){ return `${sc.ins ? 'INS' : handKey(sc.hand)}v${upL(sc.u)}`; }
+function spotToScen(key){
+  const m = key.match(/^(INS|P[2-9TA]|S\d+|H\d+)v([2-9]|10|A)$/); if (!m) return null;
+  const u = m[2] === 'A' ? A : +m[2];
+  const devFor = (t) => DEVS.find(d => d.t === t && d.u === u && usableDevs().includes(d));
+  if (m[1] === 'INS') return scenFrom({ type:'hard', total: rint(9, 19) }, A, nearTC(INS_IDX), 'ins');
+  if (m[1][0] === 'P'){ const c = m[1][1]; const k = c === 'A' ? A : c === 'T' ? 10 : +c; const pd = PAIR_DEVS.find(d => d.k === k && d.u === u);
+    return scenFrom({ type:'pair', rank:k, total: k === A ? 12 : k * 2 }, u, pd ? nearTC(pd.idx) : rint(-2, 2), pd ? 'dev' : 'pair'); }
+  const t = +m[1].slice(1);
+  if (m[1][0] === 'S') return t >= 13 && t <= 20 ? scenFrom({ type:'soft', total:t, cards:[A, t - 11] }, u, rint(-2, 2), 'soft') : null;
+  const dv = devFor(t);
+  return scenFrom({ type:'hard', total:t }, u, dv ? nearTC(dv.idx) : rint(-2, 2), dv ? 'dev' : (t <= 11 ? 'dbl' : 'stiff'));
+}
+function weakSpots(n){
+  return Object.entries(life.spots).map(([key, s]) => ({ key, ...s, score: (s.miss / s.n) * 2 + (s.ms / s.n) / 3000 + (s.leak || 0) * 3 }))
+    .filter(s => s.n >= 1 && (s.miss > 0 || s.ms / s.n > 2200)).sort((a, b) => b.score - a.score).slice(0, n);
+}
+
+function correctFor(sc){
+  if (sc.ins) return { act: sc.tc >= INS_IDX ? 'I' : 'N', d:null };
+  const d = decide(sc.hand, sc.u, sc.tc, S.rules); return { act:d.action, d };
+}
+function legalActs(sc){ if (sc.ins) return ['I','N']; const a = ['H','S','D']; if (sc.hand.type === 'pair') a.push('P'); if (S.rules.ls) a.push('R'); return a; }
+
+function startMontage(queue){
+  M.queue = queue || null;
+  M.len = queue ? queue.length : M.len;
+  Object.assign(M, { state:'run', i:0, streak:0, bestStreak:0, score:0, recs:[], locked:false });
+  showMontage('run');
+  recMode = 'montage';
+  if (M.voice){ recWant = true; voiceSt.key = -1; voiceSt.len = 0; startRec(); }
+  nextRep();
+}
+function clockFor(streak){ return Math.max(1100, 4200 - streak * 140); }
+function nextRep(){
+  if (M.state !== 'run') return;
+  if (M.i >= M.len) return finishMontage();
+  const sc = M.queue ? M.queue[M.i] : genScenario(M.mode);
+  M.scen = sc; M.locked = false; M.sid++;
+  $('#mDealer').innerHTML = cardHTML(sc.u, true) + '<div class="card" style="background:repeating-linear-gradient(45deg,#7a1020 0 6px,#5a0a16 6px 12px)"></div>';
+  $('#mPlayer').innerHTML = sc.cards.map(c => cardHTML(c)).join('');
+  $('#mTot').textContent = sc.ins ? '' : handLabel(sc.hand);
+  const tp = $('#mTC'); tp.querySelector('span').textContent = (sc.tc >= 0 ? '+' : '−') + Math.abs(sc.tc);
+  tp.classList.toggle('hot', sc.cat === 'dev' || sc.ins);
+  $('#insPrompt').classList.toggle('hidden', !sc.ins);
+  const fb = $('#fb'); fb.className = 'fb';
+  renderActBar(sc);
+  M.clock = clockFor(M.streak);
+  $('#clockTxt').textContent = `SHOT CLOCK ${(M.clock / 1000).toFixed(1)}s`;
+  $('#tempoTxt').textContent = `TEMPO ${1 + Math.floor(M.streak / 5)}`;
+  renderRunStats();
+  M.t0 = performance.now();
+  cancelAnimationFrame(M.raf);
+  const bar = $('#clockBar');
+  const tick = () => {
+    if (M.state !== 'run' || M.locked) return;
+    const left = 1 - (performance.now() - M.t0) / M.clock;
+    bar.style.transform = `scaleX(${Math.max(0, left)})`;
+    bar.style.background = left > .5 ? 'var(--good)' : left > .25 ? 'var(--double)' : 'var(--bad)';
+    if (left <= 0) return resolveRep(null);
+    M.raf = requestAnimationFrame(tick);
+  };
+  M.raf = requestAnimationFrame(tick);
+}
+function renderActBar(sc){
+  const ab = $('#actbar');
+  if (sc.ins){ ab.className = 'actbar ins'; ab.innerHTML = `<button class="I" data-act="I">TAKE INS<small>I</small></button><button class="N" data-act="N">DECLINE<small>N</small></button>`; return; }
+  ab.className = 'actbar';
+  const legal = legalActs(sc);
+  ab.innerHTML = ['H','S','D','P','R'].map(a => `<button class="${a}" data-act="${a}" ${legal.includes(a) ? '' : 'disabled'}>${NAME[a].slice(0, a === 'R' ? 3 : 6)}${a === 'R' ? '.' : ''}<small>${a}</small></button>`).join('');
+}
+function evLeak(sc, chosen, correct){
+  if (sc.ins){ const p = probs(sc.tc)[10]; return Math.abs(0.5 * (3 * p - 1)); }
+  const et = evTable(sc.hand, sc.u, sc.tc, S.rules); const ev = et.ev;
+  const legal = legalActs(sc);
+  const ce = ev[correct];
+  let chEV = legal.includes(chosen) ? ev[chosen] : Math.min(...legal.map(a => ev[a]));
+  if (chosen === null) chEV = Math.min(...legal.map(a => ev[a]));
+  return Math.max(0, ce - chEV);
+}
+function resolveRep(act){
+  if (M.locked || M.state !== 'run') return;
+  const sc = M.scen;
+  if (act && !sc.ins && !'HSDPR'.includes(act)) return;
+  if (act && sc.ins && !'IN'.includes(act)) return;
+  M.locked = true; cancelAnimationFrame(M.raf);
+  const ms = Math.round(performance.now() - M.t0);
+  const { act:correct, d } = correctFor(sc);
+  const ok = act === correct;
+  const leak = ok ? 0 : evLeak(sc, act, correct);
+  if (ok){
+    M.streak++; M.bestStreak = Math.max(M.bestStreak, M.streak);
+    const mult = Math.min(8, 1 + Math.floor(M.streak / 5));
+    M.score += Math.round((100 + Math.max(0, M.clock - ms) / 8) * mult);
+  } else M.streak = 0;
+  M.recs.push({ sc, act, correct, ok, ms, timeout: act === null, leak, d });
+  M.i++;
+  // lifetime
+  const k = spotKey(sc); const sp = life.spots[k] || (life.spots[k] = { n:0, miss:0, ms:0, leak:0 });
+  sp.n++; sp.ms += Math.min(ms, 6000); if (!ok){ sp.miss++; sp.leak = Math.max(sp.leak || 0, leak); } else if (sp.miss > 0 && Math.random() < .25) sp.miss--;
+  life.reps++; if (ok) life.correct++; life.msSum += Math.min(ms, 6000);
+  // feedback
+  const fb = $('#fb'), felt = $('#felt');
+  $('#rLast').innerHTML = act === null ? '<span class="bad">TIME</span>' : `<span class="${ok ? 'good' : 'bad'}">${ms}</span>`;
+  renderRunStats();
+  felt.classList.remove('flashok', 'flashbad', 'shake'); void felt.offsetWidth;
+  if (ok){
+    felt.classList.add('flashok');
+    fb.className = 'fb show ok';
+    fb.innerHTML = `<div class="big good">${NAME[correct]}</div><div class="ms">${ms} ms${d && d.devOn ? ' · <span style="color:var(--accent)">INDEX ✓</span>' : ''}</div>`;
+    setTimeout(nextRep, Math.max(140, 420 - M.streak * 14));
+  } else {
+    felt.classList.add('flashbad', 'shake');
+    const et = sc.ins ? null : evTable(sc.hand, sc.u, sc.tc, S.rules);
+    const why = sc.ins
+      ? `Insurance pays at TC ≥ +3 only. Now ${sgn(sc.tc)}.`
+      : reasonLine(sc.hand, sc.u, d, et);
+    const dv = d && d.dev ? `${d.dev.set}: ${devText(d.dev)} · TC ${sgn(sc.tc)}` : (d && d.note ? d.note : '');
+    fb.className = 'fb show';
+    fb.innerHTML = `<div class="ms bad">${act === null ? 'SHOT CLOCK' : 'YOU: ' + NAME[act]} · −${(leak * 100).toFixed(1)}% EV</div><div class="badge ${correct}">${NAME[correct]}</div><div class="why">${esc(why)}</div>${dv ? `<div class="dev">${esc(dv)}</div>` : ''}`;
+    if (!recOn) say(NAME[correct].toLowerCase()); // don't let TTS bleed into a live mic
+    setTimeout(nextRep, 1500);
+  }
+}
+function renderRunStats(){
+  const n = M.recs.length, c = M.recs.filter(r => r.ok).length;
+  $('#rRep').textContent = `${Math.min(M.i + (M.locked ? 0 : 1), M.len)}/${M.len}`;
+  const mult = Math.min(8, 1 + Math.floor(M.streak / 5));
+  $('#rStreak').innerHTML = `${M.streak} <span class="mult">×${mult}</span>`;
+  $('#rScore').textContent = M.score.toLocaleString();
+  $('#rAcc').textContent = n ? Math.round(c / n * 100) + '%' : '—';
+}
+function abortMontage(){
+  M.state = 'idle'; cancelAnimationFrame(M.raf); endMontageMic(); showMontage('setup');
+}
+function endMontageMic(){ if (recMode === 'montage'){ stopRec(); recMode = 'call'; micUI(); } }
+
+function finishMontage(){
+  M.state = 'results'; endMontageMic();
+  const R = M.recs, n = R.length, c = R.filter(r => r.ok).length;
+  const acc = n ? c / n : 0;
+  const okMs = R.filter(r => r.ok).map(r => r.ms);
+  const avg = okMs.length ? Math.round(okMs.reduce((a, b) => a + b, 0) / okMs.length) : 0;
+  const leakSum = R.reduce((s, r) => s + r.leak, 0);
+  const grade = acc >= .96 && avg < 1300 ? 'S' : acc >= .9 ? 'A' : acc >= .8 ? 'B' : acc >= .7 ? 'C' : 'D';
+  life.rounds++; life.best = Math.max(life.best, M.score); life.bestStreak = Math.max(life.bestStreak, M.bestStreak);
+  store.set('sc21.life', life);
+
+  const lbl = r => `${r.sc.ins ? 'INS' : handLabel(r.sc.hand)} v ${upL(r.sc.u)} <span class="dim">TC ${sgn(r.sc.tc)}</span>`;
+  const slow = [...R].filter(r => !r.timeout).sort((a, b) => b.ms - a.ms).slice(0, 5);
+  const leaks = [...R].filter(r => !r.ok).sort((a, b) => b.leak - a.leak).slice(0, 6);
+  const cats = {};
+  R.forEach(r => { const k = r.sc.cat; const o = cats[k] || (cats[k] = { n:0, c:0, ms:0 }); o.n++; if (r.ok) o.c++; o.ms += r.timeout ? M.clock : r.ms; });
+
+  $('#mRes').innerHTML = `
+  <div class="res">
+    <div class="panel">
+      <div class="ptitle">ROUND BREAKDOWN <span>${CATS[M.mode] || 'MIXED'} · ${n} REPS</span></div>
+      <div style="display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap">
+        <div class="grade">${grade}</div>
+        <div><div class="hero" style="font-size:48px">${M.score.toLocaleString()}</div><div class="dim mono" style="font-size:12px">${M.score >= life.best ? 'NEW BEST' : 'BEST ' + life.best.toLocaleString()}</div></div>
+      </div>
+      <div class="rstats">
+        <div class="stat"><div class="k">ACCURACY</div><div class="v ${acc >= .9 ? 'good' : acc < .75 ? 'bad' : ''}">${Math.round(acc * 100)}%</div></div>
+        <div class="stat"><div class="k">AVG REACTION</div><div class="v">${avg || '—'}<span class="dim" style="font-size:13px">ms</span></div></div>
+        <div class="stat"><div class="k">BEST STREAK</div><div class="v">${M.bestStreak}</div></div>
+        <div class="stat"><div class="k">TIMEOUTS</div><div class="v ${R.some(r => r.timeout) ? 'bad' : ''}">${R.filter(r => r.timeout).length}</div></div>
+        <div class="stat"><div class="k">EV LEAKED</div><div class="v ${leakSum > 0 ? 'bad' : 'good'}">${(leakSum * 100).toFixed(1)}%</div></div>
+        <div class="stat"><div class="k">PER 100 HANDS</div><div class="v">${n ? '−' + (leakSum / n * 100).toFixed(2) : '0'}<span class="dim" style="font-size:13px">u</span></div></div>
+      </div>
+      <div class="sublab" style="margin-top:18px">BY CATEGORY</div>
+      ${Object.entries(cats).map(([k, o]) => { const a = o.c / o.n; return `<div class="catbar"><span>${CATS[k]}</span><span class="bar"><i style="width:${a * 100}%;background:${a >= .9 ? 'var(--good)' : a >= .75 ? 'var(--double)' : 'var(--bad)'}"></i></span><span>${o.c}/${o.n}</span><span class="dim">${Math.round(o.ms / o.n)}ms</span></div>`; }).join('')}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <button class="bigbtn" id="drillBtn" ${leaks.length || slow.length ? '' : 'disabled'}>DRILL WEAK SPOTS <kbd>W</kbd></button>
+        <button class="ghost" id="againBtn">AGAIN <kbd>ENTER</kbd></button>
+        <button class="ghost" id="backBtn">SETUP <kbd>ESC</kbd></button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">BIGGEST EV LEAKS</div>
+      ${leaks.length ? `<table class="tbl"><tr><th>SPOT</th><th>YOU</th><th>CALL</th><th class="r">COST</th></tr>${leaks.map(r => `<tr><td>${lbl(r)}</td><td class="bad">${r.act ? NAME[r.act] : 'TIMEOUT'}</td><td><span class="a ${r.correct}" style="padding:1px 6px;border-radius:4px;color:#000;font-weight:800">${NAME[r.correct]}</span>${r.d && r.d.devOn ? ' <span style="color:var(--accent)">IDX</span>' : ''}</td><td class="r bad">−${(r.leak * 100).toFixed(1)}%</td></tr>`).join('')}</table>` : '<div class="good mono" style="font-size:13px">Zero leaks. Clean round.</div>'}
+      <div class="ptitle" style="margin-top:20px">SLOWEST DECISIONS</div>
+      <table class="tbl"><tr><th>SPOT</th><th>CALL</th><th class="r">MS</th></tr>${slow.map(r => `<tr><td>${lbl(r)}</td><td>${NAME[r.correct]} ${r.ok ? '<span class="good">✓</span>' : '<span class="bad">✗</span>'}</td><td class="r ${r.ms > 2500 ? 'bad' : ''}">${r.ms}</td></tr>`).join('')}</table>
+    </div>
+  </div>`;
+  showMontage('res');
+  $('#drillBtn').onclick = drillWeak;
+  $('#againBtn').onclick = () => startMontage();
+  $('#backBtn').onclick = () => showMontage('setup');
+}
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function noRepeats(q){ for (let i = 1; i < q.length; i++){ if (spotKey(q[i]) === spotKey(q[i - 1])){ const j = q.findIndex((x, k) => k > i && spotKey(x) !== spotKey(q[i - 1])); if (j > 0) [q[i], q[j]] = [q[j], q[i]]; } } return q; }
+function drillWeak(){
+  const R = M.recs;
+  const miss = R.filter(r => !r.ok), slow = [...R].filter(r => r.ok).sort((a, b) => b.ms - a.ms).slice(0, Math.max(3, Math.round(R.length * .2)));
+  const fresh = r => { const s = spotToScen(spotKey(r.sc)); return s || scenFrom(r.sc.hand, r.sc.u, r.sc.tc, r.sc.cat); };
+  let q = [];
+  miss.forEach(r => { q.push(scenFrom(r.sc.hand, r.sc.u, r.sc.tc, r.sc.cat)); q.push(fresh(r)); q.push(fresh(r)); });
+  slow.forEach(r => q.push(fresh(r)));
+  const weakCats = [...new Set(miss.map(r => r.sc.cat))];
+  const target = Math.min(30, Math.max(15, q.length + 5));
+  while (q.length < target) q.push(genScenario(weakCats.length ? pick(weakCats) : 'mixed'));
+  startMontage(noRepeats(shuffle(q)).slice(0, 40));
+}
+function drillLifetime(){
+  const w = weakSpots(12); if (!w.length) return;
+  let q = []; w.forEach(s => { for (let i = 0; i < 2; i++){ const sc = spotToScen(s.key); if (sc) q.push(sc); } });
+  while (q.length < 20) q.push(genScenario('mixed'));
+  startMontage(noRepeats(shuffle(q)).slice(0, 30));
+}
+function renderLife(){
+  const acc = life.reps ? Math.round(life.correct / life.reps * 100) + '%' : '—';
+  const avg = life.reps ? Math.round(life.msSum / life.reps) + 'ms' : '—';
+  $('#life').innerHTML = `<span>Rounds</span><b>${life.rounds}</b><span>Total reps</span><b>${life.reps}</b><span>Lifetime accuracy</span><b>${acc}</b><span>Avg reaction</span><b>${avg}</b><span>Best score</span><b>${life.best.toLocaleString()}</b><span>Best streak</span><b>${life.bestStreak}</b><span>Rules</span><b>${S.rules.h17 ? 'H17' : 'S17'} · ${S.rules.ls ? 'LS' : 'no LS'} · DAS</b>`;
+  const w = weakSpots(6);
+  $('#lifeLeaks').innerHTML = w.length
+    ? `<tr><th>SPOT</th><th class="r">MISS</th><th class="r">AVG MS</th></tr>` + w.map(s => `<tr><td>${esc(s.key.replace('v', ' v ').replace(/^H/, 'HARD ').replace(/^S(\d)/, 'SOFT $1').replace(/^P(.)/, 'PAIR $1'))}</td><td class="r bad">${s.miss}/${s.n}</td><td class="r">${Math.round(s.ms / s.n)}</td></tr>`).join('')
+    : '<tr><td class="dim">No leaks on file yet. Run a round.</td></tr>';
+  $('#lifeDrillBtn').classList.toggle('hidden', !w.length);
+}
+function showMontage(which){
+  $('#mSetup').classList.toggle('hidden', which !== 'setup');
+  $('#mRun').classList.toggle('hidden', which !== 'run');
+  $('#mRes').classList.toggle('hidden', which !== 'res');
+  $('#hud').classList.add('hidden'); // montage scenarios carry their own TC
+  if (which === 'setup'){ M.state = 'idle'; renderLife(); }
+}
+const VOICE_ACTS = [
+  [/\b(hit|hits|hint|heat|hip)\b/, 'H'], [/\b(stand|stay|stands|stan|stamp|standing)\b/, 'S'], [/\b(double|dub|double down)\b/, 'D'],
+  [/\b(split|splits|spit)\b/, 'P'], [/\b(surrender|give up|surrendering)\b/, 'R'], [/\b(insurance|insure|take it|yes)\b/, 'I'], [/\b(no|decline|pass|nope|no insurance)\b/, 'N'],
+];
+function montageVoice(text, idx, isFinal){
+  let fresh = text;
+  if (voiceSt.key === idx) fresh = text.slice(voiceSt.len); else { voiceSt.key = idx; voiceSt.len = 0; }
+  const low = fresh.toLowerCase();
+  if (M.state !== 'run' || M.locked){ voiceSt.len = text.length; return; }
+  let found = null, at = Infinity;
+  for (const [re, a] of VOICE_ACTS){ const m = low.match(re); if (m && m.index < at){ at = m.index; found = a; } }
+  if (found){
+    if (M.scen.ins && found === 'S') found = 'N';
+    voiceSt.len = text.length;
+    resolveRep(found);
+  }
+}
+
+/* =====================================================================
+   WIRING
+   ===================================================================== */
+function setTab(t){
+  if (M.state === 'run') return;
+  S.tab = t;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  $('#view-call').classList.toggle('hidden', t !== 'call');
+  $('#view-montage').classList.toggle('hidden', t !== 'montage');
+  $('#keysCall').classList.toggle('hidden', t !== 'call');
+  if (t === 'montage'){ if (recOn) stopRec(); S.micLock = false; showMontage(M.state === 'results' ? 'res' : 'setup'); }
+  else { $('#hud').classList.remove('hidden'); recMode = 'call'; }
+  micUI();
+}
+function renderRules(){
+  document.querySelectorAll('[data-rule]').forEach(b => b.classList.toggle('on', !!S.rules[b.dataset.rule]));
+  document.querySelectorAll('[data-shoe]').forEach(b => b.classList.toggle('on', +b.dataset.shoe === S.shoe));
+  $('#voiceOutBtn').classList.toggle('on', S.voiceOut);
+}
+function bindChips(sel, fn){ document.querySelectorAll(sel + ' .chip').forEach(b => b.onclick = () => { document.querySelectorAll(sel + ' .chip').forEach(x => x.classList.remove('on')); b.classList.add('on'); fn(b); }); }
+
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+$('#voiceOutBtn').onclick = () => { S.voiceOut = !S.voiceOut; renderRules(); saveSettings(); if (S.voiceOut) say('voice on'); };
+$('#rulesBtn').onclick = () => { $('#rules').classList.toggle('open'); $('#rulesBtn').classList.toggle('on'); };
+document.querySelectorAll('[data-rule]').forEach(b => b.onclick = () => { S.rules[b.dataset.rule] = !S.rules[b.dataset.rule]; renderRules(); saveSettings(); if (lastCall) callHand(lastCall.hand, lastCall.u, 'recount', true); renderLife(); });
+document.querySelectorAll('[data-shoe]').forEach(b => b.onclick = () => { S.shoe = +b.dataset.shoe; S.decks = Math.min(S.decks, S.shoe); if (S.rc === 0) S.decks = S.shoe; renderRules(); renderCount(); saveSettings(); });
+document.querySelectorAll('[data-rc]').forEach(b => b.onclick = () => bumpRC(+b.dataset.rc));
+document.querySelectorAll('[data-dk]').forEach(b => b.onclick = () => bumpDecks(+b.dataset.dk));
+$('#resetBtn').onclick = () => { applyCount({ reset:true }); renderCount(); recall(); };
+$('#micBtn').onclick = toggleListen;
+$('#lockBtn').onclick = toggleLock;
+$('#seg').onclick = e => { const b = e.target.closest('button'); if (!b) return; Q.type = b.dataset.type; Q.val = null; renderPad(); };
+$('#kgrid').onclick = e => { const b = e.target.closest('button'); if (!b) return; Q.val = +b.dataset.v; renderPad(); padCall(); };
+$('#dgrid').onclick = e => { const b = e.target.closest('button'); if (!b) return; Q.u = +b.dataset.u; renderPad(); padCall(); };
+$('#txtIn').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ const v = e.target.value.trim(); if (!v) return;
+    $('#transcript').innerHTML = `<b>${esc(v)}</b>`;
+    if (handleUtterance(v, 'typed')) e.target.value = '';
+    else $('#transcript').innerHTML = `<b>${esc(v)}</b> <span class="bad">· couldn't parse</span>`;
+  }
+  if (e.key === 'Escape') e.target.blur();
+});
+$('#actbar').onclick = e => { const b = e.target.closest('button'); if (b && !b.disabled) resolveRep(b.dataset.act); };
+bindChips('#optMode', b => M.mode = b.dataset.mode);
+bindChips('#optLen', b => M.len = +b.dataset.len);
+bindChips('#optVoice', b => M.voice = b.dataset.v === '1');
+$('#startBtn').onclick = () => { M.len = +document.querySelector('#optLen .chip.on').dataset.len; startMontage(); };
+$('#lifeDrillBtn').onclick = drillLifetime;
+
+function recall(){ if (lastCall) callHand(lastCall.hand, lastCall.u, 'recount', true); }
+function bumpRC(n){ S.rc += n; renderCount(); recall(); }
+function bumpDecks(n){ S.decks = Math.max(0.5, Math.min(8, S.decks + n)); renderCount(); recall(); }
+function toggleLock(){
+  S.micLock = !S.micLock;
+  if (S.micLock){ recWant = true; if (rec && recOn){ try{ rec.stop(); }catch(e){} } else startRec(); }
+  else { stopRec(); }
+  micUI();
+}
+
+document.addEventListener('keydown', e => {
+  const inText = e.target.tagName === 'INPUT';
+  if (inText) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === ' '){ e.preventDefault(); if (S.tab === 'montage' && M.state !== 'run'){ M.voice = !M.voice; document.querySelectorAll('#optVoice .chip').forEach(b => b.classList.toggle('on', (b.dataset.v === '1') === M.voice)); return; } toggleListen(); return; }
+  if (S.tab === 'montage'){
+    if (M.state === 'run'){
+      if (k === 'escape') return abortMontage();
+      if (k === 'y') return resolveRep('I');
+      const up = k.toUpperCase(); if ('HSDPRIN'.includes(up) && up.length === 1){ e.preventDefault(); resolveRep(up); }
+      return;
+    }
+    if (k === 'enter'){ e.preventDefault(); M.len = +document.querySelector('#optLen .chip.on').dataset.len; return startMontage(); }
+    if (k === 'w'){ if (M.state === 'results') return drillWeak(); return drillLifetime(); }
+    if (k === 'escape' && M.state === 'results') return showMontage('setup');
+  }
+  if (k === '1') return setTab('call');
+  if (k === '2') return setTab('montage');
+  if (k === 'v') return $('#voiceOutBtn').click();
+  if (S.tab !== 'call') return;
+  if (k === '/'){ e.preventDefault(); $('#txtIn').focus(); return; }
+  if (k === 'arrowup' || k === '=' || k === '+'){ e.preventDefault(); return bumpRC(1); }
+  if (k === 'arrowdown' || k === '-' || k === '_'){ e.preventDefault(); return bumpRC(-1); }
+  if (k === ']') return bumpDecks(0.5);
+  if (k === '[') return bumpDecks(-0.5);
+  if (k === '0'){ applyCount({ reset:true }); renderCount(); return recall(); }
+  if (k === 'l') return toggleLock();
+});
+
+renderRules(); renderCount(); renderPad(); renderLife(); micUI();
+if (!SR) notice('Voice input not supported in this browser (use Chrome, Edge or Safari). Typed + tap input still works.');
+window.__sc21 = { decide, evTable, normalize, extractCount, parseHand, handleUtterance, genScenario, S, M };
+</script>
+</body>
+</html>
