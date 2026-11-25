@@ -532,6 +532,7 @@ function decide(hand, u, tcRaw, rules){
       out.action = out.devOn ? 'P' : 'S';
       return out;
     }
+    if (k === 8 && u === A && rules.h17 && rules.ls && !hand.multi){ out.action = out.basic = 'R'; return out; }
     if (pairSplits(k, u)){ out.action = out.basic = 'P'; return out; }
     if (k === A){ t = 12; soft = true; } else t = k * 2;
   }
@@ -740,7 +741,7 @@ const SEPS = new Set(['vs','v','versus','verses','against','dealer','dealers','i
 
 function normalize(raw){
   let s = ' ' + raw.toLowerCase() + ' ';
-  s = s.replace(/[×]/g, ' ');
+  s = s.replace(/[×]/g, ' ').replace(/[’‘`]/g, "'").replace(/'/g, '');
   s = s.replace(/(^|\s)\+\s?(\d)/g, ' plus $2').replace(/(^|\s)[-−–]\s?(\d)/g, ' minus $2');
   s = s.replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(/[,!?;:"()]/g, ' ');
   s = s.replace(/[-–—\/]/g, ' ');
