@@ -202,6 +202,14 @@ header{position:sticky;top:0;z-index:20;background:rgba(5,6,10,.92);border-botto
 .notice{font-family:var(--mono);font-size:12px;color:var(--ins);border:1px solid #4a2a0d;background:#1a0f05;border-radius:8px;padding:8px 10px;margin-bottom:10px;display:none}
 .notice.show{display:block}
 .hidden{display:none!important}
+.notice b{color:var(--text)}
+.diag{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.8);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.diag.show{display:flex}
+.dbox{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:16px;max-width:520px;width:100%}
+.drow{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:16px}
+.drow .dim{font-size:13px;font-family:var(--mono);margin-top:2px}
+.meter{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;margin:6px 0}
+.meter i{display:block;height:100%;width:0;background:var(--good)}
 
 @media (max-width:860px){
   .grid2,.mset,.res{grid-template-columns:minmax(0,1fr)}
@@ -297,7 +305,10 @@ header{position:sticky;top:0;z-index:20;background:rgba(5,6,10,.92);border-botto
             <div class="micstate" id="micState">PRESS SPACE · CALL THE HAND</div>
             <div class="transcript" id="transcript">—</div>
           </div>
-          <button class="hbtn lockb" id="lockBtn" title="Keep mic open (L)"><span class="led"></span>LOCK</button>
+          <div class="lockb" style="display:flex;flex-direction:column;gap:6px">
+            <button class="hbtn" id="lockBtn" title="Keep mic open (L)"><span class="led"></span>LOCK</button>
+            <button class="hbtn" id="diagBtn" title="Mic check">MIC CHECK</button>
+          </div>
         </div>
 
         <div class="callout" id="callout">
@@ -316,7 +327,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(5,6,10,.92);border-botto
 
       <div class="panel">
         <div class="ptitle">QUICK INPUT <span><kbd>/</kbd> then <kbd>ENTER</kbd></span></div>
-        <input class="txtin" id="txtIn" autocomplete="off" spellcheck="false" placeholder="16v10 · a7 6 · 88 9 · s18v2 · tc 3">
+        <input class="txtin" id="txtIn" autocomplete="off" spellcheck="false" placeholder="type 16v10 — or tap ⌨🎙 and speak">
         <div class="seg" id="seg">
           <button data-type="hard" class="on">HARD</button>
           <button data-type="soft">SOFT</button>
@@ -399,6 +410,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(5,6,10,.92);border-botto
   </section>
 </main>
 
+<div class="diag" id="diag"><div class="dbox"><div class="ptitle">MIC CHECK</div><div id="diagBody"></div></div></div>
 <script>
 'use strict';
 /* =====================================================================
@@ -864,33 +876,105 @@ function say(text, force){
 
 /* =====================================================================
    SPEECH IN
+   Fresh recognizer per session (iOS won't reliably restart a reused one),
+   every error surfaced, watchdog for engines that never start, and the
+   keyboard-dictation fallback for phones where Web Speech is unavailable.
    ===================================================================== */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null, recOn = false, recWant = false, recMode = 'call';
+const UA = navigator.userAgent || '';
+const ENV = {
+  ios: /iPhone|iPad|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+  android: /Android/.test(UA),
+  standalone: (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true,
+  iosOtherBrowser: /CriOS|FxiOS|EdgiOS|OPiOS/.test(UA),
+  inApp: /FBAN|FBAV|Instagram|Line\/|Snapchat|TikTok|musical_ly|GSA\/|wv\)/.test(UA),
+  secure: window.isSecureContext !== false,
+  touch: matchMedia && matchMedia('(pointer: coarse)').matches,
+};
+let rec = null, recOn = false, recWant = false, recMode = 'call', recGotResult = false, recErr = null, recWatch = 0, recFails = 0;
 const voiceSt = { key:-1, len:0 };
-function notice(msg){ const n = $('#micNotice'); n.textContent = msg; n.classList.toggle('show', !!msg); }
-function ensureRec(){
-  if (!SR){ notice('Voice input not supported in this browser (use Chrome, Edge or Safari). Typed + tap input still works.'); return null; }
-  if (rec) return rec;
-  rec = new SR();
-  rec.lang = 'en-US'; rec.interimResults = true; rec.maxAlternatives = 4;
-  rec.onstart = () => { recOn = true; micUI(); };
-  rec.onend = () => { recOn = false; micUI(); if (recWant) setTimeout(() => { if (recWant) startRec(); }, 120); };
-  rec.onerror = e => {
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){ recWant = false; S.micLock = false; notice('Microphone blocked. Allow mic access for this site, then press Space.'); }
-    else if (e.error === 'network'){ notice('Speech service unreachable (browser speech uses an online engine). Typed + tap input still works.'); }
+function notice(msg, html){ const n = $('#micNotice'); if (html) n.innerHTML = msg; else n.textContent = msg; n.classList.toggle('show', !!msg); }
+
+// Why voice can't work here, before we even try. null = should work.
+function blocker(){
+  if (!ENV.secure) return 'This page must be opened over https:// for the mic to work.';
+  if (ENV.ios && ENV.standalone) return 'iPhone blocks speech recognition inside Home-Screen apps. Open this page in a normal <b>Safari</b> tab instead — or use the keyboard-mic backup below.';
+  if (ENV.ios && ENV.iosOtherBrowser) return 'On iPhone, only <b>Safari</b> allows speech recognition. Open this page in Safari — or use the keyboard-mic backup below.';
+  if (ENV.inApp) return 'In-app browsers (Facebook, Instagram, Google app…) block the mic. Open this link in <b>Safari</b> or <b>Chrome</b> — or use the keyboard-mic backup below.';
+  if (!SR) return 'This browser has no speech recognition (Firefox / some Samsung builds). Use <b>Chrome</b> or <b>Safari</b> — or the keyboard-mic backup below.';
+  return null;
+}
+const ERRMSG = {
+  'no-speech': 'Heard nothing. Tap the mic and start talking right away.',
+  'audio-capture': 'No microphone available — another app may be using it (calls, voice memos, Bluetooth). Close it and retry.',
+  'not-allowed': ENV.ios
+    ? 'Mic permission denied. iPhone: Settings → Safari → Microphone → Allow (or aA in the address bar → Website Settings → Microphone).'
+    : 'Mic permission denied. Tap the lock/settings icon left of the address → Permissions → Microphone → Allow, then reload.',
+  'service-not-allowed': ENV.ios
+    ? 'Speech is switched off on this iPhone. Settings → General → Keyboard → turn ON “Enable Dictation”, and Settings → Siri → turn Siri on. Then reload.'
+    : 'The browser refused the speech service. Make sure the Google app / Speech Services is installed and enabled, then reload.',
+  'network': 'Speech service unreachable — the browser\'s recognizer needs internet. Check WiFi/data.',
+  'language-not-supported': 'English speech isn\'t installed on this device. Add English (US) in your keyboard/dictation languages.',
+  'bad-grammar': 'Speech engine error. Tap the mic again.',
+};
+function fallbackHTML(msg){
+  return `<b>MIC:</b> ${msg}<br><button class="hbtn on" id="dictBtn" style="margin-top:8px">⌨🎙 USE KEYBOARD MIC</button> <button class="hbtn" id="diagBtn2" style="margin-top:8px">MIC CHECK</button>`;
+}
+function showFallback(msg){
+  notice(fallbackHTML(msg), true);
+  const d = $('#dictBtn'); if (d) d.onclick = startDictation;
+  const g = $('#diagBtn2'); if (g) g.onclick = openDiag;
+}
+function startDictation(){
+  const t = $('#txtIn'); setTab('call'); t.focus(); t.select();
+  $('#transcript').innerHTML = 'Tap the <b>🎙 on your keyboard</b> and say the hand — it calls automatically.';
+  t.scrollIntoView({ block:'center', behavior:'smooth' });
+}
+
+function makeRec(){
+  const r = new SR();
+  r.lang = 'en-US'; r.interimResults = true; r.maxAlternatives = 3;
+  r.continuous = !ENV.ios && (recMode === 'montage' || S.micLock); // iOS continuous mode is unreliable; we restart instead
+  r.onstart = () => { recOn = true; clearTimeout(recWatch); micUI(); if (recMode === 'call' && !S.micLock) $('#transcript').innerHTML = '<span class="good">● listening — say the hand</span>'; };
+  r.onresult = e => { recGotResult = true; recFails = 0; onRec(e); };
+  r.onerror = e => {
+    recErr = e.error;
+    if (e.error === 'aborted') return;
+    if (e.error === 'no-speech' && recWant) return; // locked/montage: just keep listening
+    if (['not-allowed','service-not-allowed','audio-capture','language-not-supported'].includes(e.error)){ recWant = false; S.micLock = false; showFallback(ERRMSG[e.error]); }
+    else if (recMode === 'call') $('#transcript').innerHTML = `<span class="bad">${esc(ERRMSG[e.error] || ('Speech error: ' + e.error))}</span>`;
+    if (e.error === 'network'){ recWant = false; showFallback(ERRMSG.network); }
   };
-  rec.onresult = onRec;
-  return rec;
+  r.onend = () => {
+    recOn = false; clearTimeout(recWatch); micUI();
+    if (rec === r) rec = null;
+    if (recWant){
+      if (!recGotResult && recErr && recErr !== 'no-speech' && ++recFails > 4){ recWant = false; showFallback('Speech engine keeps stopping on this device.'); return; }
+      setTimeout(() => { if (recWant && !recOn) startRec(); }, ENV.ios ? 250 : 120);
+    } else if (recMode === 'call' && !recGotResult && !recErr){
+      $('#transcript').innerHTML = '<span class="bad">Heard nothing. Tap the mic, then speak right away.</span>';
+    }
+  };
+  return r;
 }
 function startRec(){
-  const r = ensureRec(); if (!r) return;
-  r.continuous = recMode === 'montage' || S.micLock;
-  try{ r.start(); }catch(e){}
+  const b = blocker();
+  if (b){ recWant = false; S.micLock = false; micUI(); showFallback(b); return; }
+  if (rec){ try{ rec.abort(); }catch(e){} rec = null; }
+  recGotResult = false; recErr = null;
+  const r = rec = makeRec();
+  try{ r.start(); }
+  catch(e){ recWant = false; micUI(); showFallback('Speech engine failed to start (' + (e.name || e.message) + ').'); return; }
+  clearTimeout(recWatch);
+  recWatch = setTimeout(() => {
+    if (!recOn && rec === r){ try{ r.abort(); }catch(e){} recWant = false; S.micLock = false; micUI();
+      showFallback('Speech engine never started. Allow the microphone if prompted, or use the backup.'); }
+  }, 5000);
+  micUI(true);
 }
-function stopRec(){ recWant = false; try{ rec && rec.stop(); }catch(e){} }
+function stopRec(){ recWant = false; clearTimeout(recWatch); try{ rec && rec.stop(); }catch(e){} }
 function toggleListen(){
-  if (recOn || recWant){ stopRec(); return; }
+  if (recOn || recWant || rec){ stopRec(); return; }
   notice('');
   recWant = recMode === 'montage' || S.micLock;
   voiceSt.key = -1; voiceSt.len = 0;
@@ -905,12 +989,82 @@ function onRec(e){
   for (let k = 0; k < res.length; k++){ if (handleUtterance(res[k].transcript, 'voice')) return; }
   $('#transcript').innerHTML = `<b>${esc(tx)}</b> <span class="bad">· didn't catch a hand — try "16 vs 10"</span>`;
 }
-function micUI(){
-  const live = recOn;
+function micUI(starting){
+  const live = recOn || starting === true;
   $('#micBtn').classList.toggle('live', live && recMode === 'call');
-  $('#micState').textContent = live && recMode === 'call' ? (S.micLock ? 'MIC LOCKED · CALL HANDS' : 'LISTENING…') : 'PRESS SPACE · CALL THE HAND';
+  const idle = ENV.touch ? 'TAP MIC · SAY THE HAND' : 'PRESS SPACE · CALL THE HAND';
+  $('#micState').textContent = live && recMode === 'call' ? (S.micLock ? 'MIC LOCKED · CALL HANDS' : (recOn ? 'LISTENING…' : 'STARTING MIC…')) : idle;
   $('#lockBtn').classList.toggle('on', S.micLock);
-  $('#micFoot').innerHTML = (live && recMode === 'montage') ? '<span class="good">● MIC LIVE</span> · say the action' : 'MIC OFF · <kbd>SPACE</kbd>';
+  $('#micFoot').innerHTML = (recOn && recMode === 'montage') ? '<span class="good">● MIC LIVE</span> · say the action' : (ENV.touch ? 'MIC OFF' : 'MIC OFF · <kbd>SPACE</kbd>');
+}
+
+/* ---------- MIC CHECK (diagnostics) ---------- */
+function openDiag(){
+  const ov = $('#diag'); ov.classList.add('show');
+  const row = (ok, label, fix) => `<div class="drow"><span class="${ok === null ? 'dim' : ok ? 'good' : 'bad'}">${ok === null ? '…' : ok ? '✓' : '✗'}</span><div><b>${label}</b>${fix ? `<div class="dim">${fix}</div>` : ''}</div></div>`;
+  const b = blocker();
+  $('#diagBody').innerHTML =
+    row(ENV.secure, 'Secure page (https)') +
+    row(!!SR, 'Browser speech recognition', SR ? '' : 'Not available in this browser.') +
+    (ENV.ios ? row(!ENV.standalone, 'Opened in a Safari tab (not Home-Screen app)', ENV.standalone ? 'Open the link in Safari.' : '') : '') +
+    (ENV.ios ? row(!ENV.iosOtherBrowser, 'Using Safari on iPhone', ENV.iosOtherBrowser ? 'Chrome/Firefox on iPhone can\'t do speech. Use Safari.' : '') : '') +
+    row(!ENV.inApp, 'Not inside an in-app browser') +
+    `<div id="permRow">${row(null, 'Microphone permission')}</div>` +
+    `<div class="drow"><span>🎚</span><div><b>Mic level</b><div class="meter"><i id="meterBar"></i></div><div class="dim" id="meterTxt">Tap TEST MIC and talk.</div></div></div>` +
+    `<div class="drow"><span>🗣</span><div><b>Speech test</b><div class="dim" id="sttTxt">${b ? b : 'Tap TEST SPEECH and say “16 vs 10”.'}</div></div></div>` +
+    `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="hbtn on" id="tMic">TEST MIC</button><button class="hbtn on" id="tStt" ${b ? 'disabled' : ''}>TEST SPEECH</button><button class="hbtn on" id="tDict">USE KEYBOARD MIC</button><button class="hbtn" id="tClose">CLOSE</button></div>` +
+    `<div class="dim mono" style="font-size:10px;margin-top:10px;overflow-wrap:anywhere">${esc(UA)}</div>`;
+  if (navigator.permissions && navigator.permissions.query){
+    navigator.permissions.query({ name:'microphone' }).then(p => {
+      const st = p.state; $('#permRow').innerHTML = row(st === 'granted' ? true : st === 'denied' ? false : null, 'Microphone permission: ' + st, st === 'denied' ? ERRMSG['not-allowed'] : st === 'prompt' ? 'You\'ll be asked when you test.' : '');
+    }).catch(() => { $('#permRow').innerHTML = row(null, 'Microphone permission: unknown (will ask on test)'); });
+  } else $('#permRow').innerHTML = row(null, 'Microphone permission: will ask on test');
+  $('#tMic').onclick = testLevel;
+  $('#tStt').onclick = testSpeech;
+  $('#tDict').onclick = () => { closeDiag(); startDictation(); };
+  $('#tClose').onclick = closeDiag;
+}
+function closeDiag(){ $('#diag').classList.remove('show'); stopLevel(); }
+let lvl = null;
+function stopLevel(){ if (lvl){ try{ lvl.stream.getTracks().forEach(t => t.stop()); lvl.ctx.close(); }catch(e){} cancelAnimationFrame(lvl.raf); lvl = null; } }
+async function testLevel(){
+  stopLevel(); if (recOn) stopRec();
+  const txt = $('#meterTxt');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ txt.innerHTML = '<span class="bad">This browser can\'t access the mic at all.</span>'; return; }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    const ctx = new (window.AudioContext || window.webkitAudioContext)(); await ctx.resume();
+    const an = ctx.createAnalyser(); an.fftSize = 512; ctx.createMediaStreamSource(stream).connect(an);
+    const buf = new Uint8Array(an.fftSize); let peak = 0; const t0 = performance.now();
+    lvl = { stream, ctx, raf:0 };
+    const loop = () => {
+      an.getByteTimeDomainData(buf); let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128));
+      const l = Math.min(1, m / 64); peak = Math.max(peak, l);
+      $('#meterBar').style.width = (l * 100) + '%';
+      if (performance.now() - t0 > 5000){
+        txt.innerHTML = peak > 0.08 ? '<span class="good">✓ Mic works — it hears you.</span> If speech still fails, it\'s the speech engine, not the mic.' : '<span class="bad">Mic opened but heard almost nothing. Check it isn\'t muted / covered / routed to Bluetooth.</span>';
+        stopLevel(); return;
+      }
+      txt.textContent = 'Listening… talk now'; lvl.raf = requestAnimationFrame(loop);
+    };
+    loop();
+  }catch(e){
+    txt.innerHTML = `<span class="bad">${esc(e.name === 'NotAllowedError' ? ERRMSG['not-allowed'] : e.name === 'NotFoundError' ? 'No microphone found.' : (e.name + ': ' + e.message))}</span>`;
+  }
+}
+function testSpeech(){
+  stopLevel(); const out = $('#sttTxt');
+  if (recOn) stopRec();
+  let r; try{ r = new SR(); }catch(e){ out.innerHTML = `<span class="bad">Can't create recognizer: ${esc(e.message)}</span>`; return; }
+  r.lang = 'en-US'; r.interimResults = true; r.continuous = false;
+  const log = []; const show = extra => { out.innerHTML = esc(log.join(' → ')) + (extra || ''); };
+  let heard = '';
+  ['start','audiostart','soundstart','speechstart','speechend','end'].forEach(ev => r.addEventListener(ev, () => { log.push(ev); show(heard ? `<br><b>${esc(heard)}</b>` : ''); }));
+  r.onresult = e => { heard = e.results[e.results.length - 1][0].transcript; show(`<br><b>${esc(heard)}</b>`); };
+  r.onerror = e => { log.push('error:' + e.error); show(`<br><span class="bad">${esc(ERRMSG[e.error] || e.error)}</span>`); };
+  r.addEventListener('end', () => { if (heard) show(`<br><span class="good">✓ Speech works: “${esc(heard)}”</span>`); });
+  try{ r.start(); log.push('requested'); show(); }catch(e){ out.innerHTML = `<span class="bad">start() failed: ${esc(e.message)}</span>`; }
+  setTimeout(() => { if (!log.includes('start')) show('<br><span class="bad">Engine never started — speech is blocked on this device/browser. Use the keyboard mic.</span>'); }, 5000);
 }
 
 /* =====================================================================
@@ -1324,10 +1478,23 @@ document.querySelectorAll('[data-rc]').forEach(b => b.onclick = () => bumpRC(+b.
 document.querySelectorAll('[data-dk]').forEach(b => b.onclick = () => bumpDecks(+b.dataset.dk));
 $('#resetBtn').onclick = () => { applyCount({ reset:true }); renderCount(); recall(); };
 $('#micBtn').onclick = toggleListen;
+$('#diagBtn').onclick = openDiag;
 $('#lockBtn').onclick = toggleLock;
 $('#seg').onclick = e => { const b = e.target.closest('button'); if (!b) return; Q.type = b.dataset.type; Q.val = null; renderPad(); };
 $('#kgrid').onclick = e => { const b = e.target.closest('button'); if (!b) return; Q.val = +b.dataset.v; renderPad(); padCall(); };
 $('#dgrid').onclick = e => { const b = e.target.closest('button'); if (!b) return; Q.u = +b.dataset.u; renderPad(); padCall(); };
+let dictT = 0, dictLast = '';
+$('#txtIn').addEventListener('input', e => {
+  clearTimeout(dictT);
+  const v = e.target.value.trim();
+  if (!v || v === dictLast) return;
+  // only auto-fire on spoken-looking input (contains a space-separated vs/against/dealer or words) — typed "16v10" still uses Enter
+  if (!/\s/.test(v)) return;
+  dictT = setTimeout(() => {
+    const n = normalize(v); const p = parseHand(extractCount(n).rest);
+    if (p){ dictLast = v; $('#transcript').innerHTML = `<b>${esc(v)}</b>`; if (handleUtterance(v, 'voice')) e.target.value = ''; }
+  }, 900);
+});
 $('#txtIn').addEventListener('keydown', e => {
   if (e.key === 'Enter'){ const v = e.target.value.trim(); if (!v) return;
     $('#transcript').innerHTML = `<b>${esc(v)}</b>`;
@@ -1354,6 +1521,7 @@ function toggleLock(){
 }
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#diag').classList.contains('show')) return closeDiag();
   const inText = e.target.tagName === 'INPUT';
   if (inText) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -1384,7 +1552,7 @@ document.addEventListener('keydown', e => {
 });
 
 renderRules(); renderCount(); renderPad(); renderLife(); micUI();
-if (!SR) notice('Voice input not supported in this browser (use Chrome, Edge or Safari). Typed + tap input still works.');
+{ const b = blocker(); if (b) showFallback(b); }
 window.__sc21 = { decide, evTable, normalize, extractCount, parseHand, handleUtterance, genScenario, S, M };
 </script>
 </body>
