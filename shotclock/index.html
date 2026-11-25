@@ -751,6 +751,7 @@ function normalize(raw){
   s = s.replace(/(\d+) and a half/g, (m, d) => String(+d + 0.5)).replace(/\bhalf a deck\b/g, '0.5 deck').replace(/\ba half\b/g, '0.5');
   s = s.replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)([a-z])/g, '$1 $2');
   s = s.replace(/\b([a-z]+)\b/g, w => FACES[w] ?? w);
+  s = s.replace(/\b2 (\d+|ace) pl\b/g, 'pair $1');
   return s.replace(/\s+/g, ' ').trim();
 }
 
@@ -810,7 +811,8 @@ function parseHand(s){
     else if (t === 'hard' || t === 'h') flags.hard = true;
     else if (['pair','pairs','p','split','pl','double','doubles'].includes(t)) flags.pair = true;
     else if (t === 'blackjack' || t === 'natural' || t === 'bj') flags.bj = true;
-    else if (t === 'a'){ const nx = left[i + 1]; if (nx === undefined || /^\d+$/.test(nx) || ['pl','a','ace'].includes(nx) || left[i - 1] === 'a') vals.push(A); }
+    else if (t === 'a'){ const nx = left[i + 1]; if (nx === undefined || /^\d+$/.test(nx) || ['pl','a','ace'].includes(nx) || left[i - 1] === 'a') vals.push(1); }
+    else if (t === 'ace' || t === 'aces') vals.push(1);
     else { const c = cardTok(t, false); if (c !== null) vals.push(c); }
   });
   let hand = null;
@@ -821,11 +823,11 @@ function parseHand(s){
     if (k > A && k % 2 === 0 && k / 2 <= 10) k = k / 2;
     if (k < 2 || k > A) return null;
     hand = { type:'pair', rank:k, total: k === A ? 12 : k * 2 };
-  } else if (vals.length >= 2 && vals.every(v => v >= 1 && v <= A)){
+  } else if (vals.length >= 2 && vals.every(v => v >= 1 && v <= 10)){
     hand = handFromCards(vals.map(v => v === 1 ? A : v));
   } else if (vals.length === 1){
     const n = vals[0];
-    if (n === A) return null;
+    if (n === 1) return null;
     if (flags.soft){
       if (n >= 13 && n <= 21) hand = n === 21 ? { type:'bj', total:21 } : { type:'soft', total:n };
       else if (n === 12) hand = { type:'pair', rank:A, total:12 };
