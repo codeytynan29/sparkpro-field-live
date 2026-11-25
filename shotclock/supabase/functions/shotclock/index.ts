@@ -99,6 +99,7 @@ function decide(hand, u, tcRaw, rules){
       out.action = out.devOn ? 'P' : 'S';
       return out;
     }
+    if (k === 8 && u === A && rules.h17 && rules.ls && !hand.multi){ out.action = out.basic = 'R'; return out; }
     if (pairSplits(k, u)){ out.action = out.basic = 'P'; return out; }
     if (k === A){ t = 12; soft = true; } else t = k * 2;
   }
@@ -163,7 +164,7 @@ const SEPS = new Set(['vs','v','versus','verses','against','dealer','dealers','i
 
 function normalize(raw){
   let s = ' ' + raw.toLowerCase() + ' ';
-  s = s.replace(/[×]/g, ' ');
+  s = s.replace(/[×]/g, ' ').replace(/[’‘`]/g, "'").replace(/'/g, '');
   s = s.replace(/(^|\s)\+\s?(\d)/g, ' plus $2').replace(/(^|\s)[-−–]\s?(\d)/g, ' minus $2');
   s = s.replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(/[,!?;:"()]/g, ' ');
   s = s.replace(/[-–—\/]/g, ' ');
@@ -286,19 +287,31 @@ function parseLoose(s){
   return p;
 }
 function answer(raw, opts){
-  const rules = { ls: opts.ls, h17: opts.h17 };
   const norm = normalize(raw || '');
+  const rules = { ls: opts.ls, h17: opts.h17 };
+  if (/\b(no|without) surrender\b/.test(norm)) rules.ls = false;
+  else if (/\bsurrender\b/.test(norm)) rules.ls = true;
+  if (/\b(hits?|hit on) soft 17\b|\bh 17\b/.test(norm)) rules.h17 = true;
   const { cmds, rest } = extractCount(norm);
   let tc = opts.tc;
   let decks = opts.decks;
   let rc = null;
   for (const c of cmds){ if (c.tc !== undefined) tc = c.tc; if (c.decks !== undefined) decks = c.decks; if (c.rc !== undefined) rc = c.rc; if (c.drc !== undefined) rc = (rc || 0) + c.drc; }
   if (rc !== null) tc = rc / Math.max(0.5, decks);
+  const counted = rc !== null || cmds.some(c => c.tc !== undefined) || opts.tcGiven;
   const wantsIns = /\binsurance|insure|even money\b/.test(norm);
-  let p = rest ? parseHand(rest) : null;
-  if (!p) p = parseLoose(rest || norm);
+  const cleaned = (rest || '').replace(/\b(no|without) surrender\b|\bsurrender\b|\b(dealer )?(hits?|hit on|stands?|stand on) soft 17\b/g, ' ').replace(/\s+/g, ' ').trim();
+  let p = cleaned ? parseHand(cleaned) : null;
+  if (!p) p = parseLoose(cleaned || norm);
   if (!p) return { ok:false, text:"Didn't catch the hand. Say it like: 16 against 10." };
   const d = decide(p.hand, p.u, tc, rules);
+  // App blackjack reshuffles constantly: with no count given, play the basic chart, not count indices.
+  if (!counted){
+    let b = d.basic;
+    if (p.hand.multi && b === 'D') b = (p.hand.type === 'soft' && p.hand.total >= 18) ? 'S' : 'H';
+    if (p.hand.multi && b === 'R') b = 'H';
+    d.action = b; d.devOn = false; if (d.ins) d.ins.take = false;
+  }
   let text = `${SPOKEN_ACT[d.action]}. ${spokenHand(p.hand)} against ${upWord(p.u)}.`;
   if (d.action === 'BJ') text = p.u === A ? 'Blackjack. Decline even money.' : 'Blackjack. Get paid.';
   if (d.devOn && d.action !== d.basic) text += ' Index play.';
@@ -318,7 +331,7 @@ async function handle(req){
     else q = body;
   }
   const flag = (k, d) => { const v = url.searchParams.get(k); return v === null ? d : v === '1' || v === 'true'; };
-  const opts = { ls: flag('ls', true), h17: flag('h17', false), tc: parseFloat(url.searchParams.get('tc') || '0') || 0, decks: parseFloat(url.searchParams.get('decks') || '6') || 6 };
+  const opts = { ls: flag('ls', true), h17: flag('h17', false), tc: parseFloat(url.searchParams.get('tc') || '0') || 0, tcGiven: url.searchParams.has('tc'), decks: parseFloat(url.searchParams.get('decks') || '6') || 6 };
   const out = answer(String(q).slice(0, 300), opts);
   if (url.searchParams.get('format') === 'json') return new Response(JSON.stringify(out), { headers:{ ...CORS, 'Content-Type':'application/json' } });
   return new Response(out.text, { headers:{ ...CORS, 'Content-Type':'text/plain; charset=utf-8', 'Cache-Control':'no-store' } });
